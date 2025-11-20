@@ -2,16 +2,25 @@ import React, { useMemo } from 'react';
 import { getUniqueValues } from '../utils/csvParser';
 
 /**
- * FilterPanel component for filtering swords by school, tradition, smith, type, authentication, and province
+ * FilterPanel component for filtering swords by school, smith, type, authentication level, and province
  */
 const FilterPanel = ({ filters, onFilterChange, swords }) => {
   // Get unique values for each filter category
   const schools = useMemo(() => getUniqueValues(swords, 'School'), [swords]);
-  const traditions = useMemo(() => getUniqueValues(swords, 'Tradition'), [swords]);
   const smiths = useMemo(() => getUniqueValues(swords, 'Smith'), [swords]);
   const types = useMemo(() => getUniqueValues(swords, 'Type'), [swords]);
-  const authentications = useMemo(() => getUniqueValues(swords, 'Authentication'), [swords]);
   const provinces = useMemo(() => getUniqueValues(swords, 'Province'), [swords]);
+
+  // Authentication levels from CLAUDE.md
+  const authenticationLevels = [
+    'Kokuho',
+    'Juyo Bunkazai',
+    'Tokubetsu Juyo',
+    'Juyo',
+    'Juyo Bijutsuhin',
+    'Tokubetsu Hozon',
+    'Hozon'
+  ];
 
   const handleFilterChange = (filterName, value) => {
     onFilterChange({
@@ -23,7 +32,6 @@ const FilterPanel = ({ filters, onFilterChange, swords }) => {
   const handleClearFilters = () => {
     onFilterChange({
       school: '',
-      tradition: '',
       smith: '',
       type: '',
       authentication: '',
@@ -60,20 +68,6 @@ const FilterPanel = ({ filters, onFilterChange, swords }) => {
         </div>
 
         <div className="filter-group">
-          <label htmlFor="tradition-filter">Tradition</label>
-          <select
-            id="tradition-filter"
-            value={filters.tradition}
-            onChange={(e) => handleFilterChange('tradition', e.target.value)}
-          >
-            <option value="">All Traditions</option>
-            {traditions.map(tradition => (
-              <option key={tradition} value={tradition}>{tradition}</option>
-            ))}
-          </select>
-        </div>
-
-        <div className="filter-group">
           <label htmlFor="smith-filter">Smith</label>
           <select
             id="smith-filter"
@@ -102,14 +96,14 @@ const FilterPanel = ({ filters, onFilterChange, swords }) => {
         </div>
 
         <div className="filter-group">
-          <label htmlFor="authentication-filter">Authentication</label>
+          <label htmlFor="authentication-filter">Authentication Level</label>
           <select
             id="authentication-filter"
             value={filters.authentication}
             onChange={(e) => handleFilterChange('authentication', e.target.value)}
           >
-            <option value="">All Authentications</option>
-            {authentications.map(auth => (
+            <option value="">All Levels</option>
+            {authenticationLevels.map(auth => (
               <option key={auth} value={auth}>{auth}</option>
             ))}
           </select>

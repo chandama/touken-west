@@ -12,7 +12,6 @@ function App() {
   const [searchTerm, setSearchTerm] = useState('');
   const [filters, setFilters] = useState({
     school: '',
-    tradition: '',
     smith: '',
     type: '',
     authentication: '',
@@ -44,13 +43,30 @@ function App() {
       );
 
     const matchesSchool = filters.school === '' || sword.School === filters.school;
-    const matchesTradition = filters.tradition === '' || sword.Tradition === filters.tradition;
     const matchesSmith = filters.smith === '' || sword.Smith === filters.smith;
     const matchesType = filters.type === '' || sword.Type === filters.type;
-    const matchesAuthentication = filters.authentication === '' || sword.Authentication === filters.authentication;
+
+    // Advanced authentication matching
+    const matchesAuthentication = filters.authentication === '' || (() => {
+      if (!sword.Authentication) return false;
+      const authStr = String(sword.Authentication);
+
+      switch (filters.authentication) {
+        case 'Juyo':
+          // Match "Juyo" followed by 1-2 digits, but not "Juyo Bunkazai" or "Juyo Bijutsuhin"
+          return /Juyo\s+\d{1,2}/.test(authStr);
+        case 'Hozon':
+          // Match "Hozon" but not "Tokubetsu Hozon"
+          return authStr.includes('Hozon') && !authStr.includes('Tokubetsu Hozon');
+        default:
+          // For all other authentication levels, use simple contains
+          return authStr.includes(filters.authentication);
+      }
+    })();
+
     const matchesProvince = filters.province === '' || sword.Province === filters.province;
 
-    return matchesSearch && matchesSchool && matchesTradition && matchesSmith && matchesType && matchesAuthentication && matchesProvince;
+    return matchesSearch && matchesSchool && matchesSmith && matchesType && matchesAuthentication && matchesProvince;
   });
 
   return (
