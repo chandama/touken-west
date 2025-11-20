@@ -53,8 +53,11 @@ function App() {
 
       switch (filters.authentication) {
         case 'Juyo':
-          // Match "Juyo" followed by 1-2 digits, but not "Juyo Bunkazai" or "Juyo Bijutsuhin"
-          return /Juyo\s+\d{1,2}/.test(authStr);
+          // Match "Juyo" followed by 1-2 digits or "XX", but not "Juyo Bunkazai" or "Juyo Bijutsuhin"
+          return /Juyo\s+(\d{1,2}|XX)/.test(authStr);
+        case 'Tokubetsu Juyo':
+          // Match "Tokubetsu Juyo" followed by 1-2 digits or "XX"
+          return /Tokubetsu Juyo\s+(\d{1,2}|XX)/.test(authStr);
         case 'Hozon':
           // Match "Hozon" but not "Tokubetsu Hozon"
           return authStr.includes('Hozon') && !authStr.includes('Tokubetsu Hozon');
