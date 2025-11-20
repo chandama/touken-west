@@ -120,7 +120,111 @@
 
 ---
 
-## 4. General Improvements & Polish
+## 4. Advanced Search: Complex AND/OR Filter Combinations
+
+### Research & Planning
+- [ ] Design UI for complex filter expressions
+- [ ] Define query syntax/format (visual builder vs text input)
+- [ ] Plan how to represent complex queries (e.g., "(Masamune AND Juyo) OR (Sadamune AND Tokubetsu Juyo)")
+- [ ] Decide on implementation approach (query builder vs formula bar)
+
+### Data Structure
+- [ ] Design data structure to represent filter combinations
+- [ ] Support nested AND/OR groups
+- [ ] Allow multiple filter criteria per group
+- [ ] Handle parentheses/grouping logic
+
+### UI Implementation
+- [ ] Create filter group builder component
+- [ ] Add AND/OR toggle buttons between groups
+- [ ] Visual representation of grouped filters
+- [ ] Add ability to nest filter groups
+- [ ] Show current filter logic clearly (e.g., "Group 1 OR Group 2")
+- [ ] Add "Add Group" button
+- [ ] Allow removing individual groups
+
+### Filter Logic
+- [ ] Implement AND logic within groups
+- [ ] Implement OR logic between groups
+- [ ] Support nested grouping evaluation
+- [ ] Update filtering function to handle complex queries
+- [ ] Optimize performance for complex filter combinations
+
+### Examples to Support
+- [ ] Example 1: (Smith = Masamune AND Authentication = Juyo) OR (Smith = Sadamune AND Authentication = Tokubetsu Juyo)
+- [ ] Example 2: (School = Soshu OR School = Bizen) AND Type = Tanto
+- [ ] Example 3: Multiple groups with different field combinations
+
+### UX Enhancements
+- [ ] Clear visual distinction between groups
+- [ ] Highlight active filter groups
+- [ ] Show result counts per group (optional)
+- [ ] Add "Save Filter" functionality (optional)
+- [ ] Implement filter presets (optional)
+
+### Testing
+- [ ] Test simple AND combinations
+- [ ] Test simple OR combinations
+- [ ] Test complex nested combinations
+- [ ] Test performance with many groups
+- [ ] Test clearing complex filters
+- [ ] Verify filter logic correctness
+
+---
+
+## 5. Literal String Search with Quoted Phrases
+
+### Research & Planning
+- [ ] Design quote parsing logic
+- [ ] Handle edge cases (unclosed quotes, nested quotes, escaped quotes)
+- [ ] Define behavior for mixed quoted/unquoted terms
+- [ ] Plan UI feedback for quoted searches
+
+### Implementation
+- [ ] Create string parser to detect quoted phrases
+- [ ] Extract quoted phrases as literal search terms
+- [ ] Update search logic to handle both literal and partial matches
+- [ ] Combine quoted and unquoted searches (quoted = exact, unquoted = contains)
+
+### Search Logic
+- [ ] Parse input string to identify quoted segments
+- [ ] Example: `Masamune "Juyo 11" tanto` → 3 terms (partial, exact, partial)
+- [ ] Implement exact match for quoted phrases
+- [ ] Implement partial match for unquoted terms
+- [ ] Combine results with AND logic
+
+### UI Enhancements
+- [ ] Visual indicator for quoted searches (different tag color?)
+- [ ] Show quote marks in search tags
+- [ ] Add tooltip explaining quote functionality
+- [ ] Add example in placeholder text
+- [ ] Help text or info icon explaining syntax
+
+### Examples to Support
+- [ ] `"Juyo 11"` - Find exact phrase "Juyo 11"
+- [ ] `"Tokubetsu Juyo"` - Find exact authentication level
+- [ ] `Masamune "Soshu tradition"` - Partial + exact match
+- [ ] `"Denrai: Tokugawa"` - Exact provenance string
+
+### Edge Cases
+- [ ] Handle unclosed quotes gracefully
+- [ ] Handle empty quotes ""
+- [ ] Handle quotes within quotes
+- [ ] Handle special characters within quotes
+- [ ] Case sensitivity (should quotes preserve case?)
+
+### Testing
+- [ ] Test simple quoted phrase
+- [ ] Test multiple quoted phrases
+- [ ] Test mixed quoted and unquoted terms
+- [ ] Test unclosed quotes
+- [ ] Test empty quotes
+- [ ] Test special characters
+- [ ] Test very long quoted phrases
+
+---
+
+## 6. General Improvements & Polish
 
 ### Performance
 - [ ] Add memoization to filter calculations

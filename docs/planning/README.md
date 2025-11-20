@@ -16,14 +16,16 @@ Transform Touken West from a simple CSV-based sword catalog into a modern, featu
 ## Phase Overview
 
 ### [Phase 1: Core UX Enhancements](./phase-1/README.md)
-**Status**: 🟡 In Progress (Features 1-2 Complete)
+**Status**: 🟡 In Progress (2 of 5 features complete)
 **Timeline**: Started 2024-11-19
-**Focus**: Improve user experience with better filtering and search capabilities
+**Focus**: Improve user experience with advanced filtering and search capabilities
 
 Key features:
 - ✅ Sticky tag search with multi-keyword support (Complete)
 - ✅ Dynamic cascading filters (Complete)
 - ⏳ Meito (famous sword) extraction and display (Not Started)
+- ⏳ Complex AND/OR filter combinations (Not Started)
+- ⏳ Literal string search with quoted phrases (Not Started)
 
 ### [Phase 2: Visual Redesign](./phase-2/README.md)
 **Status**: 🔵 Not Started
@@ -80,8 +82,9 @@ Key features:
 ## Current Phase
 
 **Active**: Phase 1 - Core UX Enhancements
-**Progress**: 2 of 3 features complete
+**Progress**: 2 of 5 features complete (expanded scope)
 **Latest**: Commit `1837fe8` - Multi-tag search and cascading filters implemented
+**Next**: Feature 3 (Meito detection) or Features 4-5 (advanced search)
 
 ## Tech Stack Evolution
 
