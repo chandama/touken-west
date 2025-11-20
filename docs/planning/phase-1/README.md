@@ -1,6 +1,6 @@
 # Phase 1: Core UX Enhancements
 
-**Status**: 🟡 In Progress (2 of 5 features complete)
+**Status**: 🟡 In Progress (4 of 5 features complete)
 **Priority**: High
 **Estimated Complexity**: Medium-High
 
@@ -12,8 +12,8 @@ Phase 1 focuses on improving the core user experience with advanced filtering an
 
 1. **Implement sticky tag/multi-keyword search** ✅ - Allow users to apply multiple search terms simultaneously and see them as removable tags
 2. **Add dynamic cascading filters** ✅ - Update filter dropdowns to show only relevant options based on currently selected filters
-3. **Extract and display Meito status** - Parse the Description field to identify famous named swords and display this prominently
-4. **Complex AND/OR filter combinations** - Enable advanced filtering with groups like "(Masamune AND Juyo) OR (Sadamune AND Tokubetsu Juyo)"
+3. **Extract and display Meito status** ✅ - Parse the Description field to identify famous named swords and display this prominently
+4. **Complex AND/OR filter combinations** ✅ - Enable advanced filtering with groups like "(Masamune AND Juyo) OR (Sadamune AND Tokubetsu Juyo)"
 5. **Literal string search with quotes** - Support exact phrase matching using double quotes (e.g., "Juyo 11")
 
 ## Key Features
@@ -33,23 +33,28 @@ Phase 1 focuses on improving the core user experience with advanced filtering an
 - Display count of available options in each filter
 - Gracefully handle empty filter states
 
-### 3. Meito Detection & Display
-- Parse Description field for "Meito" keyword
-- Extract famous sword names (e.g., "Dojigiri", "Onimaru")
-- Add dedicated "Famous Sword" field in Sword Detail view
-- Add visual indicator (badge/icon) for Meito in table view
-- Create filter option for Meito swords only
+### 3. Meito Detection & Display ✅
+- ✅ Parse Description field for "Meito –" pattern
+- ✅ Extract famous sword names with Japanese characters (288 swords identified)
+- ✅ Add golden dedicated section in Sword Detail view with star badge
+- ⚠️ Visual indicator in table view - Simplified: detail view only
+- ⚠️ Filter option for Meito swords - Removed per simplified scope
+- ✅ Full dark mode support for Meito styling
 
-### 4. Complex AND/OR Filter Combinations
-- Create filter groups with AND logic within groups
-- Support OR logic between filter groups
-- Visual query builder interface
-- Example: Find swords that are either (Masamune + Juyo) OR (Sadamune + Tokubetsu Juyo)
-- Nested grouping support for complex queries
-- Clear visual representation of active filter logic
-- Save and reuse complex filter combinations
+### 4. Complex AND/OR Filter Combinations ✅
+- ✅ Collapsible advanced filter section (collapsed by default)
+- ✅ Create filter groups with AND logic within groups
+- ✅ Support OR logic between filter groups
+- ✅ Visual query builder with card-based interface
+- ✅ Per-group keyword search functionality
+- ✅ Example: Find swords that are either (Masamune + Juyo) OR (Sadamune + Tokubetsu Juyo)
+- ⚠️ Nested grouping - Simplified: single-level groups combined with OR
+- ✅ Clear visual representation with OR badges between groups
+- ✅ Active filter summary display per group
+- ⚠️ Save filter combinations - Deferred to future phase
 
-### 5. Literal String Search with Quoted Phrases
+### 5. Advanced Search with Quotes & Autocomplete
+**A. Literal String Search with Quoted Phrases**
 - Support exact phrase matching using double quotes
 - Example: `"Juyo 11"` finds only that exact string
 - Mix literal and partial searches: `Masamune "Soshu tradition" tanto`
@@ -57,6 +62,18 @@ Phase 1 focuses on improving the core user experience with advanced filtering an
 - Intelligent quote parsing with error handling
 - Case-insensitive matching (configurable)
 - Help text and examples for users
+
+**B. Real-time Autocomplete/Typeahead Search**
+- Live dropdown suggestions as user types
+- Display top matching results (5-10 suggestions)
+- Show result count for each suggestion
+- Smooth animation for dropdown appearance/disappearance
+- Debounced input to optimize performance
+- Keyboard navigation (arrow keys, Enter to select)
+- Click to select suggestion
+- Highlight matching text within suggestions
+- Search across multiple fields (Smith, School, Type, Authentication, Mei)
+- Group suggestions by category (e.g., "Smiths", "Schools", "Famous Swords")
 
 ## Technical Considerations
 
@@ -85,12 +102,19 @@ Phase 1 focuses on improving the core user experience with advanced filtering an
 
 - [x] Users can add/remove multiple search keywords as visible tags
 - [x] Filter dropdowns update in real-time based on current selections
-- [ ] Meito swords are clearly identified in detail view
+- [x] Meito swords are clearly identified in detail view with golden section
 - [x] Filter combinations return correct results
 - [x] Performance remains smooth with all filters active
-- [ ] Complex AND/OR filter groups work correctly
+- [x] Complex AND/OR filter groups work correctly
+- [x] Advanced filters collapsible with compact UI
+- [x] Per-group keyword search functionality
 - [ ] Quoted phrase searches return exact matches
 - [ ] Mixed quoted/unquoted searches work as expected
+- [ ] Autocomplete dropdown appears while typing
+- [ ] Suggestions are relevant and accurate
+- [ ] Result counts display correctly
+- [ ] Keyboard navigation works smoothly
+- [ ] Autocomplete performance is responsive (debounced)
 - [ ] URL reflects current filter state (shareable links) - deferred
 
 ## Out of Scope (Deferred to Later Phases)
@@ -114,21 +138,25 @@ Phase 1 focuses on improving the core user experience with advanced filtering an
 
 ## Files to Modify
 
-### Already Modified (Features 1-2)
+### Already Modified (Features 1-4)
 - ✅ `src/components/SearchBar.jsx` - Tag functionality (complete)
 - ✅ `src/components/FilterPanel.jsx` - Cascading filters (complete)
-- ✅ `src/App.js` - Multi-tag search logic (complete)
-- ✅ `src/styles/App.css` - Tag styling and dark mode (complete)
+- ✅ `src/App.js` - Multi-tag search logic and filter groups (complete)
+- ✅ `src/styles/App.css` - Tag styling, dark mode, and advanced filters (complete)
 - ✅ `src/utils/filterUtils.js` - NEW - Cascading filter utilities (complete)
+- ✅ `src/utils/meitoUtils.js` - NEW - Meito detection and extraction (complete)
+- ✅ `src/hooks/useSwordData.js` - Meito data enrichment (complete)
+- ✅ `src/components/SwordDetail.jsx` - Display Meito status (complete)
+- ✅ `src/components/AdvancedFilterGroups.jsx` - NEW - Complex filter UI (complete)
 
-### To Be Modified (Features 3-5)
-- `src/components/SwordDetail.jsx` - Display Meito status
-- `src/utils/csvParser.js` - Add Meito extraction utilities
-- `src/components/FilterGroupBuilder.jsx` - NEW - Complex filter UI
-- `src/components/SearchBar.jsx` - Add quote parsing logic
+### To Be Modified (Feature 5)
+- `src/components/SearchBar.jsx` - Add quote parsing logic and autocomplete UI
+- `src/components/AutocompleteDropdown.jsx` - NEW - Autocomplete suggestion dropdown
 - `src/utils/searchParser.js` - NEW - Parse quoted phrases
-- `src/utils/queryEvaluator.js` - NEW - Evaluate complex filter queries
-- `src/App.js` - Update to handle filter groups and quoted searches
+- `src/utils/autocompleteUtils.js` - NEW - Generate search suggestions
+- `src/hooks/useAutocomplete.js` - NEW - Custom hook for autocomplete logic
+- `src/App.js` - Update to handle quoted searches
+- `src/styles/App.css` - Autocomplete dropdown styling and animations
 
 ## Next Steps
 
