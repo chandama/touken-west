@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import './styles/App.css';
 import SearchBar from './components/SearchBar';
 import FilterPanel from './components/FilterPanel';
+import AdvancedFilterGroups from './components/AdvancedFilterGroups';
 import SwordTable from './components/SwordTable';
 import SwordDetail from './components/SwordDetail';
 import DarkModeToggle from './components/DarkModeToggle';
@@ -17,6 +18,7 @@ function App() {
     authentication: '',
     province: ''
   });
+  const [filterGroups, setFilterGroups] = useState([]);
   const [selectedSword, setSelectedSword] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -36,6 +38,43 @@ function App() {
     setIsDarkMode(prev => !prev);
   };
 
+  // Helper function to check if authentication matches
+  const checkAuthenticationMatch = (sword, authenticationFilter) => {
+    if (authenticationFilter === '') return true;
+    if (!sword.Authentication) return false;
+
+    const authStr = String(sword.Authentication);
+    switch (authenticationFilter) {
+      case 'Juyo':
+        return /Juyo\s+(\d{1,2}|XX)/.test(authStr);
+      case 'Tokubetsu Juyo':
+        return /Tokubetsu Juyo\s+(\d{1,2}|XX)/.test(authStr);
+      case 'Hozon':
+        return authStr.includes('Hozon') && !authStr.includes('Tokubetsu Hozon');
+      default:
+        return authStr.includes(authenticationFilter);
+    }
+  };
+
+  // Helper function to check if a sword matches all filters in a group
+  const checkGroupMatch = (sword, group) => {
+    // Check group search (similar to global search but for this group only)
+    const matchesGroupSearch = group.search === '' || (() => {
+      const lowerSearch = group.search.toLowerCase();
+      return Object.values(sword).some(value =>
+        String(value).toLowerCase().includes(lowerSearch)
+      );
+    })();
+
+    const matchesSchool = group.school === '' || sword.School === group.school;
+    const matchesSmith = group.smith === '' || sword.Smith === group.smith;
+    const matchesType = group.type === '' || sword.Type === group.type;
+    const matchesAuthentication = checkAuthenticationMatch(sword, group.authentication);
+    const matchesProvince = group.province === '' || sword.Province === group.province;
+
+    return matchesGroupSearch && matchesSchool && matchesSmith && matchesType && matchesAuthentication && matchesProvince;
+  };
+
   const filteredSwords = swords.filter(sword => {
     // Multi-tag search with AND logic
     // All search tags must match for the sword to be included
@@ -46,34 +85,26 @@ function App() {
       );
     });
 
+    // Base filters (AND logic)
     const matchesSchool = filters.school === '' || sword.School === filters.school;
     const matchesSmith = filters.smith === '' || sword.Smith === filters.smith;
     const matchesType = filters.type === '' || sword.Type === filters.type;
-
-    // Advanced authentication matching
-    const matchesAuthentication = filters.authentication === '' || (() => {
-      if (!sword.Authentication) return false;
-      const authStr = String(sword.Authentication);
-
-      switch (filters.authentication) {
-        case 'Juyo':
-          // Match "Juyo" followed by 1-2 digits or "XX", but not "Juyo Bunkazai" or "Juyo Bijutsuhin"
-          return /Juyo\s+(\d{1,2}|XX)/.test(authStr);
-        case 'Tokubetsu Juyo':
-          // Match "Tokubetsu Juyo" followed by 1-2 digits or "XX"
-          return /Tokubetsu Juyo\s+(\d{1,2}|XX)/.test(authStr);
-        case 'Hozon':
-          // Match "Hozon" but not "Tokubetsu Hozon"
-          return authStr.includes('Hozon') && !authStr.includes('Tokubetsu Hozon');
-        default:
-          // For all other authentication levels, use simple contains
-          return authStr.includes(filters.authentication);
-      }
-    })();
-
+    const matchesAuthentication = checkAuthenticationMatch(sword, filters.authentication);
     const matchesProvince = filters.province === '' || sword.Province === filters.province;
 
-    return matchesSearch && matchesSchool && matchesSmith && matchesType && matchesAuthentication && matchesProvince;
+    const matchesBaseFilters = matchesSchool && matchesSmith && matchesType && matchesAuthentication && matchesProvince;
+
+    // Advanced filter groups (OR logic between groups, AND logic within each group)
+    // If no filter groups exist, this passes automatically
+    const matchesFilterGroups = filterGroups.length === 0 || filterGroups.some(group => {
+      // Skip empty groups (groups with no active filters)
+      const hasActiveFilters = Object.values(group).some(v => v !== '');
+      if (!hasActiveFilters) return false;
+
+      return checkGroupMatch(sword, group);
+    });
+
+    return matchesSearch && matchesBaseFilters && matchesFilterGroups;
   });
 
   return (
@@ -103,6 +134,13 @@ function App() {
               onFilterChange={setFilters}
               swords={swords}
               searchTags={searchTags}
+            />
+            <AdvancedFilterGroups
+              filterGroups={filterGroups}
+              onFilterGroupsChange={setFilterGroups}
+              swords={swords}
+              searchTags={searchTags}
+              baseFilters={filters}
             />
           </div>
 
