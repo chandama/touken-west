@@ -9,7 +9,7 @@ import useSwordData from './hooks/useSwordData';
 
 function App() {
   const { swords, loading, error } = useSwordData();
-  const [searchTerm, setSearchTerm] = useState('');
+  const [searchTags, setSearchTags] = useState([]);
   const [filters, setFilters] = useState({
     school: '',
     smith: '',
@@ -37,10 +37,14 @@ function App() {
   };
 
   const filteredSwords = swords.filter(sword => {
-    const matchesSearch = searchTerm === '' ||
-      Object.values(sword).some(value =>
-        String(value).toLowerCase().includes(searchTerm.toLowerCase())
+    // Multi-tag search with AND logic
+    // All search tags must match for the sword to be included
+    const matchesSearch = searchTags.length === 0 || searchTags.every(tag => {
+      const lowerTag = tag.toLowerCase();
+      return Object.values(sword).some(value =>
+        String(value).toLowerCase().includes(lowerTag)
       );
+    });
 
     const matchesSchool = filters.school === '' || sword.School === filters.school;
     const matchesSmith = filters.smith === '' || sword.Smith === filters.smith;
@@ -91,13 +95,14 @@ function App() {
         <div className="main-content">
           <div className="controls">
             <SearchBar
-              searchTerm={searchTerm}
-              onSearchChange={setSearchTerm}
+              searchTags={searchTags}
+              onSearchTagsChange={setSearchTags}
             />
             <FilterPanel
               filters={filters}
               onFilterChange={setFilters}
               swords={swords}
+              searchTags={searchTags}
             />
           </div>
 

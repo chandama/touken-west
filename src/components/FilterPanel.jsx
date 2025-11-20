@@ -1,26 +1,37 @@
 import React, { useMemo } from 'react';
-import { getUniqueValues } from '../utils/csvParser';
+import { getAvailableFilterOptions, getOptionCounts } from '../utils/filterUtils';
 
 /**
- * FilterPanel component for filtering swords by school, smith, type, authentication level, and province
+ * FilterPanel component with dynamic cascading filters
+ * Filter options update based on current selections
  */
-const FilterPanel = ({ filters, onFilterChange, swords }) => {
-  // Get unique values for each filter category
-  const schools = useMemo(() => getUniqueValues(swords, 'School'), [swords]);
-  const smiths = useMemo(() => getUniqueValues(swords, 'Smith'), [swords]);
-  const types = useMemo(() => getUniqueValues(swords, 'Type'), [swords]);
-  const provinces = useMemo(() => getUniqueValues(swords, 'Province'), [swords]);
+const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [] }) => {
+  // Get available filter options based on current filters and search
+  const availableOptions = useMemo(
+    () => getAvailableFilterOptions(swords, filters, searchTags),
+    [swords, filters, searchTags]
+  );
 
-  // Authentication levels from CLAUDE.md
-  const authenticationLevels = [
-    'Kokuho',
-    'Juyo Bunkazai',
-    'Tokubetsu Juyo',
-    'Juyo',
-    'Juyo Bijutsuhin',
-    'Tokubetsu Hozon',
-    'Hozon'
-  ];
+  // Get counts for each filter option
+  const schoolCounts = useMemo(
+    () => getOptionCounts(swords, filters, searchTags, 'school'),
+    [swords, filters, searchTags]
+  );
+
+  const smithCounts = useMemo(
+    () => getOptionCounts(swords, filters, searchTags, 'smith'),
+    [swords, filters, searchTags]
+  );
+
+  const typeCounts = useMemo(
+    () => getOptionCounts(swords, filters, searchTags, 'type'),
+    [swords, filters, searchTags]
+  );
+
+  const provinceCounts = useMemo(
+    () => getOptionCounts(swords, filters, searchTags, 'province'),
+    [swords, filters, searchTags]
+  );
 
   const handleFilterChange = (filterName, value) => {
     onFilterChange({
@@ -61,8 +72,10 @@ const FilterPanel = ({ filters, onFilterChange, swords }) => {
             onChange={(e) => handleFilterChange('school', e.target.value)}
           >
             <option value="">All Schools</option>
-            {schools.map(school => (
-              <option key={school} value={school}>{school}</option>
+            {availableOptions.schools.map(school => (
+              <option key={school} value={school}>
+                {school} {schoolCounts[school] ? `(${schoolCounts[school]})` : ''}
+              </option>
             ))}
           </select>
         </div>
@@ -75,8 +88,10 @@ const FilterPanel = ({ filters, onFilterChange, swords }) => {
             onChange={(e) => handleFilterChange('smith', e.target.value)}
           >
             <option value="">All Smiths</option>
-            {smiths.map(smith => (
-              <option key={smith} value={smith}>{smith}</option>
+            {availableOptions.smiths.map(smith => (
+              <option key={smith} value={smith}>
+                {smith} {smithCounts[smith] ? `(${smithCounts[smith]})` : ''}
+              </option>
             ))}
           </select>
         </div>
@@ -89,8 +104,10 @@ const FilterPanel = ({ filters, onFilterChange, swords }) => {
             onChange={(e) => handleFilterChange('type', e.target.value)}
           >
             <option value="">All Types</option>
-            {types.map(type => (
-              <option key={type} value={type}>{type}</option>
+            {availableOptions.types.map(type => (
+              <option key={type} value={type}>
+                {type} {typeCounts[type] ? `(${typeCounts[type]})` : ''}
+              </option>
             ))}
           </select>
         </div>
@@ -103,7 +120,7 @@ const FilterPanel = ({ filters, onFilterChange, swords }) => {
             onChange={(e) => handleFilterChange('authentication', e.target.value)}
           >
             <option value="">All Levels</option>
-            {authenticationLevels.map(auth => (
+            {availableOptions.authenticationLevels.map(auth => (
               <option key={auth} value={auth}>{auth}</option>
             ))}
           </select>
@@ -117,8 +134,10 @@ const FilterPanel = ({ filters, onFilterChange, swords }) => {
             onChange={(e) => handleFilterChange('province', e.target.value)}
           >
             <option value="">All Provinces</option>
-            {provinces.map(province => (
-              <option key={province} value={province}>{province}</option>
+            {availableOptions.provinces.map(province => (
+              <option key={province} value={province}>
+                {province} {provinceCounts[province] ? `(${provinceCounts[province]})` : ''}
+              </option>
             ))}
           </select>
         </div>
