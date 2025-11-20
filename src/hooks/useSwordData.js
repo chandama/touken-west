@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import { parseSwordData } from '../utils/csvParser';
+import { enrichWithMeitoData } from '../utils/meitoUtils';
 
 /**
  * Custom hook for loading and managing sword data from CSV
@@ -19,8 +20,12 @@ const useSwordData = () => {
         // Load the CSV file from the data directory
         const data = await parseSwordData('/data/index.csv');
 
-        console.log(`Loaded ${data.length} swords from database`);
-        setSwords(data);
+        // Enrich sword data with Meito (famous sword) information
+        const enrichedData = enrichWithMeitoData(data);
+
+        const meitoCount = enrichedData.filter(s => s.isMeito).length;
+        console.log(`Loaded ${data.length} swords from database (${meitoCount} Meito)`);
+        setSwords(enrichedData);
       } catch (err) {
         console.error('Error loading sword data:', err);
         setError(err.message);

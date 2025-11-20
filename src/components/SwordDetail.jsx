@@ -28,6 +28,16 @@ const SwordDetail = ({ sword, onClose }) => {
         </div>
 
         <div className="detail-content">
+          {sword.isMeito && (
+            <div className="detail-section meito-section">
+              <div className="meito-header">
+                <span className="meito-badge">★ Meito</span>
+                <span className="meito-label">Famous Named Sword</span>
+              </div>
+              <div className="meito-name">{sword.meitoName}</div>
+            </div>
+          )}
+
           <div className="detail-section">
             <h3>Basic Information</h3>
             <DetailRow label="Index" value={sword.Index} />

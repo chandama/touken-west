@@ -98,8 +98,6 @@
 
 ### UI Implementation
 - [ ] Add "Famous Sword" field to `SwordDetail` component
-- [ ] Design Meito badge/icon for table view
-- [ ] Add Meito badge to `SwordTable` component
 - [ ] Create Meito filter option in `FilterPanel`
 - [ ] Style Meito indicator to stand out visually
 - [ ] Add tooltip with Meito explanation

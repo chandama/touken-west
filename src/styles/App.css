@@ -479,6 +479,51 @@
   border-bottom: 2px solid #e3f2fd;
 }
 
+/* Meito (Famous Sword) Section */
+.meito-section {
+  background: linear-gradient(135deg, #ffd700 0%, #ffed4e 100%);
+  border: 3px solid #DAA520;
+  border-radius: 8px;
+  padding: 1.5rem;
+  margin-bottom: 2rem;
+  box-shadow: 0 4px 6px rgba(218, 165, 32, 0.3);
+}
+
+.meito-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.meito-badge {
+  background: #DAA520;
+  color: white;
+  padding: 0.5rem 1rem;
+  border-radius: 20px;
+  font-weight: bold;
+  font-size: 0.9rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+
+.meito-label {
+  font-size: 0.9rem;
+  color: #8B6914;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.meito-name {
+  font-size: 1.5rem;
+  font-weight: bold;
+  color: #8B4513;
+  line-height: 1.4;
+  text-shadow: 0 1px 2px rgba(255, 255, 255, 0.8);
+}
+
 .detail-row {
   display: grid;
   grid-template-columns: 200px 1fr;
