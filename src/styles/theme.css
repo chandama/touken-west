@@ -1,0 +1,328 @@
+/**
+ * Touken West Design System
+ * Phase 2: Museum-Quality Visual Design
+ *
+ * Design inspired by:
+ * - Traditional Japanese aesthetics (wabi-sabi, ma, shibui)
+ * - Museum websites (Tokyo National Museum, Metropolitan Museum)
+ * - Modern minimalism with respect for cultural heritage
+ */
+
+:root {
+  /* ============================================
+     COLOR PALETTE - Light Mode
+     Sanzo Wada Combination #192
+     ============================================ */
+
+  /* Primary - Slate Blue-Gray (Weathered Steel) */
+  --color-primary-dark: #4a5d6e;
+  --color-primary: #5c7287;
+  --color-primary-light: #7a8ea1;
+  --color-primary-lighter: #96a8b8;
+
+  /* Accent - Deep Brown (Aged Wood) */
+  --color-accent-dark: #362304;
+  --color-accent: #4a3205;
+  --color-accent-medium: #6b4a0a;
+  --color-accent-light: #8b6510;
+
+  /* Highlight - Golden Amber (Gold Leaf) */
+  --color-highlight-dark: #e5a33d;
+  --color-highlight: #ffb852;
+  --color-highlight-light: #ffc66b;
+  --color-highlight-lighter: #ffd485;
+
+  /* Neutral - Warm grays complementing the palette */
+  --color-neutral-900: #362304;  /* Deep brown for primary text */
+  --color-neutral-800: #4a3205;
+  --color-neutral-700: #5a4520;
+  --color-neutral-600: #6b5a3d;
+  --color-neutral-500: #8a7660;
+  --color-neutral-400: #a89886;
+  --color-neutral-300: #c4b8ab;
+  --color-neutral-200: #ddd6cf;
+  --color-neutral-100: #eeebe7;
+  --color-neutral-50: #f7f5f3;
+
+  /* Background - Warm off-white like aged paper */
+  --color-background: #ffffff;
+  --color-background-subtle: #faf9f7;
+  --color-background-elevated: #ffffff;
+  --color-background-elevated-2: #f7f5f3;
+
+  /* Semantic Colors - Harmonized with palette */
+  --color-success: #4a6b3a;
+  --color-success-light: #5d8549;
+  --color-warning: #e5a33d;  /* Darker golden amber */
+  --color-warning-light: #ffb852;  /* Base golden amber */
+  --color-error: #b84a3d;
+  --color-error-light: #d16356;
+  --color-info: #5c7287;  /* Use primary slate blue */
+  --color-info-light: #7a8ea1;
+
+  /* Text Colors */
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-tertiary: var(--color-neutral-500);
+  --color-text-inverse: var(--color-neutral-50);
+
+  /* Border Colors */
+  --color-border: var(--color-neutral-200);
+  --color-border-subtle: var(--color-neutral-100);
+  --color-border-strong: var(--color-neutral-300);
+
+  /* Interactive States */
+  --color-interactive-primary: var(--color-primary);
+  --color-interactive-primary-hover: var(--color-primary-light);
+  --color-interactive-secondary: var(--color-neutral-600);
+  --color-interactive-secondary-hover: var(--color-neutral-700);
+
+  /* ============================================
+     TYPOGRAPHY
+     ============================================ */
+
+  /* Font Families */
+  --font-display: 'DM Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-body: 'Open Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Helvetica Neue', Arial, sans-serif;
+  --font-japanese: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', 'Roboto Mono', 'SF Mono', Monaco, 'Courier New', monospace;
+
+  /* Font Sizes */
+  --font-size-xs: 0.75rem;      /* 12px */
+  --font-size-sm: 0.875rem;     /* 14px */
+  --font-size-base: 1rem;       /* 16px */
+  --font-size-lg: 1.125rem;     /* 18px */
+  --font-size-xl: 1.375rem;     /* 22px */
+  --font-size-2xl: 1.75rem;     /* 28px */
+  --font-size-3xl: 2.25rem;     /* 36px */
+  --font-size-4xl: 3rem;        /* 48px */
+
+  /* Font Weights */
+  --font-weight-regular: 400;
+  --font-weight-medium: 500;
+  --font-weight-semibold: 600;
+  --font-weight-bold: 700;
+
+  /* Line Heights */
+  --line-height-tight: 1.2;
+  --line-height-snug: 1.3;
+  --line-height-normal: 1.5;
+  --line-height-relaxed: 1.6;
+  --line-height-loose: 1.8;
+
+  /* Letter Spacing */
+  --letter-spacing-tight: -0.02em;
+  --letter-spacing-snug: -0.01em;
+  --letter-spacing-normal: 0;
+  --letter-spacing-wide: 0.01em;
+  --letter-spacing-wider: 0.08em;
+
+  /* ============================================
+     SPACING
+     ============================================ */
+
+  --space-xs: 0.25rem;    /* 4px */
+  --space-sm: 0.5rem;     /* 8px */
+  --space-md: 1rem;       /* 16px */
+  --space-lg: 1.5rem;     /* 24px */
+  --space-xl: 2rem;       /* 32px */
+  --space-2xl: 3rem;      /* 48px */
+  --space-3xl: 4rem;      /* 64px */
+  --space-4xl: 6rem;      /* 96px */
+  --space-5xl: 8rem;      /* 128px */
+
+  /* ============================================
+     LAYOUT
+     ============================================ */
+
+  /* Container Max-Widths */
+  --container-sm: 640px;
+  --container-md: 768px;
+  --container-lg: 1024px;
+  --container-xl: 1280px;
+  --container-2xl: 1536px;
+
+  /* Grid */
+  --grid-columns: 12;
+  --grid-gutter: var(--space-lg);
+  --grid-margin: var(--space-lg);
+
+  /* Responsive Breakpoints (for reference in media queries) */
+  --breakpoint-sm: 640px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 1024px;
+  --breakpoint-xl: 1280px;
+  --breakpoint-2xl: 1536px;
+
+  /* ============================================
+     BORDER RADIUS
+     ============================================ */
+
+  --radius-none: 0;
+  --radius-xs: 0.125rem;   /* 2px */
+  --radius-sm: 0.25rem;    /* 4px */
+  --radius-md: 0.5rem;     /* 8px */
+  --radius-lg: 0.75rem;    /* 12px */
+  --radius-xl: 1rem;       /* 16px */
+  --radius-full: 9999px;
+
+  /* ============================================
+     SHADOWS
+     ============================================ */
+
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.06), 0 1px 2px rgba(0, 0, 0, 0.03);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.08), 0 2px 4px rgba(0, 0, 0, 0.04);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.1), 0 4px 8px rgba(0, 0, 0, 0.05);
+  --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.12), 0 8px 16px rgba(0, 0, 0, 0.06);
+  --shadow-2xl: 0 24px 48px rgba(0, 0, 0, 0.15), 0 12px 24px rgba(0, 0, 0, 0.08);
+
+  /* ============================================
+     ANIMATION
+     ============================================ */
+
+  /* Timing Functions */
+  --ease-in-out: cubic-bezier(0.4, 0, 0.2, 1);
+  --ease-out: cubic-bezier(0, 0, 0.2, 1);
+  --ease-in: cubic-bezier(0.4, 0, 1, 1);
+  --ease-sharp: cubic-bezier(0.4, 0, 0.6, 1);
+
+  /* Duration */
+  --duration-fast: 150ms;
+  --duration-normal: 300ms;
+  --duration-slow: 500ms;
+  --duration-slower: 700ms;
+
+  /* ============================================
+     Z-INDEX SCALE
+     ============================================ */
+
+  --z-index-base: 0;
+  --z-index-dropdown: 1000;
+  --z-index-sticky: 1020;
+  --z-index-fixed: 1030;
+  --z-index-modal-backdrop: 1040;
+  --z-index-modal: 1050;
+  --z-index-popover: 1060;
+  --z-index-tooltip: 1070;
+}
+
+/* ============================================
+   DARK MODE
+   ============================================ */
+
+body.dark-mode {
+  /* Primary - Muted Gray (Dark Mode - monochromatic) */
+  --color-primary-dark: #4a4e54;
+  --color-primary: #6a6f76;
+  --color-primary-light: #8a8f96;
+  --color-primary-lighter: #a5a9af;
+
+  /* Accent - Browns (Dark Mode - warmer tones) */
+  --color-accent-dark: #6b4a0a;
+  --color-accent: #8b6510;
+  --color-accent-medium: #a67c1a;
+  --color-accent-light: #c29625;
+
+  /* Highlight - Golden Amber (Dark Mode - slightly muted) */
+  --color-highlight-dark: #e5a33d;
+  --color-highlight: #ffb852;
+  --color-highlight-light: #ffc66b;
+  --color-highlight-lighter: #ffd485;
+
+  /* Neutral - Warm light colors for dark mode */
+  --color-neutral-900: #f7f5f3;
+  --color-neutral-800: #eeebe7;
+  --color-neutral-700: #ddd6cf;
+  --color-neutral-600: #c4b8ab;
+  --color-neutral-500: #a89886;
+  --color-neutral-400: #8a7660;
+  --color-neutral-300: #6b5a3d;
+  --color-neutral-200: #5a4520;
+  --color-neutral-100: #4a3205;
+  --color-neutral-50: #362304;
+
+  /* Background - Dark Mode with slate gray tones */
+  --color-background: #2a2d33;
+  --color-background-subtle: #24272d;
+  --color-background-elevated: #32353c;
+  --color-background-elevated-2: #3a3e45;
+
+  /* Semantic Colors - Dark Mode */
+  --color-success: #5d8549;
+  --color-success-light: #6fa05a;
+  --color-warning: #ffb852;
+  --color-warning-light: #ffc66b;
+  --color-error: #d16356;
+  --color-error-light: #e07d71;
+  --color-info: #96a8b8;
+  --color-info-light: #b2c0cd;
+
+  /* Text Colors - Dark Mode */
+  --color-text-primary: var(--color-neutral-900);
+  --color-text-secondary: var(--color-neutral-600);
+  --color-text-tertiary: var(--color-neutral-500);
+  --color-text-inverse: var(--color-neutral-900);
+
+  /* Border Colors - Dark Mode */
+  --color-border: var(--color-neutral-200);
+  --color-border-subtle: var(--color-neutral-100);
+  --color-border-strong: var(--color-neutral-300);
+
+  /* Interactive States - Dark Mode */
+  --color-interactive-primary: var(--color-primary);
+  --color-interactive-primary-hover: var(--color-primary-light);
+  --color-interactive-secondary: var(--color-neutral-600);
+  --color-interactive-secondary-hover: var(--color-neutral-700);
+
+  /* Shadows - Dark Mode (stronger) */
+  --shadow-xs: 0 1px 2px rgba(0, 0, 0, 0.3);
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.35), 0 1px 2px rgba(0, 0, 0, 0.2);
+  --shadow-md: 0 4px 8px rgba(0, 0, 0, 0.4), 0 2px 4px rgba(0, 0, 0, 0.25);
+  --shadow-lg: 0 8px 16px rgba(0, 0, 0, 0.45), 0 4px 8px rgba(0, 0, 0, 0.3);
+  --shadow-xl: 0 16px 32px rgba(0, 0, 0, 0.5), 0 8px 16px rgba(0, 0, 0, 0.35);
+  --shadow-2xl: 0 24px 48px rgba(0, 0, 0, 0.55), 0 12px 24px rgba(0, 0, 0, 0.4);
+}
+
+/* ============================================
+   REDUCED MOTION
+   ============================================ */
+
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --duration-fast: 0ms;
+    --duration-normal: 0ms;
+    --duration-slow: 0ms;
+    --duration-slower: 0ms;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* ============================================
+   RESPONSIVE ADJUSTMENTS
+   ============================================ */
+
+@media (max-width: 640px) {
+  :root {
+    --grid-margin: var(--space-md);
+    --grid-gutter: var(--space-md);
+
+    /* Slightly smaller type scale on mobile */
+    --font-size-4xl: 2.25rem;   /* 36px instead of 48px */
+    --font-size-3xl: 1.875rem;  /* 30px instead of 36px */
+  }
+}
+
+@media (min-width: 1280px) {
+  :root {
+    --grid-margin: var(--space-3xl);
+  }
+}
