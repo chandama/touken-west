@@ -53,7 +53,8 @@ Phase 1 focuses on improving the core user experience with advanced filtering an
 - ✅ Active filter summary display per group
 - ⚠️ Save filter combinations - Deferred to future phase
 
-### 5. Literal String Search with Quoted Phrases
+### 5. Advanced Search with Quotes & Autocomplete
+**A. Literal String Search with Quoted Phrases**
 - Support exact phrase matching using double quotes
 - Example: `"Juyo 11"` finds only that exact string
 - Mix literal and partial searches: `Masamune "Soshu tradition" tanto`
@@ -61,6 +62,18 @@ Phase 1 focuses on improving the core user experience with advanced filtering an
 - Intelligent quote parsing with error handling
 - Case-insensitive matching (configurable)
 - Help text and examples for users
+
+**B. Real-time Autocomplete/Typeahead Search**
+- Live dropdown suggestions as user types
+- Display top matching results (5-10 suggestions)
+- Show result count for each suggestion
+- Smooth animation for dropdown appearance/disappearance
+- Debounced input to optimize performance
+- Keyboard navigation (arrow keys, Enter to select)
+- Click to select suggestion
+- Highlight matching text within suggestions
+- Search across multiple fields (Smith, School, Type, Authentication, Mei)
+- Group suggestions by category (e.g., "Smiths", "Schools", "Famous Swords")
 
 ## Technical Considerations
 
@@ -97,6 +110,11 @@ Phase 1 focuses on improving the core user experience with advanced filtering an
 - [x] Per-group keyword search functionality
 - [ ] Quoted phrase searches return exact matches
 - [ ] Mixed quoted/unquoted searches work as expected
+- [ ] Autocomplete dropdown appears while typing
+- [ ] Suggestions are relevant and accurate
+- [ ] Result counts display correctly
+- [ ] Keyboard navigation works smoothly
+- [ ] Autocomplete performance is responsive (debounced)
 - [ ] URL reflects current filter state (shareable links) - deferred
 
 ## Out of Scope (Deferred to Later Phases)
@@ -132,9 +150,13 @@ Phase 1 focuses on improving the core user experience with advanced filtering an
 - ✅ `src/components/AdvancedFilterGroups.jsx` - NEW - Complex filter UI (complete)
 
 ### To Be Modified (Feature 5)
-- `src/components/SearchBar.jsx` - Add quote parsing logic
+- `src/components/SearchBar.jsx` - Add quote parsing logic and autocomplete UI
+- `src/components/AutocompleteDropdown.jsx` - NEW - Autocomplete suggestion dropdown
 - `src/utils/searchParser.js` - NEW - Parse quoted phrases
+- `src/utils/autocompleteUtils.js` - NEW - Generate search suggestions
+- `src/hooks/useAutocomplete.js` - NEW - Custom hook for autocomplete logic
 - `src/App.js` - Update to handle quoted searches
+- `src/styles/App.css` - Autocomplete dropdown styling and animations
 
 ## Next Steps
 

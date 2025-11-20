@@ -15,7 +15,7 @@ const AdvancedFilterGroups = ({ filterGroups, onFilterGroupsChange, swords, sear
 
   const addFilterGroup = () => {
     const newGroup = {
-      search: '',
+      searchTags: [],
       school: '',
       smith: '',
       type: '',
@@ -44,7 +44,7 @@ const AdvancedFilterGroups = ({ filterGroups, onFilterGroupsChange, swords, sear
     const updated = filterGroups.map((group, i) => {
       if (i === index) {
         return {
-          search: '',
+          searchTags: [],
           school: '',
           smith: '',
           type: '',
@@ -57,9 +57,14 @@ const AdvancedFilterGroups = ({ filterGroups, onFilterGroupsChange, swords, sear
     onFilterGroupsChange(updated);
   };
 
-  const activeGroupCount = filterGroups.filter(group =>
-    Object.values(group).some(v => v !== '')
-  ).length;
+  const activeGroupCount = filterGroups.filter(group => {
+    // Check if any filter is active (non-empty string) or if searchTags has items
+    const hasSearchTags = group.searchTags && group.searchTags.length > 0;
+    const hasOtherFilters = Object.entries(group).some(([key, value]) =>
+      key !== 'searchTags' && value !== ''
+    );
+    return hasSearchTags || hasOtherFilters;
+  }).length;
 
   return (
     <div className={`advanced-filter-groups ${isExpanded ? 'expanded' : 'collapsed'}`}>
@@ -128,13 +133,35 @@ const AdvancedFilterGroups = ({ filterGroups, onFilterGroupsChange, swords, sear
  * Individual filter group component
  */
 const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, onClear, onRemove }) => {
+  const [tagInputValue, setTagInputValue] = React.useState('');
+
   // Get available options for this group (based on base filters and search)
   const availableOptions = useMemo(
     () => getAvailableFilterOptions(swords, { ...baseFilters, ...group }, searchTags),
     [swords, baseFilters, group, searchTags]
   );
 
-  const hasActiveFilters = Object.values(group).some(f => f !== '');
+  const hasActiveFilters = group.searchTags?.length > 0 ||
+    Object.entries(group).some(([key, value]) => key !== 'searchTags' && value !== '');
+
+  const handleAddTag = () => {
+    const trimmed = tagInputValue.trim();
+    if (trimmed && !group.searchTags.includes(trimmed)) {
+      onUpdate('searchTags', [...group.searchTags, trimmed]);
+      setTagInputValue('');
+    }
+  };
+
+  const handleRemoveTag = (tagToRemove) => {
+    onUpdate('searchTags', group.searchTags.filter(tag => tag !== tagToRemove));
+  };
+
+  const handleKeyPress = (e) => {
+    if (e.key === 'Enter') {
+      e.preventDefault();
+      handleAddTag();
+    }
+  };
 
   return (
     <div className="filter-group-card">
@@ -155,14 +182,41 @@ const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, 
       <div className="filter-group-content">
         <div className="filter-group-search">
           <label htmlFor={`group-${index}-search`}>Keyword Search (this group only)</label>
-          <input
-            id={`group-${index}-search`}
-            type="text"
-            value={group.search}
-            onChange={(e) => onUpdate('search', e.target.value)}
-            placeholder="Search within this group..."
-            className="group-search-input"
-          />
+          <div className="group-search-input-container">
+            {/* Display search tags */}
+            {group.searchTags.map((tag, tagIndex) => (
+              <span key={tagIndex} className="search-tag group-search-tag">
+                {tag}
+                <button
+                  onClick={() => handleRemoveTag(tag)}
+                  className="tag-remove-button"
+                  aria-label={`Remove ${tag} tag`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+
+            {/* Input field */}
+            <input
+              id={`group-${index}-search`}
+              type="text"
+              value={tagInputValue}
+              onChange={(e) => setTagInputValue(e.target.value)}
+              onKeyPress={handleKeyPress}
+              placeholder={group.searchTags.length === 0 ? "Add search terms..." : "Add another..."}
+              className="group-search-input"
+            />
+          </div>
+          {tagInputValue && (
+            <button
+              onClick={handleAddTag}
+              className="add-tag-button group-add-tag"
+              aria-label="Add search tag to group"
+            >
+              Add
+            </button>
+          )}
         </div>
 
         <div className="filters-grid">
@@ -240,15 +294,24 @@ const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, 
         {hasActiveFilters && (
           <div className="group-filter-summary">
             <strong>Active filters:</strong>{' '}
-            {Object.entries(group)
-              .filter(([_, value]) => value !== '')
-              .map(([key, value]) => {
-                if (key === 'search') {
-                  return `search: "${value}"`;
-                }
-                return `${key}: ${value}`;
-              })
-              .join(' AND ')}
+            {(() => {
+              const filters = [];
+
+              // Add search tags
+              if (group.searchTags && group.searchTags.length > 0) {
+                const tagList = group.searchTags.map(tag => `"${tag}"`).join(', ');
+                filters.push(`search: ${tagList}`);
+              }
+
+              // Add other filters
+              Object.entries(group)
+                .filter(([key, value]) => key !== 'searchTags' && value !== '')
+                .forEach(([key, value]) => {
+                  filters.push(`${key}: ${value}`);
+                });
+
+              return filters.join(' AND ');
+            })()}
           </div>
         )}
       </div>

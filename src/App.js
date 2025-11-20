@@ -7,6 +7,7 @@ import SwordTable from './components/SwordTable';
 import SwordDetail from './components/SwordDetail';
 import DarkModeToggle from './components/DarkModeToggle';
 import useSwordData from './hooks/useSwordData';
+import { parseSearchInput, matchesSearchTerms } from './utils/searchParser';
 
 function App() {
   const { swords, loading, error } = useSwordData();
@@ -58,13 +59,14 @@ function App() {
 
   // Helper function to check if a sword matches all filters in a group
   const checkGroupMatch = (sword, group) => {
-    // Check group search (similar to global search but for this group only)
-    const matchesGroupSearch = group.search === '' || (() => {
-      const lowerSearch = group.search.toLowerCase();
-      return Object.values(sword).some(value =>
-        String(value).toLowerCase().includes(lowerSearch)
-      );
-    })();
+    // Check group search tags (all tags must match - AND logic)
+    const matchesGroupSearch = !group.searchTags || group.searchTags.length === 0 ||
+      group.searchTags.every(tag => {
+        const lowerTag = tag.toLowerCase();
+        return Object.values(sword).some(value =>
+          String(value).toLowerCase().includes(lowerTag)
+        );
+      });
 
     const matchesSchool = group.school === '' || sword.School === group.school;
     const matchesSmith = group.smith === '' || sword.Smith === group.smith;
@@ -76,13 +78,16 @@ function App() {
   };
 
   const filteredSwords = swords.filter(sword => {
-    // Multi-tag search with AND logic
+    // Multi-tag search with AND logic and quoted phrase support
     // All search tags must match for the sword to be included
     const matchesSearch = searchTags.length === 0 || searchTags.every(tag => {
-      const lowerTag = tag.toLowerCase();
-      return Object.values(sword).some(value =>
-        String(value).toLowerCase().includes(lowerTag)
-      );
+      // Parse tag for quoted and unquoted terms
+      const { quoted, unquoted } = parseSearchInput(tag);
+
+      // Check if any field in the sword matches the search terms
+      return Object.values(sword).some(value => {
+        return matchesSearchTerms(value, quoted, unquoted);
+      });
     });
 
     // Base filters (AND logic)
@@ -98,7 +103,11 @@ function App() {
     // If no filter groups exist, this passes automatically
     const matchesFilterGroups = filterGroups.length === 0 || filterGroups.some(group => {
       // Skip empty groups (groups with no active filters)
-      const hasActiveFilters = Object.values(group).some(v => v !== '');
+      const hasSearchTags = group.searchTags && group.searchTags.length > 0;
+      const hasOtherFilters = Object.entries(group).some(([key, value]) =>
+        key !== 'searchTags' && value !== ''
+      );
+      const hasActiveFilters = hasSearchTags || hasOtherFilters;
       if (!hasActiveFilters) return false;
 
       return checkGroupMatch(sword, group);
@@ -128,6 +137,7 @@ function App() {
             <SearchBar
               searchTags={searchTags}
               onSearchTagsChange={setSearchTags}
+              swords={swords}
             />
             <FilterPanel
               filters={filters}

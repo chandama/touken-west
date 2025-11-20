@@ -178,48 +178,50 @@
 
 ---
 
-## 5. Literal String Search with Quoted Phrases
+## 5. Advanced Search with Quotes & Autocomplete
 
-### Research & Planning
+### 5A. Literal String Search with Quoted Phrases
+
+#### Research & Planning
 - [ ] Design quote parsing logic
 - [ ] Handle edge cases (unclosed quotes, nested quotes, escaped quotes)
 - [ ] Define behavior for mixed quoted/unquoted terms
 - [ ] Plan UI feedback for quoted searches
 
-### Implementation
+#### Implementation
 - [ ] Create string parser to detect quoted phrases
 - [ ] Extract quoted phrases as literal search terms
 - [ ] Update search logic to handle both literal and partial matches
 - [ ] Combine quoted and unquoted searches (quoted = exact, unquoted = contains)
 
-### Search Logic
+#### Search Logic
 - [ ] Parse input string to identify quoted segments
 - [ ] Example: `Masamune "Juyo 11" tanto` → 3 terms (partial, exact, partial)
 - [ ] Implement exact match for quoted phrases
 - [ ] Implement partial match for unquoted terms
 - [ ] Combine results with AND logic
 
-### UI Enhancements
+#### UI Enhancements
 - [ ] Visual indicator for quoted searches (different tag color?)
 - [ ] Show quote marks in search tags
 - [ ] Add tooltip explaining quote functionality
 - [ ] Add example in placeholder text
 - [ ] Help text or info icon explaining syntax
 
-### Examples to Support
+#### Examples to Support
 - [ ] `"Juyo 11"` - Find exact phrase "Juyo 11"
 - [ ] `"Tokubetsu Juyo"` - Find exact authentication level
 - [ ] `Masamune "Soshu tradition"` - Partial + exact match
 - [ ] `"Denrai: Tokugawa"` - Exact provenance string
 
-### Edge Cases
+#### Edge Cases
 - [ ] Handle unclosed quotes gracefully
 - [ ] Handle empty quotes ""
 - [ ] Handle quotes within quotes
 - [ ] Handle special characters within quotes
 - [ ] Case sensitivity (should quotes preserve case?)
 
-### Testing
+#### Testing
 - [ ] Test simple quoted phrase
 - [ ] Test multiple quoted phrases
 - [ ] Test mixed quoted and unquoted terms
@@ -227,6 +229,178 @@
 - [ ] Test empty quotes
 - [ ] Test special characters
 - [ ] Test very long quoted phrases
+
+---
+
+### 5B. Real-time Autocomplete/Typeahead Search
+
+#### Research & Planning
+- [ ] Research autocomplete UX patterns (Google, Amazon, etc.)
+- [ ] Define suggestion matching algorithm
+- [ ] Determine number of suggestions to show (5-10)
+- [ ] Plan category grouping strategy (Smiths, Schools, Types, etc.)
+- [ ] Design keyboard navigation flow (arrows, Enter, Escape)
+- [ ] Plan debounce timing (300-500ms recommended)
+- [ ] Decide on minimum characters before showing suggestions (2-3 chars)
+
+#### Data Indexing
+- [ ] Create searchable index of unique values from dataset
+  - [ ] Smith names (extract all unique smiths)
+  - [ ] School names (extract all unique schools)
+  - [ ] Blade types (Tachi, Katana, Tanto, etc.)
+  - [ ] Authentication levels (Juyo, Tokubetsu Juyo, etc.)
+  - [ ] Provinces (Yamashiro, Bizen, etc.)
+  - [ ] Period names (Kamakura, Nanbokucho, etc.)
+  - [ ] Meito names (famous sword names)
+- [ ] Build reverse index for fast lookups
+- [ ] Cache index in useMemo to avoid recomputation
+- [ ] Consider fuzzy matching for typo tolerance
+
+#### Autocomplete Logic (`src/utils/autocompleteUtils.js`)
+- [ ] Implement `generateSuggestions(inputValue, swordData, maxSuggestions = 8)`
+- [ ] Match input against all indexed fields
+- [ ] Rank suggestions by relevance:
+  - [ ] Exact prefix match (highest priority)
+  - [ ] Word start match (medium priority)
+  - [ ] Contains match (lower priority)
+- [ ] Group suggestions by category
+- [ ] Calculate result count for each suggestion
+- [ ] Return structured suggestion objects: `{ text, category, count, highlightIndices }`
+- [ ] Implement text highlighting logic (mark matched portions)
+
+#### Custom Hook (`src/hooks/useAutocomplete.js`)
+- [ ] Create `useAutocomplete(inputValue, swordData, options)` hook
+- [ ] Implement debounce logic (300-500ms delay)
+- [ ] Manage autocomplete state:
+  - [ ] `suggestions` - Array of suggestion objects
+  - [ ] `selectedIndex` - Currently highlighted suggestion
+  - [ ] `isOpen` - Dropdown visibility
+- [ ] Handle keyboard events:
+  - [ ] ArrowDown - Move to next suggestion
+  - [ ] ArrowUp - Move to previous suggestion
+  - [ ] Enter - Select current suggestion
+  - [ ] Escape - Close dropdown
+  - [ ] Tab - Close dropdown (or select?)
+- [ ] Handle click outside to close dropdown
+- [ ] Optimize performance with useMemo/useCallback
+- [ ] Add minimum character threshold (e.g., 2 chars)
+
+#### UI Component (`src/components/AutocompleteDropdown.jsx`)
+- [ ] Create AutocompleteDropdown component
+- [ ] Render suggestion list grouped by category
+- [ ] Display category headers (e.g., "Smiths", "Schools")
+- [ ] Show suggestion text with highlighted matching portion
+- [ ] Display result count badge next to each suggestion
+- [ ] Implement hover state styling
+- [ ] Implement keyboard-selected state styling
+- [ ] Add smooth enter/exit animations
+- [ ] Position dropdown below search input
+- [ ] Handle overflow (scroll for many suggestions)
+- [ ] Make dropdown responsive (mobile-friendly)
+
+#### SearchBar Integration
+- [ ] Import and integrate AutocompleteDropdown in SearchBar
+- [ ] Connect input onChange to autocomplete logic
+- [ ] Pass debounced input to useAutocomplete hook
+- [ ] Handle suggestion selection:
+  - [ ] Add selected suggestion as search tag
+  - [ ] Clear input after selection
+  - [ ] Close dropdown
+- [ ] Position dropdown relative to input
+- [ ] Prevent form submission on Enter (when dropdown open)
+- [ ] Manage focus states properly
+
+#### Styling & Animation (`src/styles/App.css`)
+- [ ] Style autocomplete dropdown container
+  - [ ] Border, shadow, border-radius
+  - [ ] Max height with scroll
+  - [ ] Z-index above other elements
+- [ ] Style category headers
+  - [ ] Background color, padding
+  - [ ] Font weight, size
+- [ ] Style suggestion items
+  - [ ] Padding, hover state
+  - [ ] Selected/highlighted state
+  - [ ] Cursor pointer
+- [ ] Style result count badges
+  - [ ] Small pill/badge style
+  - [ ] Color differentiation
+- [ ] Implement animations
+  - [ ] Fade-in on open (150-200ms)
+  - [ ] Slide-down effect
+  - [ ] Smooth highlight transitions
+  - [ ] Exit animation on close
+- [ ] Add text highlighting styles (bold or background color)
+- [ ] Dark mode support for all autocomplete elements
+
+#### Performance Optimization
+- [ ] Debounce input with 300-500ms delay
+- [ ] Limit suggestions to top 8-10 results
+- [ ] Use useMemo to cache suggestion calculations
+- [ ] Virtualize suggestion list if needed (many suggestions)
+- [ ] Throttle scroll events if implementing infinite scroll
+- [ ] Avoid unnecessary re-renders with useCallback
+
+#### Accessibility (a11y)
+- [ ] Add ARIA attributes:
+  - [ ] `role="combobox"` on input
+  - [ ] `role="listbox"` on dropdown
+  - [ ] `role="option"` on suggestions
+  - [ ] `aria-expanded` to indicate dropdown state
+  - [ ] `aria-activedescendant` for selected suggestion
+- [ ] Ensure keyboard navigation works without mouse
+- [ ] Add screen reader announcements for result count
+- [ ] Proper focus management
+- [ ] High contrast mode support
+
+#### Edge Cases & Error Handling
+- [ ] Handle no results found (show "No suggestions" message)
+- [ ] Handle very long suggestion text (truncate with ellipsis)
+- [ ] Handle rapid typing (debounce working correctly)
+- [ ] Handle special characters in input
+- [ ] Handle clicking while suggestions are loading
+- [ ] Handle window resize (reposition dropdown if needed)
+
+#### Testing
+- [ ] Test with short input (2-3 chars)
+- [ ] Test with full names (Smith names, Schools)
+- [ ] Test category grouping displays correctly
+- [ ] Test result counts are accurate
+- [ ] Test keyboard navigation (all arrow keys, Enter, Escape)
+- [ ] Test click selection
+- [ ] Test click outside to close
+- [ ] Test debounce timing (no flickering)
+- [ ] Test with Japanese characters (Mei field)
+- [ ] Test performance with rapid typing
+- [ ] Test dark mode styling
+- [ ] Test mobile responsiveness
+- [ ] Test with screen reader
+
+#### Example Suggestions Format
+```javascript
+// Example output from generateSuggestions()
+[
+  {
+    category: 'Smiths',
+    suggestions: [
+      { text: 'Masamune', count: 47, highlightIndices: [0, 4] },
+      { text: 'Muramasa', count: 23, highlightIndices: [0, 4] }
+    ]
+  },
+  {
+    category: 'Schools',
+    suggestions: [
+      { text: 'Masamitsu', count: 15, highlightIndices: [0, 4] }
+    ]
+  },
+  {
+    category: 'Famous Swords',
+    suggestions: [
+      { text: 'Masamune Honjo', count: 1, highlightIndices: [0, 8] }
+    ]
+  }
+]
+```
 
 ---
 
