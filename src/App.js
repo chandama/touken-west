@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import './styles/theme.css';
 import './styles/App.css';
 import SearchBar from './components/SearchBar';
 import FilterPanel from './components/FilterPanel';
@@ -121,8 +122,11 @@ function App() {
       <header className="App-header">
         <div className="header-content">
           <div className="header-text">
-            <h1>Touken West</h1>
-            <p>Japanese Sword Database - {swords.length.toLocaleString()} Historical Blades</p>
+            <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="header-logo" />
+            <div className="header-title-group">
+              <h1>Touken West</h1>
+              <p>Japanese Sword Database - {swords.length.toLocaleString()} Historical Blades</p>
+            </div>
           </div>
           <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
         </div>
