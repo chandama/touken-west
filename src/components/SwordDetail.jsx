@@ -4,6 +4,8 @@ import React from 'react';
  * SwordDetail component for displaying detailed information about a selected sword
  */
 const SwordDetail = ({ sword, onClose }) => {
+  const [lightboxImage, setLightboxImage] = React.useState(null);
+
   if (!sword) return null;
 
   const DetailRow = ({ label, value }) => {
@@ -77,6 +79,60 @@ const SwordDetail = ({ sword, onClose }) => {
             </div>
           )}
 
+          {sword.MediaAttachments && sword.MediaAttachments !== '' && sword.MediaAttachments !== 'NA' && (
+            <div className="detail-section">
+              <h3>Media Attachments</h3>
+              <div className="media-attachments">
+                {(() => {
+                  try {
+                    return JSON.parse(sword.MediaAttachments).map((filePath, index) => {
+                  const isImage = filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || filePath.endsWith('.png');
+                  const isPdf = filePath.endsWith('.pdf');
+                  const fileName = filePath.split('/').pop();
+
+                      return (
+                        <div key={index} className="media-item">
+                          <div className="media-label">{fileName}</div>
+                          {isImage && (
+                            <img
+                              src={filePath}
+                              alt={fileName}
+                              className="media-image"
+                              loading="lazy"
+                              onClick={() => setLightboxImage(filePath)}
+                              style={{ cursor: 'pointer' }}
+                              title="Click to view full size"
+                            />
+                          )}
+                          {isPdf && (
+                            <div className="media-pdf-container">
+                              <iframe
+                                src={`${filePath}#toolbar=0&navpanes=0&scrollbar=0`}
+                                type="application/pdf"
+                                className="media-pdf"
+                                title={fileName}
+                              />
+                              <div
+                                className="pdf-click-overlay"
+                                onClick={() => window.open(filePath, '_blank')}
+                                title="Click to open PDF in new tab"
+                              >
+                                <span>Click to open PDF in new tab</span>
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      );
+                    });
+                  } catch (error) {
+                    console.error('Error parsing MediaAttachments:', error, sword.MediaAttachments);
+                    return <div className="error-text">Error loading media attachments</div>;
+                  }
+                })()}
+              </div>
+            </div>
+          )}
+
           {sword.Attachments && sword.Attachments !== 'NA' && (
             <div className="detail-section">
               <h3>Attachments</h3>
@@ -92,6 +148,21 @@ const SwordDetail = ({ sword, onClose }) => {
           )}
         </div>
       </div>
+
+      {lightboxImage && (
+        <div className="lightbox-overlay" onClick={() => setLightboxImage(null)}>
+          <div className="lightbox-content" onClick={(e) => e.stopPropagation()}>
+            <button
+              className="lightbox-close"
+              onClick={() => setLightboxImage(null)}
+              aria-label="Close"
+            >
+              ×
+            </button>
+            <img src={lightboxImage} alt="Full size view" className="lightbox-image" />
+          </div>
+        </div>
+      )}
     </div>
   );
 };
