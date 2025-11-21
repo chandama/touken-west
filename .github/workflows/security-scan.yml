@@ -1,0 +1,160 @@
+name: Security Scan
+
+on:
+  # Run on every pull request
+  pull_request:
+    branches: [ main, develop ]
+
+  # Run on push to main
+  push:
+    branches: [ main ]
+
+  # Run weekly on Monday at 9 AM UTC
+  schedule:
+    - cron: '0 9 * * 1'
+
+  # Allow manual trigger
+  workflow_dispatch:
+
+jobs:
+  security-scan:
+    name: Security Vulnerability Scan
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: write
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0  # Full history for secret scanning
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      # NPM Audit Check
+      - name: Run npm audit
+        run: |
+          npm audit --production --audit-level=high
+        continue-on-error: true
+
+      # ESLint Security Plugin
+      - name: Install ESLint Security Plugin
+        run: npm install --save-dev eslint-plugin-security
+
+      - name: Run ESLint Security Check
+        run: npm run lint
+        continue-on-error: true
+
+      # Snyk Security Scan
+      - name: Run Snyk to check for vulnerabilities
+        uses: snyk/actions/node@master
+        continue-on-error: true
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          args: --severity-threshold=high
+
+      # Secret Scanning with GitLeaks
+      - name: GitLeaks Secret Scan
+        uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
+
+      # OWASP Dependency Check
+      - name: OWASP Dependency-Check
+        uses: dependency-check/Dependency-Check_Action@main
+        continue-on-error: true
+        with:
+          project: 'Touken West'
+          path: '.'
+          format: 'HTML'
+          out: 'reports'
+          args: >
+            --enableRetired
+            --enableExperimental
+
+      - name: Upload Dependency-Check Report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: dependency-check-report
+          path: reports/
+
+      # CodeQL Analysis
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      # Check for known vulnerable patterns
+      - name: Check for console.log in production
+        run: |
+          if grep -r "console\.log" src/ --exclude-dir=node_modules; then
+            echo "::warning::console.log statements found - should be removed for production"
+          fi
+        continue-on-error: true
+
+      - name: Check for dangerouslySetInnerHTML
+        run: |
+          if grep -r "dangerouslySetInnerHTML" src/ --exclude-dir=node_modules; then
+            echo "::error::dangerouslySetInnerHTML found - ensure proper sanitization with DOMPurify"
+            exit 1
+          fi
+
+      - name: Check for eval() usage
+        run: |
+          if grep -r "eval\s*(" src/ --exclude-dir=node_modules; then
+            echo "::error::eval() usage found - CRITICAL SECURITY RISK"
+            exit 1
+          fi
+
+      # Generate Security Report
+      - name: Generate Security Summary
+        if: always()
+        run: |
+          echo "# Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
+          echo "- **npm audit**: See audit logs above" >> $GITHUB_STEP_SUMMARY
+          echo "- **Snyk**: Dependency vulnerability scan completed" >> $GITHUB_STEP_SUMMARY
+          echo "- **GitLeaks**: Secret scanning completed" >> $GITHUB_STEP_SUMMARY
+          echo "- **CodeQL**: Static analysis completed" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "Review the detailed results in the workflow logs and artifacts." >> $GITHUB_STEP_SUMMARY
+
+      # Fail if critical issues found (uncomment when ready to enforce)
+      # - name: Check for critical issues
+      #   run: |
+      #     if [ -f "security-issues.txt" ]; then
+      #       echo "::error::Critical security issues found"
+      #       exit 1
+      #     fi
+
+  dependency-review:
+    name: Dependency Review
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Dependency Review
+        uses: actions/dependency-review-action@v4
+        with:
+          fail-on-severity: high
+          deny-licenses: GPL-3.0, AGPL-3.0
