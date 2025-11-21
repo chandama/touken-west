@@ -85,18 +85,27 @@ const SwordDetail = ({ sword, onClose }) => {
               <div className="media-attachments">
                 {(() => {
                   try {
-                    return JSON.parse(sword.MediaAttachments).map((filePath, index) => {
-                  const isImage = filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || filePath.endsWith('.png');
-                  const isPdf = filePath.endsWith('.pdf');
-                  const fileName = filePath.split('/').pop();
+                    const parsed = JSON.parse(sword.MediaAttachments);
+                    return parsed.map((item, index) => {
+                      // Handle both old format (string) and new format (object)
+                      const filePath = typeof item === 'string' ? item : item.url;
+                      const thumbnailPath = typeof item === 'object' ? item.thumbnailUrl : null;
+                      const caption = typeof item === 'object' ? item.caption : null;
+                      const category = typeof item === 'object' ? item.category : null;
+                      const tags = typeof item === 'object' ? item.tags : null;
+
+                      const isImage = filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || filePath.endsWith('.png');
+                      const isPdf = filePath.endsWith('.pdf');
+                      const fileName = filePath.split('/').pop();
 
                       return (
                         <div key={index} className="media-item">
-                          <div className="media-label">{fileName}</div>
+                          {category && <div className="media-category">{category}</div>}
+                          <div className="media-label">{caption || fileName}</div>
                           {isImage && (
                             <img
-                              src={filePath}
-                              alt={fileName}
+                              src={thumbnailPath || filePath}
+                              alt={caption || fileName}
                               className="media-image"
                               loading="lazy"
                               onClick={() => setLightboxImage(filePath)}
@@ -110,7 +119,7 @@ const SwordDetail = ({ sword, onClose }) => {
                                 src={`${filePath}#toolbar=0&navpanes=0&scrollbar=0`}
                                 type="application/pdf"
                                 className="media-pdf"
-                                title={fileName}
+                                title={caption || fileName}
                               />
                               <div
                                 className="pdf-click-overlay"
@@ -119,6 +128,13 @@ const SwordDetail = ({ sword, onClose }) => {
                               >
                                 <span>Click to open PDF in new tab</span>
                               </div>
+                            </div>
+                          )}
+                          {tags && tags.length > 0 && (
+                            <div className="media-tags">
+                              {tags.map((tag, i) => (
+                                <span key={i} className="media-tag">{tag}</span>
+                              ))}
                             </div>
                           )}
                         </div>

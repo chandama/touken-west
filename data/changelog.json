@@ -1,0 +1,42 @@
+[
+  {
+    "id": "1763765936660",
+    "timestamp": "2025-11-21T22:58:56.660Z",
+    "swordIndex": "6078",
+    "swordSmith": "Nobufusa",
+    "swordType": "Tachi",
+    "changes": [
+      {
+        "field": "Length",
+        "before": "20",
+        "after": "20.3"
+      }
+    ]
+  },
+  {
+    "id": "1763765930996",
+    "timestamp": "2025-11-21T22:58:50.996Z",
+    "swordIndex": "6078",
+    "swordSmith": "Nobufusa",
+    "swordType": "Tachi",
+    "changes": [
+      {
+        "field": "Length",
+        "before": "20.3",
+        "after": "20"
+      }
+    ]
+  },
+  {
+    "id": "1763765531714",
+    "timestamp": "2025-11-21T22:52:11.714Z",
+    "swordIndex": "6078",
+    "changes": [
+      {
+        "field": "Nagasa",
+        "before": "77",
+        "after": "76.9"
+      }
+    ]
+  }
+]
