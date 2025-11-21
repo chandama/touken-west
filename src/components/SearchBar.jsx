@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import useAutocomplete from '../hooks/useAutocomplete';
-import AutocompleteDropdown from './AutocompleteDropdown';
+import useAutocomplete from '../hooks/useAutocomplete.js';
+import AutocompleteDropdown from './AutocompleteDropdown.jsx';
 
 /**
  * SearchBar component with multi-tag search, autocomplete, and quoted phrase support

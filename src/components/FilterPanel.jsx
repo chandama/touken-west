@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { getAvailableFilterOptions, getOptionCounts } from '../utils/filterUtils';
+import { getAvailableFilterOptions, getOptionCounts } from '../utils/filterUtils.js';
 
 /**
  * FilterPanel component with dynamic cascading filters
