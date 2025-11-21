@@ -1,14 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import './styles/theme.css';
 import './styles/App.css';
-import SearchBar from './components/SearchBar';
-import FilterPanel from './components/FilterPanel';
-import AdvancedFilterGroups from './components/AdvancedFilterGroups';
-import SwordTable from './components/SwordTable';
-import SwordDetail from './components/SwordDetail';
-import DarkModeToggle from './components/DarkModeToggle';
-import useSwordData from './hooks/useSwordData';
-import { parseSearchInput, matchesSearchTerms } from './utils/searchParser';
+import SearchBar from './components/SearchBar.jsx';
+import FilterPanel from './components/FilterPanel.jsx';
+import AdvancedFilterGroups from './components/AdvancedFilterGroups.jsx';
+import SwordTable from './components/SwordTable.jsx';
+import SwordDetail from './components/SwordDetail.jsx';
+import DarkModeToggle from './components/DarkModeToggle.jsx';
+import useSwordData from './hooks/useSwordData.js';
+import { parseSearchInput, matchesSearchTerms } from './utils/searchParser.js';
 
 function App() {
   const { swords, loading, error } = useSwordData();

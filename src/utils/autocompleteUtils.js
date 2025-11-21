@@ -3,7 +3,7 @@
  * Builds search index and generates autocomplete suggestions
  */
 
-import { highlightMatch } from './searchParser';
+import { highlightMatch } from './searchParser.js';
 
 /**
  * Build autocomplete index from sword data

@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
-import { buildAutocompleteIndex, generateSuggestions, countTotalSuggestions } from '../utils/autocompleteUtils';
+import { buildAutocompleteIndex, generateSuggestions, countTotalSuggestions } from '../utils/autocompleteUtils.js';
 
 /**
  * Custom hook for autocomplete functionality

@@ -1,5 +1,5 @@
 import React, { useMemo } from 'react';
-import { getAvailableFilterOptions } from '../utils/filterUtils';
+import { getAvailableFilterOptions } from '../utils/filterUtils.js';
 
 /**
  * AdvancedFilterGroups component for creating complex filter combinations

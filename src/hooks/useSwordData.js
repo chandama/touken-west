@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
-import { parseSwordData } from '../utils/csvParser';
-import { enrichWithMeitoData } from '../utils/meitoUtils';
+import { parseSwordData } from '../utils/csvParser.js';
+import { enrichWithMeitoData } from '../utils/meitoUtils.js';
 
 /**
  * Custom hook for loading and managing sword data from CSV
