@@ -6,30 +6,37 @@ import Papa from 'papaparse';
  * @returns {Promise<Array>} Array of sword objects
  */
 export const parseSwordData = async (csvFilePath) => {
-  return new Promise((resolve, reject) => {
-    Papa.parse(csvFilePath, {
-      download: true,
-      header: true,
-      skipEmptyLines: true,
-      transformHeader: (header) => {
-        // Trim whitespace from headers
-        return header.trim();
-      },
-      transform: (value) => {
-        // Trim whitespace from values
-        return value.trim();
-      },
-      complete: (results) => {
-        if (results.errors.length > 0) {
-          console.error('CSV parsing errors:', results.errors);
+  try {
+    // Fetch the CSV file manually to avoid Papa Parse's download: true quirks
+    const response = await fetch(csvFilePath);
+    const csvText = await response.text();
+
+    return new Promise((resolve, reject) => {
+      Papa.parse(csvText, {
+        header: true,
+        skipEmptyLines: 'greedy',
+        transformHeader: (header) => {
+          // Trim whitespace from headers
+          return header.trim();
+        },
+        transform: (value, field) => {
+          // Trim whitespace from values
+          return value.trim();
+        },
+        complete: (results) => {
+          if (results.errors.length > 0) {
+            console.error('CSV parsing errors:', results.errors);
+          }
+          resolve(results.data);
+        },
+        error: (error) => {
+          reject(error);
         }
-        resolve(results.data);
-      },
-      error: (error) => {
-        reject(error);
-      }
+      });
     });
-  });
+  } catch (error) {
+    throw error;
+  }
 };
 
 /**
