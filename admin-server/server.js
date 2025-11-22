@@ -5,6 +5,7 @@ const path = require('path');
 const Papa = require('papaparse');
 const sharp = require('sharp');
 const cors = require('cors');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = 3002;
@@ -21,10 +22,16 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    // Create filename with timestamp and original name
+    // Create simple timestamp-based filename to avoid encoding issues
+    // Original filename will be stored in metadata
     const timestamp = Date.now();
-    const sanitized = file.originalname.replace(/[^a-z0-9.-]/gi, '_');
-    const uniqueName = `${timestamp}-${sanitized}`;
+
+    // Get file extension
+    const lastDotIndex = file.originalname.lastIndexOf('.');
+    const ext = lastDotIndex > 0 ? file.originalname.substring(lastDotIndex) : '.jpg';
+
+    // Simple filename: just timestamp + extension
+    const uniqueName = `${timestamp}${ext}`;
     cb(null, uniqueName);
   },
 });
@@ -105,6 +112,14 @@ async function addChangelogEntry(swordIndex, swordData, changes, actionType = 'e
 
   await writeChangelog(changelog);
   return entry;
+}
+
+// Helper: Calculate MD5 checksum of a file
+async function calculateMD5(filePath) {
+  const fileBuffer = await fs.readFile(filePath);
+  const hash = crypto.createHash('md5');
+  hash.update(fileBuffer);
+  return hash.digest('hex');
 }
 
 // Helper: Parse search input into quoted and unquoted terms
@@ -387,6 +402,23 @@ app.post('/api/swords/:index/media', upload.single('file'), async (req, res) => 
       }
     }
 
+    // Calculate MD5 checksum of uploaded file
+    const uploadedFileMD5 = await calculateMD5(file.path);
+    console.log(`Uploaded file MD5: ${uploadedFileMD5}`);
+
+    // Check for duplicate based on MD5 checksum
+    const duplicate = mediaAttachments.find(attachment => attachment.md5 === uploadedFileMD5);
+    if (duplicate) {
+      // Clean up uploaded file since it's a duplicate
+      await fs.unlink(file.path).catch(() => {});
+      console.log(`Duplicate file detected for sword ${index}. MD5: ${uploadedFileMD5}`);
+      return res.status(409).json({
+        error: 'Duplicate file',
+        message: 'This file has already been uploaded to this sword record',
+        existingAttachment: duplicate
+      });
+    }
+
     // Add new attachment
     const fileUrl = `/documents/uploads/${file.filename}`;
     const thumbnailUrl = file.mimetype.startsWith('image/')
@@ -401,7 +433,9 @@ app.post('/api/swords/:index/media', upload.single('file'), async (req, res) => 
       tags: tags ? tags.split(',').map(t => t.trim()) : [],
       uploadedAt: new Date().toISOString(),
       filename: file.filename,
+      originalFilename: file.originalname, // Store original filename with Japanese characters
       mimeType: file.mimetype,
+      md5: uploadedFileMD5, // Store MD5 checksum for duplicate detection
     };
 
     mediaAttachments.push(newAttachment);
