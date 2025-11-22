@@ -79,12 +79,13 @@ async function writeChangelog(changelog) {
 }
 
 // Helper: Add changelog entry
-async function addChangelogEntry(swordIndex, swordData, changes) {
+async function addChangelogEntry(swordIndex, swordData, changes, actionType = 'edit') {
   const changelog = await readChangelog();
 
   const entry = {
     id: Date.now().toString(),
     timestamp: new Date().toISOString(),
+    actionType, // 'edit', 'media_upload', 'media_delete', 'new_sword'
     swordIndex,
     swordSmith: swordData.Smith || 'Unknown',
     swordType: swordData.Type || 'Unknown',
@@ -411,6 +412,14 @@ app.post('/api/swords/:index/media', upload.single('file'), async (req, res) => 
     // Write back to CSV
     await writeCSV(swords);
 
+    // Log to changelog
+    await addChangelogEntry(index, sword, {
+      MediaAttachments: {
+        before: `${mediaAttachments.length - 1} attachment(s)`,
+        after: `Added: ${newAttachment.category} - ${newAttachment.caption || newAttachment.filename}`
+      }
+    }, 'media_upload');
+
     console.log(`Successfully uploaded media for sword ${index}`);
 
     res.json({
@@ -451,6 +460,9 @@ app.delete('/api/swords/:index/media', async (req, res) => {
       }
     }
 
+    // Find the attachment being removed for changelog
+    const removedAttachment = mediaAttachments.find(m => m.filename === filename);
+
     // Filter out the attachment
     const filteredAttachments = mediaAttachments.filter(m => m.filename !== filename);
 
@@ -468,11 +480,85 @@ app.delete('/api/swords/:index/media', async (req, res) => {
     // Write back to CSV
     await writeCSV(swords);
 
+    // Log to changelog
+    if (removedAttachment) {
+      await addChangelogEntry(index, sword, {
+        MediaAttachments: {
+          before: `${mediaAttachments.length} attachment(s)`,
+          after: `Removed: ${removedAttachment.category} - ${removedAttachment.caption || removedAttachment.filename}`
+        }
+      }, 'media_delete');
+    }
+
     console.log(`Successfully removed media from sword ${index}`);
 
     res.json({ success: true, sword });
   } catch (error) {
     console.error('Error removing media:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new sword
+app.post('/api/swords', async (req, res) => {
+  try {
+    const newSwordData = req.body;
+
+    const swords = await readCSV();
+
+    // Generate next available index
+    const maxIndex = Math.max(...swords.map(s => parseInt(s.Index) || 0));
+    const newIndex = (maxIndex + 1).toString();
+
+    // Create new sword with default values
+    const newSword = {
+      Index: newIndex,
+      School: newSwordData.School || 'NA',
+      Smith: newSwordData.Smith || 'Unknown',
+      Mei: newSwordData.Mei || 'Mumei',
+      Type: newSwordData.Type || 'NA',
+      Nagasa: newSwordData.Nagasa || 'NA',
+      Sori: newSwordData.Sori || 'NA',
+      Moto: newSwordData.Moto || 'NA',
+      Saki: newSwordData.Saki || 'NA',
+      Nakago: newSwordData.Nakago || 'NA',
+      Ana: newSwordData.Ana || 'NA',
+      Length: newSwordData.Length || 'NA',
+      Hori: newSwordData.Hori || 'NA',
+      Authentication: newSwordData.Authentication || 'NA',
+      Province: newSwordData.Province || 'NA',
+      Period: newSwordData.Period || 'NA',
+      References: newSwordData.References || 'NA',
+      Description: newSwordData.Description || 'NA',
+      Attachments: newSwordData.Attachments || 'NA',
+      Tags: newSwordData.Tags || '',
+      MediaAttachments: 'NA'
+    };
+
+    // Add to swords array
+    swords.push(newSword);
+
+    // Write to CSV
+    await writeCSV(swords);
+
+    // Log to changelog
+    const changes = {};
+    Object.keys(newSword).forEach(field => {
+      if (field !== 'Index' && newSword[field] !== 'NA' && newSword[field] !== '') {
+        changes[field] = {
+          before: '(new sword)',
+          after: newSword[field]
+        };
+      }
+    });
+
+    await addChangelogEntry(newIndex, newSword, changes, 'new_sword');
+
+    console.log(`Created new sword with index ${newIndex}`);
+
+    res.json({ success: true, sword: newSword });
+  } catch (error) {
+    console.error('Error creating sword:', error);
     res.status(500).json({ error: error.message });
   }
 });

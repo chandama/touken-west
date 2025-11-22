@@ -92,6 +92,20 @@ function Changelog() {
     return formatDate(timestamp);
   };
 
+  const getActionTypeInfo = (actionType) => {
+    switch (actionType) {
+      case 'media_upload':
+        return { icon: '📎', label: 'Media Upload', className: 'action-media-upload' };
+      case 'media_delete':
+        return { icon: '🗑️', label: 'Media Deleted', className: 'action-media-delete' };
+      case 'new_sword':
+        return { icon: '✨', label: 'New Sword', className: 'action-new-sword' };
+      case 'edit':
+      default:
+        return { icon: '✏️', label: 'Edit', className: 'action-edit' };
+    }
+  };
+
   return (
     <div className="admin-page">
       <div className="page-header">
@@ -157,22 +171,28 @@ function Changelog() {
             </div>
           ) : (
             <div className="changelog-list">
-              {filteredEntries.map((entry) => (
-                <div key={entry.id} className="changelog-entry">
-                  <div className="changelog-header">
-                    <div className="changelog-sword">
-                      <Link to={`/admin/sword/${entry.swordIndex}`} className="sword-link">
-                        {entry.swordIndex} - {entry.swordSmith} - {entry.swordType}
-                      </Link>
-                      <span className="change-count">
-                        {entry.changes.length} field{entry.changes.length > 1 ? 's' : ''} changed
-                      </span>
+              {filteredEntries.map((entry) => {
+                const actionInfo = getActionTypeInfo(entry.actionType);
+                return (
+                  <div key={entry.id} className={`changelog-entry ${actionInfo.className}`}>
+                    <div className="changelog-header">
+                      <div className="changelog-sword">
+                        <span className="action-type-badge">
+                          <span className="action-icon">{actionInfo.icon}</span>
+                          <span className="action-label">{actionInfo.label}</span>
+                        </span>
+                        <Link to={`/admin/sword/${entry.swordIndex}`} className="sword-link">
+                          {entry.swordIndex} - {entry.swordSmith} - {entry.swordType}
+                        </Link>
+                        <span className="change-count">
+                          {entry.changes.length} field{entry.changes.length > 1 ? 's' : ''} changed
+                        </span>
+                      </div>
+                      <div className="changelog-time">
+                        <span className="relative-time">{formatRelativeTime(entry.timestamp)}</span>
+                        <span className="exact-time">{formatDate(entry.timestamp)}</span>
+                      </div>
                     </div>
-                    <div className="changelog-time">
-                      <span className="relative-time">{formatRelativeTime(entry.timestamp)}</span>
-                      <span className="exact-time">{formatDate(entry.timestamp)}</span>
-                    </div>
-                  </div>
 
                   <div className="changelog-changes">
                     {entry.changes.map((change, idx) => (
@@ -193,7 +213,8 @@ function Changelog() {
                     ))}
                   </div>
                 </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
