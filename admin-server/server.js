@@ -5,6 +5,7 @@ const path = require('path');
 const Papa = require('papaparse');
 const sharp = require('sharp');
 const cors = require('cors');
+const crypto = require('crypto');
 
 const app = express();
 const PORT = 3002;
@@ -21,10 +22,16 @@ const storage = multer.diskStorage({
     cb(null, dir);
   },
   filename: (req, file, cb) => {
-    // Create filename with timestamp and original name
+    // Create simple timestamp-based filename to avoid encoding issues
+    // Original filename will be stored in metadata
     const timestamp = Date.now();
-    const sanitized = file.originalname.replace(/[^a-z0-9.-]/gi, '_');
-    const uniqueName = `${timestamp}-${sanitized}`;
+
+    // Get file extension
+    const lastDotIndex = file.originalname.lastIndexOf('.');
+    const ext = lastDotIndex > 0 ? file.originalname.substring(lastDotIndex) : '.jpg';
+
+    // Simple filename: just timestamp + extension
+    const uniqueName = `${timestamp}${ext}`;
     cb(null, uniqueName);
   },
 });
@@ -38,6 +45,21 @@ const upload = multer({
       cb(null, true);
     } else {
       cb(new Error('Invalid file type. Only JPG and PDF allowed.'));
+    }
+  },
+});
+
+// Separate multer instance for CSV uploads
+const csvUpload = multer({
+  storage: multer.memoryStorage(), // Store in memory for CSV parsing
+  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
+  fileFilter: (req, file, cb) => {
+    const allowed = ['text/csv', 'application/vnd.ms-excel', 'text/plain'];
+    const isCSV = allowed.includes(file.mimetype) || file.originalname.endsWith('.csv');
+    if (isCSV) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only CSV files allowed.'));
     }
   },
 });
@@ -79,12 +101,13 @@ async function writeChangelog(changelog) {
 }
 
 // Helper: Add changelog entry
-async function addChangelogEntry(swordIndex, swordData, changes) {
+async function addChangelogEntry(swordIndex, swordData, changes, actionType = 'edit') {
   const changelog = await readChangelog();
 
   const entry = {
     id: Date.now().toString(),
     timestamp: new Date().toISOString(),
+    actionType, // 'edit', 'media_upload', 'media_delete', 'new_sword'
     swordIndex,
     swordSmith: swordData.Smith || 'Unknown',
     swordType: swordData.Type || 'Unknown',
@@ -104,6 +127,14 @@ async function addChangelogEntry(swordIndex, swordData, changes) {
 
   await writeChangelog(changelog);
   return entry;
+}
+
+// Helper: Calculate MD5 checksum of a file
+async function calculateMD5(filePath) {
+  const fileBuffer = await fs.readFile(filePath);
+  const hash = crypto.createHash('md5');
+  hash.update(fileBuffer);
+  return hash.digest('hex');
 }
 
 // Helper: Parse search input into quoted and unquoted terms
@@ -386,6 +417,23 @@ app.post('/api/swords/:index/media', upload.single('file'), async (req, res) => 
       }
     }
 
+    // Calculate MD5 checksum of uploaded file
+    const uploadedFileMD5 = await calculateMD5(file.path);
+    console.log(`Uploaded file MD5: ${uploadedFileMD5}`);
+
+    // Check for duplicate based on MD5 checksum
+    const duplicate = mediaAttachments.find(attachment => attachment.md5 === uploadedFileMD5);
+    if (duplicate) {
+      // Clean up uploaded file since it's a duplicate
+      await fs.unlink(file.path).catch(() => {});
+      console.log(`Duplicate file detected for sword ${index}. MD5: ${uploadedFileMD5}`);
+      return res.status(409).json({
+        error: 'Duplicate file',
+        message: 'This file has already been uploaded to this sword record',
+        existingAttachment: duplicate
+      });
+    }
+
     // Add new attachment
     const fileUrl = `/documents/uploads/${file.filename}`;
     const thumbnailUrl = file.mimetype.startsWith('image/')
@@ -400,7 +448,9 @@ app.post('/api/swords/:index/media', upload.single('file'), async (req, res) => 
       tags: tags ? tags.split(',').map(t => t.trim()) : [],
       uploadedAt: new Date().toISOString(),
       filename: file.filename,
+      originalFilename: file.originalname, // Store original filename with Japanese characters
       mimeType: file.mimetype,
+      md5: uploadedFileMD5, // Store MD5 checksum for duplicate detection
     };
 
     mediaAttachments.push(newAttachment);
@@ -410,6 +460,14 @@ app.post('/api/swords/:index/media', upload.single('file'), async (req, res) => 
 
     // Write back to CSV
     await writeCSV(swords);
+
+    // Log to changelog
+    await addChangelogEntry(index, sword, {
+      MediaAttachments: {
+        before: `${mediaAttachments.length - 1} attachment(s)`,
+        after: `Added: ${newAttachment.category} - ${newAttachment.caption || newAttachment.filename}`
+      }
+    }, 'media_upload');
 
     console.log(`Successfully uploaded media for sword ${index}`);
 
@@ -451,6 +509,9 @@ app.delete('/api/swords/:index/media', async (req, res) => {
       }
     }
 
+    // Find the attachment being removed for changelog
+    const removedAttachment = mediaAttachments.find(m => m.filename === filename);
+
     // Filter out the attachment
     const filteredAttachments = mediaAttachments.filter(m => m.filename !== filename);
 
@@ -468,11 +529,85 @@ app.delete('/api/swords/:index/media', async (req, res) => {
     // Write back to CSV
     await writeCSV(swords);
 
+    // Log to changelog
+    if (removedAttachment) {
+      await addChangelogEntry(index, sword, {
+        MediaAttachments: {
+          before: `${mediaAttachments.length} attachment(s)`,
+          after: `Removed: ${removedAttachment.category} - ${removedAttachment.caption || removedAttachment.filename}`
+        }
+      }, 'media_delete');
+    }
+
     console.log(`Successfully removed media from sword ${index}`);
 
     res.json({ success: true, sword });
   } catch (error) {
     console.error('Error removing media:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new sword
+app.post('/api/swords', async (req, res) => {
+  try {
+    const newSwordData = req.body;
+
+    const swords = await readCSV();
+
+    // Generate next available index
+    const maxIndex = Math.max(...swords.map(s => parseInt(s.Index) || 0));
+    const newIndex = (maxIndex + 1).toString();
+
+    // Create new sword with default values
+    const newSword = {
+      Index: newIndex,
+      School: newSwordData.School || 'NA',
+      Smith: newSwordData.Smith || 'Unknown',
+      Mei: newSwordData.Mei || 'Mumei',
+      Type: newSwordData.Type || 'NA',
+      Nagasa: newSwordData.Nagasa || 'NA',
+      Sori: newSwordData.Sori || 'NA',
+      Moto: newSwordData.Moto || 'NA',
+      Saki: newSwordData.Saki || 'NA',
+      Nakago: newSwordData.Nakago || 'NA',
+      Ana: newSwordData.Ana || 'NA',
+      Length: newSwordData.Length || 'NA',
+      Hori: newSwordData.Hori || 'NA',
+      Authentication: newSwordData.Authentication || 'NA',
+      Province: newSwordData.Province || 'NA',
+      Period: newSwordData.Period || 'NA',
+      References: newSwordData.References || 'NA',
+      Description: newSwordData.Description || 'NA',
+      Attachments: newSwordData.Attachments || 'NA',
+      Tags: newSwordData.Tags || '',
+      MediaAttachments: 'NA'
+    };
+
+    // Add to swords array
+    swords.push(newSword);
+
+    // Write to CSV
+    await writeCSV(swords);
+
+    // Log to changelog
+    const changes = {};
+    Object.keys(newSword).forEach(field => {
+      if (field !== 'Index' && newSword[field] !== 'NA' && newSword[field] !== '') {
+        changes[field] = {
+          before: '(new sword)',
+          after: newSword[field]
+        };
+      }
+    });
+
+    await addChangelogEntry(newIndex, newSword, changes, 'new_sword');
+
+    console.log(`Created new sword with index ${newIndex}`);
+
+    res.json({ success: true, sword: newSword });
+  } catch (error) {
+    console.error('Error creating sword:', error);
     res.status(500).json({ error: error.message });
   }
 });
@@ -555,6 +690,267 @@ app.get('/api/changelog', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching changelog:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete sword record
+app.delete('/api/swords/:index', async (req, res) => {
+  try {
+    const { index } = req.params;
+
+    console.log(`Attempting to delete sword ${index}`);
+
+    const swords = await readCSV();
+    const swordIndex = swords.findIndex(s => s.Index === index);
+
+    if (swordIndex === -1) {
+      return res.status(404).json({ error: 'Sword not found' });
+    }
+
+    const sword = swords[swordIndex];
+
+    // Delete associated media files
+    if (sword.MediaAttachments && sword.MediaAttachments !== 'NA') {
+      try {
+        const mediaAttachments = JSON.parse(sword.MediaAttachments);
+        if (Array.isArray(mediaAttachments)) {
+          for (const media of mediaAttachments) {
+            const filePath = path.join(__dirname, '../public/documents/uploads', media.filename);
+            const thumbPath = path.join(__dirname, '../public/documents/uploads', `thumb-${media.filename}`);
+
+            await fs.unlink(filePath).catch(err => console.log('Could not delete file:', err.message));
+            await fs.unlink(thumbPath).catch(() => {}); // Ignore thumbnail errors
+          }
+        }
+      } catch (err) {
+        console.error('Error deleting media files:', err);
+      }
+    }
+
+    // Remove sword from array
+    swords.splice(swordIndex, 1);
+
+    // Write back to CSV
+    await writeCSV(swords);
+
+    // Log to changelog
+    await addChangelogEntry(index, sword, {
+      Record: {
+        before: `${sword.Smith} - ${sword.Type}`,
+        after: '(deleted)'
+      }
+    }, 'delete');
+
+    console.log(`Successfully deleted sword ${index}`);
+
+    res.json({ success: true, message: 'Sword record deleted successfully' });
+  } catch (error) {
+    console.error('Error deleting sword:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Bulk upload swords from CSV
+app.post('/api/swords/bulk', csvUpload.single('file'), async (req, res) => {
+  try {
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: 'No CSV file uploaded' });
+    }
+
+    console.log('Processing bulk upload CSV:', file.originalname);
+
+    // Parse CSV from buffer
+    const csvContent = file.buffer.toString('utf8');
+    const parsed = Papa.parse(csvContent, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (header) => header.trim() // Clean up header names
+    });
+
+    if (parsed.errors.length > 0) {
+      console.error('CSV parsing errors:', parsed.errors);
+      return res.status(400).json({
+        error: 'CSV parsing failed',
+        details: parsed.errors
+      });
+    }
+
+    const uploadData = parsed.data;
+
+    if (uploadData.length === 0) {
+      return res.status(400).json({ error: 'CSV file is empty' });
+    }
+
+    console.log(`Parsed ${uploadData.length} sword records from CSV`);
+
+    // Load existing database
+    const swords = await readCSV();
+
+    // Track results
+    const results = {
+      total: uploadData.length,
+      created: 0,
+      skipped: 0,
+      duplicates: 0,
+      errors: [],
+      newSwords: [],
+      duplicateDetails: []
+    };
+
+    // Determine next available index
+    let maxIndex = Math.max(...swords.map(s => parseInt(s.Index) || 0));
+
+    // Helper function to check for duplicates
+    // Consider a sword a duplicate if Smith + Mei + Type + Nagasa all match
+    function isDuplicate(newData, existingSwords) {
+      return existingSwords.find(existing => {
+        const smithMatch = existing.Smith === newData.Smith;
+        const meiMatch = existing.Mei === newData.Mei;
+        const typeMatch = existing.Type === newData.Type;
+
+        // Nagasa comparison - allow very small differences (±0.01cm for floating point)
+        let nagasaMatch = existing.Nagasa === newData.Nagasa;
+        if (!nagasaMatch && newData.Nagasa !== 'NA' && existing.Nagasa !== 'NA') {
+          const existingNagasa = parseFloat(existing.Nagasa);
+          const newNagasa = parseFloat(newData.Nagasa);
+          if (!isNaN(existingNagasa) && !isNaN(newNagasa)) {
+            nagasaMatch = Math.abs(existingNagasa - newNagasa) < 0.01;
+          }
+        }
+
+        return smithMatch && meiMatch && typeMatch && nagasaMatch;
+      });
+    }
+
+    // Expected CSV columns (all are optional except at least one identifying field)
+    const requiredFields = ['School', 'Smith', 'Mei', 'Type', 'Nagasa', 'Sori',
+      'Moto', 'Saki', 'Nakago', 'Ana', 'Length', 'Hori',
+      'Authentication', 'Province', 'Period', 'References',
+      'Description', 'Attachments', 'Tags'];
+
+    // Process each row
+    for (let i = 0; i < uploadData.length; i++) {
+      const row = uploadData[i];
+      const rowNum = i + 1;
+
+      try {
+        // Skip rows that are completely empty
+        const hasData = Object.values(row).some(val => val && val.trim() !== '');
+        if (!hasData) {
+          results.skipped++;
+          console.log(`Row ${rowNum}: Skipped (empty row)`);
+          continue;
+        }
+
+        // Build temporary sword data for duplicate checking
+        const tempSwordData = {
+          School: row.School?.trim() || 'NA',
+          Smith: row.Smith?.trim() || 'Unknown',
+          Mei: row.Mei?.trim() || 'Mumei',
+          Type: row.Type?.trim() || 'NA',
+          Nagasa: row.Nagasa?.trim() || 'NA',
+          Sori: row.Sori?.trim() || 'NA',
+          Moto: row.Moto?.trim() || 'NA',
+          Saki: row.Saki?.trim() || 'NA',
+          Nakago: row.Nakago?.trim() || 'NA',
+          Ana: row.Ana?.trim() || 'NA',
+          Length: row.Length?.trim() || 'NA',
+          Hori: row.Hori?.trim() || 'NA',
+          Authentication: row.Authentication?.trim() || 'NA',
+          Province: row.Province?.trim() || 'NA',
+          Period: row.Period?.trim() || 'NA',
+          References: row.References?.trim() || 'NA',
+          Description: row.Description?.trim() || 'NA',
+          Attachments: row.Attachments?.trim() || 'NA',
+          Tags: row.Tags?.trim() || ''
+        };
+
+        // Check for duplicates
+        const existingDuplicate = isDuplicate(tempSwordData, swords);
+        if (existingDuplicate) {
+          results.duplicates++;
+          results.duplicateDetails.push({
+            row: rowNum,
+            csvData: `${tempSwordData.Smith} ${tempSwordData.Mei} (${tempSwordData.Type})`,
+            existingIndex: existingDuplicate.Index
+          });
+          console.log(`Row ${rowNum}: Duplicate found - matches Index ${existingDuplicate.Index}`);
+          continue;
+        }
+
+        // Generate next index
+        maxIndex++;
+        const newIndex = maxIndex.toString();
+
+        // Build new sword record with defaults
+        const newSword = {
+          Index: newIndex,
+          ...tempSwordData,
+          MediaAttachments: 'NA'
+        };
+
+        // Add to database
+        swords.push(newSword);
+        results.newSwords.push(newSword);
+        results.created++;
+
+        console.log(`Row ${rowNum}: Created sword ${newIndex} - ${newSword.Smith} ${newSword.Mei}`);
+
+        // Log to changelog
+        const changes = {};
+        Object.keys(newSword).forEach(field => {
+          if (field !== 'Index' && field !== 'MediaAttachments' &&
+              newSword[field] !== 'NA' && newSword[field] !== '') {
+            changes[field] = {
+              before: '(new sword)',
+              after: newSword[field]
+            };
+          }
+        });
+
+        await addChangelogEntry(newIndex, newSword, changes, 'new_sword');
+
+      } catch (error) {
+        results.errors.push({
+          row: rowNum,
+          data: row,
+          error: error.message
+        });
+        console.error(`Row ${rowNum}: Error -`, error.message);
+      }
+    }
+
+    // Write updated database to CSV
+    if (results.created > 0) {
+      await writeCSV(swords);
+      console.log(`Bulk upload complete: ${results.created} swords created`);
+    }
+
+    // Return summary
+    res.json({
+      success: true,
+      results: {
+        total: results.total,
+        created: results.created,
+        skipped: results.skipped,
+        duplicates: results.duplicates,
+        errors: results.errors.length,
+        errorDetails: results.errors.length > 0 ? results.errors : undefined,
+        duplicateDetails: results.duplicates > 0 ? results.duplicateDetails : undefined,
+        newSwords: results.newSwords.map(s => ({
+          Index: s.Index,
+          Smith: s.Smith,
+          Mei: s.Mei,
+          Type: s.Type
+        }))
+      }
+    });
+
+  } catch (error) {
+    console.error('Error in bulk upload:', error);
     res.status(500).json({ error: error.message });
   }
 });
