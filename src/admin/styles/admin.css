@@ -951,6 +951,67 @@ select {
   gap: 1rem;
 }
 
+.action-type-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.25rem 0.75rem;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.action-icon {
+  font-size: 0.95rem;
+}
+
+.action-label {
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.expand-arrow {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+  transition: transform 0.2s ease;
+  user-select: none;
+}
+
+.changelog-entry.expanded .expand-arrow {
+  transform: rotate(0deg);
+}
+
+.changelog-entry.collapsed .expand-arrow {
+  transform: rotate(0deg);
+}
+
+.changelog-header:hover .expand-arrow {
+  color: #374151;
+}
+
+/* Action type colors */
+.action-edit .action-type-badge {
+  background-color: #dbeafe;
+  color: #1e40af;
+}
+
+.action-media-upload .action-type-badge {
+  background-color: #d1fae5;
+  color: #065f46;
+}
+
+.action-media-delete .action-type-badge {
+  background-color: #fee2e2;
+  color: #991b1b;
+}
+
+.action-new-sword .action-type-badge {
+  background-color: #fef3c7;
+  color: #92400e;
+}
+
 .sword-link {
   color: #2E4057;
   text-decoration: none;

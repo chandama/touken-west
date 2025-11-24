@@ -2,6 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Link } from 'react-router-dom';
 import SwordList from './pages/SwordList.jsx';
 import SwordEdit from './pages/SwordEdit.jsx';
+import SwordCreate from './pages/SwordCreate.jsx';
 import Changelog from './pages/Changelog.jsx';
 import './styles/admin.css';
 
@@ -29,6 +30,7 @@ function AdminApp() {
         <main className="admin-main">
           <Routes>
             <Route path="/admin" element={<SwordList />} />
+            <Route path="/admin/create" element={<SwordCreate />} />
             <Route path="/admin/sword/:index" element={<SwordEdit />} />
             <Route path="/admin/changelog" element={<Changelog />} />
           </Routes>

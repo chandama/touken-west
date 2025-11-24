@@ -10,12 +10,26 @@ function Changelog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedEntries, setExpandedEntries] = useState(new Set());
 
   // Pagination
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(0);
   const limit = 100;
+
+  // Toggle entry expansion
+  const toggleEntry = (entryId) => {
+    setExpandedEntries(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(entryId)) {
+        newSet.delete(entryId);
+      } else {
+        newSet.add(entryId);
+      }
+      return newSet;
+    });
+  };
 
   // Load changelog entries
   useEffect(() => {
@@ -92,6 +106,20 @@ function Changelog() {
     return formatDate(timestamp);
   };
 
+  const getActionTypeInfo = (actionType) => {
+    switch (actionType) {
+      case 'media_upload':
+        return { icon: '📎', label: 'Media Upload', className: 'action-media-upload' };
+      case 'media_delete':
+        return { icon: '🗑️', label: 'Media Deleted', className: 'action-media-delete' };
+      case 'new_sword':
+        return { icon: '✨', label: 'New Sword', className: 'action-new-sword' };
+      case 'edit':
+      default:
+        return { icon: '✏️', label: 'Edit', className: 'action-edit' };
+    }
+  };
+
   return (
     <div className="admin-page">
       <div className="page-header">
@@ -157,43 +185,64 @@ function Changelog() {
             </div>
           ) : (
             <div className="changelog-list">
-              {filteredEntries.map((entry) => (
-                <div key={entry.id} className="changelog-entry">
-                  <div className="changelog-header">
-                    <div className="changelog-sword">
-                      <Link to={`/admin/sword/${entry.swordIndex}`} className="sword-link">
-                        {entry.swordIndex} - {entry.swordSmith} - {entry.swordType}
-                      </Link>
-                      <span className="change-count">
-                        {entry.changes.length} field{entry.changes.length > 1 ? 's' : ''} changed
-                      </span>
-                    </div>
-                    <div className="changelog-time">
-                      <span className="relative-time">{formatRelativeTime(entry.timestamp)}</span>
-                      <span className="exact-time">{formatDate(entry.timestamp)}</span>
-                    </div>
-                  </div>
-
-                  <div className="changelog-changes">
-                    {entry.changes.map((change, idx) => (
-                      <div key={idx} className="change-detail">
-                        <div className="change-field-name">{change.field}</div>
-                        <div className="change-values">
-                          <div className="value-before">
-                            <span className="value-label">Before:</span>
-                            <span className="value-content">{change.before}</span>
-                          </div>
-                          <div className="change-arrow-small">→</div>
-                          <div className="value-after">
-                            <span className="value-label">After:</span>
-                            <span className="value-content">{change.after}</span>
-                          </div>
-                        </div>
+              {filteredEntries.map((entry) => {
+                const actionInfo = getActionTypeInfo(entry.actionType);
+                const isExpanded = expandedEntries.has(entry.id);
+                return (
+                  <div key={entry.id} className={`changelog-entry ${actionInfo.className} ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                    <div
+                      className="changelog-header"
+                      onClick={() => toggleEntry(entry.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
+                      <div className="changelog-sword">
+                        <span className="expand-arrow">
+                          {isExpanded ? '▼' : '▶'}
+                        </span>
+                        <span className="action-type-badge">
+                          <span className="action-icon">{actionInfo.icon}</span>
+                          <span className="action-label">{actionInfo.label}</span>
+                        </span>
+                        <Link
+                          to={`/admin/sword/${entry.swordIndex}`}
+                          className="sword-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
+                          {entry.swordIndex} - {entry.swordSmith} - {entry.swordType}
+                        </Link>
+                        <span className="change-count">
+                          {entry.changes.length} field{entry.changes.length > 1 ? 's' : ''} changed
+                        </span>
                       </div>
-                    ))}
+                      <div className="changelog-time">
+                        <span className="relative-time">{formatRelativeTime(entry.timestamp)}</span>
+                        <span className="exact-time">{formatDate(entry.timestamp)}</span>
+                      </div>
+                    </div>
+
+                    {isExpanded && (
+                      <div className="changelog-changes">
+                        {entry.changes.map((change, idx) => (
+                          <div key={idx} className="change-detail">
+                            <div className="change-field-name">{change.field}</div>
+                            <div className="change-values">
+                              <div className="value-before">
+                                <span className="value-label">Before:</span>
+                                <span className="value-content">{change.before}</span>
+                              </div>
+                              <div className="change-arrow-small">→</div>
+                              <div className="value-after">
+                                <span className="value-label">After:</span>
+                                <span className="value-content">{change.after}</span>
+                              </div>
+                            </div>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
 
