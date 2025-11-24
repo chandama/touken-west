@@ -1,8 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 
-// Use the current hostname to allow network access
-const API_BASE = `http://${window.location.hostname}:3002/api`;
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 function SwordCreate() {
   const navigate = useNavigate();

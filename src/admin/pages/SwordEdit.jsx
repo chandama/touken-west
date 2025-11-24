@@ -2,8 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import MediaUpload from '../components/MediaUpload.jsx';
 
-// Use the current hostname to allow network access
-const API_BASE = `http://${window.location.hostname}:3002/api`;
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 function SwordEdit() {
   const { index } = useParams();
