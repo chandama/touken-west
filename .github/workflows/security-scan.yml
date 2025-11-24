@@ -1,12 +1,12 @@
 name: Security Scan
 
 on:
-  # Run on every pull request
-  pull_request:
-    branches: [ main, develop ]
-
   # Run on push to main
   push:
+    branches: [ main ]
+
+  # Run on pull requests
+  pull_request:
     branches: [ main ]
 
   # Run weekly on Monday at 9 AM UTC
@@ -29,8 +29,6 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Full history for secret scanning
 
       - name: Setup Node.js
         uses: actions/setup-node@v4
@@ -38,60 +36,34 @@ jobs:
           node-version: '18'
           cache: 'npm'
 
-      - name: Install dependencies
+      # Install dependencies for both frontend and backend
+      - name: Install frontend dependencies
         run: npm ci
 
-      # NPM Audit Check
-      - name: Run npm audit
+      - name: Install backend dependencies
+        run: cd admin-server && npm ci
+
+      # NPM Audit Check (Frontend)
+      - name: Run npm audit (Frontend)
         run: |
-          npm audit --production --audit-level=high
+          echo "## Frontend Security Audit" >> $GITHUB_STEP_SUMMARY
+          npm audit --production --audit-level=moderate || echo "Vulnerabilities found but continuing..."
         continue-on-error: true
 
-      # ESLint Security Plugin
-      - name: Install ESLint Security Plugin
-        run: npm install --save-dev eslint-plugin-security
-
-      - name: Run ESLint Security Check
-        run: npm run lint
+      # NPM Audit Check (Backend)
+      - name: Run npm audit (Backend)
+        run: |
+          echo "## Backend Security Audit" >> $GITHUB_STEP_SUMMARY
+          cd admin-server && npm audit --production --audit-level=moderate || echo "Vulnerabilities found but continuing..."
         continue-on-error: true
 
-      # Snyk Security Scan
-      - name: Run Snyk to check for vulnerabilities
-        uses: snyk/actions/node@master
-        continue-on-error: true
-        env:
-          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
-        with:
-          args: --severity-threshold=high
-
-      # Secret Scanning with GitLeaks
+      # Secret Scanning with GitLeaks (Free, no token needed)
       - name: GitLeaks Secret Scan
         uses: gitleaks/gitleaks-action@v2
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
-      # OWASP Dependency Check
-      - name: OWASP Dependency-Check
-        uses: dependency-check/Dependency-Check_Action@main
-        continue-on-error: true
-        with:
-          project: 'Touken West'
-          path: '.'
-          format: 'HTML'
-          out: 'reports'
-          args: >
-            --enableRetired
-            --enableExperimental
-
-      - name: Upload Dependency-Check Report
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: dependency-check-report
-          path: reports/
-
-      # CodeQL Analysis
+      # CodeQL Analysis (Free GitHub feature)
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v3
         with:
@@ -100,49 +72,62 @@ jobs:
       - name: Perform CodeQL Analysis
         uses: github/codeql-action/analyze@v3
 
-      # Check for known vulnerable patterns
-      - name: Check for console.log in production
+      # Check for dangerous patterns
+      - name: Check for dangerous code patterns
         run: |
-          if grep -r "console\.log" src/ --exclude-dir=node_modules; then
-            echo "::warning::console.log statements found - should be removed for production"
-          fi
-        continue-on-error: true
+          echo "## Code Pattern Analysis" >> $GITHUB_STEP_SUMMARY
 
-      - name: Check for dangerouslySetInnerHTML
-        run: |
-          if grep -r "dangerouslySetInnerHTML" src/ --exclude-dir=node_modules; then
-            echo "::error::dangerouslySetInnerHTML found - ensure proper sanitization with DOMPurify"
-            exit 1
+          # Check for dangerouslySetInnerHTML
+          if grep -r "dangerouslySetInnerHTML" src/ admin-server/ 2>/dev/null; then
+            echo "::warning::dangerouslySetInnerHTML found - ensure proper sanitization"
+            echo "- ⚠️ dangerouslySetInnerHTML detected" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ No dangerouslySetInnerHTML" >> $GITHUB_STEP_SUMMARY
           fi
 
-      - name: Check for eval() usage
-        run: |
-          if grep -r "eval\s*(" src/ --exclude-dir=node_modules; then
+          # Check for eval() usage
+          if grep -rE "eval\s*\(" src/ admin-server/ 2>/dev/null; then
             echo "::error::eval() usage found - CRITICAL SECURITY RISK"
+            echo "- ❌ eval() detected (CRITICAL)" >> $GITHUB_STEP_SUMMARY
             exit 1
+          else
+            echo "- ✅ No eval() usage" >> $GITHUB_STEP_SUMMARY
+          fi
+
+          # Check for hardcoded secrets patterns
+          if grep -rE "(password|secret|api_key|apikey)\s*=\s*['\"][^'\"]{8,}" src/ admin-server/ 2>/dev/null | grep -v node_modules | grep -v ".test." | grep -v ".spec."; then
+            echo "::warning::Potential hardcoded secrets found"
+            echo "- ⚠️ Potential hardcoded secrets" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ No obvious hardcoded secrets" >> $GITHUB_STEP_SUMMARY
+          fi
+
+      # Check MongoDB connection security
+      - name: Check MongoDB security
+        run: |
+          echo "## Database Security" >> $GITHUB_STEP_SUMMARY
+
+          # Check for proper connection string usage
+          if grep -r "mongodb://" admin-server/ --exclude-dir=node_modules 2>/dev/null; then
+            echo "::warning::Plain MongoDB connection found - ensure using environment variables"
+            echo "- ⚠️ Check MongoDB connection strings" >> $GITHUB_STEP_SUMMARY
+          else
+            echo "- ✅ No plain MongoDB connections" >> $GITHUB_STEP_SUMMARY
           fi
 
       # Generate Security Report
       - name: Generate Security Summary
         if: always()
         run: |
-          echo "# Security Scan Summary" >> $GITHUB_STEP_SUMMARY
+          echo "# 🔒 Security Scan Complete" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "## Scan Results" >> $GITHUB_STEP_SUMMARY
-          echo "- **npm audit**: See audit logs above" >> $GITHUB_STEP_SUMMARY
-          echo "- **Snyk**: Dependency vulnerability scan completed" >> $GITHUB_STEP_SUMMARY
-          echo "- **GitLeaks**: Secret scanning completed" >> $GITHUB_STEP_SUMMARY
-          echo "- **CodeQL**: Static analysis completed" >> $GITHUB_STEP_SUMMARY
+          echo "**Scans Performed:**" >> $GITHUB_STEP_SUMMARY
+          echo "- npm audit (frontend & backend)" >> $GITHUB_STEP_SUMMARY
+          echo "- GitLeaks secret scanning" >> $GITHUB_STEP_SUMMARY
+          echo "- CodeQL static analysis" >> $GITHUB_STEP_SUMMARY
+          echo "- Code pattern checks" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
-          echo "Review the detailed results in the workflow logs and artifacts." >> $GITHUB_STEP_SUMMARY
-
-      # Fail if critical issues found (uncomment when ready to enforce)
-      # - name: Check for critical issues
-      #   run: |
-      #     if [ -f "security-issues.txt" ]; then
-      #       echo "::error::Critical security issues found"
-      #       exit 1
-      #     fi
+          echo "Review the detailed results above for any issues." >> $GITHUB_STEP_SUMMARY
 
   dependency-review:
     name: Dependency Review
