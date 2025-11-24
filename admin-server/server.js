@@ -1,123 +1,140 @@
+require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const express = require('express');
-const multer = require('multer');
-const fs = require('fs').promises;
-const path = require('path');
-const Papa = require('papaparse');
-const sharp = require('sharp');
 const cors = require('cors');
-const crypto = require('crypto');
+const helmet = require('helmet');
+const rateLimit = require('express-rate-limit');
+const mongoSanitize = require('express-mongo-sanitize');
+const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
-const cookieParser = require('cookie-parser');
+const Papa = require('papaparse');
+
+// Database connection
+const connectDB = require('./config/database');
+
+// Models
+const Sword = require('./models/Sword');
+const User = require('./models/User');
+const Changelog = require('./models/Changelog');
+
+// Spaces configuration
+const {
+  upload,
+  uploadToSpaces,
+  generateThumbnail,
+  calculateMD5,
+  generateFilename,
+} = require('./config/spaces');
 
 const app = express();
-const PORT = 3002;
+const PORT = process.env.PORT || 3002;
 
-// JWT Secret (in production, use environment variable)
-const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+// Connect to MongoDB
+connectDB();
 
-// Enable CORS for local development with credentials
-app.use(cors({
-  origin: ['http://localhost:5173', 'http://localhost:3000'], // Vite dev server (both ports)
-  credentials: true
-}));
+// Security middleware
+app.use(helmet());
+app.use(mongoSanitize());
+
+// Rate limiting
+const limiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: 100, // limit each IP to 100 requests per windowMs
+  message: 'Too many requests from this IP, please try again later.',
+});
+app.use('/api/', limiter);
+
+// CORS configuration
+const corsOptions = {
+  origin: process.env.CORS_ORIGIN?.split(',') || ['http://localhost:5173', 'http://localhost:3000'],
+  credentials: true,
+};
+app.use(cors(corsOptions));
+
+// Body parsing middleware
 app.use(express.json());
 app.use(cookieParser());
 
-// Configure file upload
-const storage = multer.diskStorage({
-  destination: async (req, file, cb) => {
-    const dir = path.join(__dirname, '../public/documents/uploads');
-    await fs.mkdir(dir, { recursive: true });
-    cb(null, dir);
-  },
-  filename: (req, file, cb) => {
-    // Create simple timestamp-based filename to avoid encoding issues
-    // Original filename will be stored in metadata
-    const timestamp = Date.now();
-
-    // Get file extension
-    const lastDotIndex = file.originalname.lastIndexOf('.');
-    const ext = lastDotIndex > 0 ? file.originalname.substring(lastDotIndex) : '.jpg';
-
-    // Simple filename: just timestamp + extension
-    const uniqueName = `${timestamp}${ext}`;
-    cb(null, uniqueName);
-  },
-});
-
-const upload = multer({
-  storage,
-  limits: { fileSize: 15 * 1024 * 1024 }, // 15MB
-  fileFilter: (req, file, cb) => {
-    const allowed = ['image/jpeg', 'image/jpg', 'application/pdf'];
-    if (allowed.includes(file.mimetype)) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only JPG and PDF allowed.'));
-    }
-  },
-});
-
-// Separate multer instance for CSV uploads
-const csvUpload = multer({
-  storage: multer.memoryStorage(), // Store in memory for CSV parsing
-  limits: { fileSize: 10 * 1024 * 1024 }, // 10MB
-  fileFilter: (req, file, cb) => {
-    const allowed = ['text/csv', 'application/vnd.ms-excel', 'text/plain'];
-    const isCSV = allowed.includes(file.mimetype) || file.originalname.endsWith('.csv');
-    if (isCSV) {
-      cb(null, true);
-    } else {
-      cb(new Error('Invalid file type. Only CSV files allowed.'));
-    }
-  },
-});
-
-// Helper: Read CSV
-async function readCSV() {
-  const csvPath = path.join(__dirname, '../data/index.csv');
-  const csvContent = await fs.readFile(csvPath, 'utf8');
-  const parsed = Papa.parse(csvContent, { header: true, skipEmptyLines: true });
-  return parsed.data;
+// JWT Secret
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET || JWT_SECRET.length < 32) {
+  console.error('⚠️  WARNING: JWT_SECRET is not set or too short. Use a secure secret in production!');
 }
 
-// Helper: Write CSV
-async function writeCSV(data) {
-  const csv = Papa.unparse(data, { header: true });
-  const csvPath = path.join(__dirname, '../data/index.csv');
-  const publicCsvPath = path.join(__dirname, '../public/data/index.csv');
+// ==================== HELPER FUNCTIONS ====================
 
-  await fs.writeFile(csvPath, csv, 'utf8');
-  await fs.writeFile(publicCsvPath, csv, 'utf8');
-}
-
-// Helper: Read Changelog
-async function readChangelog() {
-  const changelogPath = path.join(__dirname, '../data/changelog.json');
-  try {
-    const content = await fs.readFile(changelogPath, 'utf8');
-    return JSON.parse(content);
-  } catch (err) {
-    // If file doesn't exist, return empty array
-    return [];
+/**
+ * Parse search input into quoted and unquoted terms
+ */
+function parseSearchInput(input) {
+  if (!input || typeof input !== 'string') {
+    return { quoted: [], unquoted: [] };
   }
+
+  const quoted = [];
+  const unquoted = [];
+  const regex = /"([^"]*)"|(\S+)/g;
+
+  let match;
+  while ((match = regex.exec(input)) !== null) {
+    if (match[1] !== undefined) {
+      const phrase = match[1].trim();
+      if (phrase) quoted.push(phrase);
+    } else if (match[2] !== undefined) {
+      const word = match[2].trim();
+      if (word) unquoted.push(word);
+    }
+  }
+
+  return { quoted, unquoted };
 }
 
-// Helper: Write Changelog
-async function writeChangelog(changelog) {
-  const changelogPath = path.join(__dirname, '../data/changelog.json');
-  await fs.writeFile(changelogPath, JSON.stringify(changelog, null, 2), 'utf8');
+/**
+ * Build MongoDB search query from search terms
+ */
+function buildSearchQuery(searchTerms) {
+  if (!searchTerms || searchTerms.length === 0) {
+    return {};
+  }
+
+  const conditions = searchTerms.map(term => {
+    const { quoted, unquoted } = parseSearchInput(term);
+    const termConditions = [];
+
+    // Build regex patterns for each field
+    const searchFields = ['Smith', 'Mei', 'School', 'Type', 'Description', 'Authentication', 'Province', 'Period'];
+
+    if (quoted.length > 0) {
+      quoted.forEach(phrase => {
+        const quotedConditions = searchFields.map(field => ({
+          [field]: { $regex: new RegExp(`\\b${phrase}\\b`, 'i') }
+        }));
+        termConditions.push({ $or: quotedConditions });
+      });
+    }
+
+    if (unquoted.length > 0) {
+      unquoted.forEach(word => {
+        const unquotedConditions = searchFields.map(field => ({
+          [field]: { $regex: new RegExp(word, 'i') }
+        }));
+        termConditions.push({ $or: unquotedConditions });
+      });
+    }
+
+    return { $and: termConditions };
+  });
+
+  return { $and: conditions };
 }
 
-// Helper: Add changelog entry
-async function addChangelogEntry(swordIndex, swordData, changes, actionType = 'edit') {
-  const changelog = await readChangelog();
-
-  const entry = {
-    id: Date.now().toString(),
-    timestamp: new Date().toISOString(),
-    actionType, // 'edit', 'media_upload', 'media_delete', 'new_sword'
+/**
+ * Add changelog entry
+ */
+async function addChangelogEntry(swordIndex, swordData, changes, actionType = 'edit', userId = null) {
+  const entry = new Changelog({
+    timestamp: new Date(),
+    actionType,
     swordIndex,
     swordSmith: swordData.Smith || 'Unknown',
     swordType: swordData.Type || 'Unknown',
@@ -125,46 +142,16 @@ async function addChangelogEntry(swordIndex, swordData, changes, actionType = 'e
       field,
       before: before || '(empty)',
       after: after || '(empty)'
-    }))
-  };
+    })),
+    userId,
+  });
 
-  changelog.unshift(entry); // Add to beginning of array
-
-  // Keep only last 1000 entries
-  if (changelog.length > 1000) {
-    changelog.splice(1000);
-  }
-
-  await writeChangelog(changelog);
+  await entry.save();
   return entry;
 }
 
-// Helper: Calculate MD5 checksum of a file
-async function calculateMD5(filePath) {
-  const fileBuffer = await fs.readFile(filePath);
-  const hash = crypto.createHash('md5');
-  hash.update(fileBuffer);
-  return hash.digest('hex');
-}
+// ==================== AUTHENTICATION MIDDLEWARE ====================
 
-// User Management Helpers
-async function readUsers() {
-  const usersPath = path.join(__dirname, '../data/users.json');
-  try {
-    const content = await fs.readFile(usersPath, 'utf8');
-    return JSON.parse(content);
-  } catch (err) {
-    // If file doesn't exist, return empty array
-    return [];
-  }
-}
-
-async function writeUsers(users) {
-  const usersPath = path.join(__dirname, '../data/users.json');
-  await fs.writeFile(usersPath, JSON.stringify(users, null, 2), 'utf8');
-}
-
-// Authentication Middleware
 function authenticateToken(req, res, next) {
   const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
 
@@ -181,7 +168,6 @@ function authenticateToken(req, res, next) {
   }
 }
 
-// Admin-only Middleware
 function requireAdmin(req, res, next) {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
@@ -189,110 +175,21 @@ function requireAdmin(req, res, next) {
   next();
 }
 
-// Helper: Parse search input into quoted and unquoted terms
-function parseSearchInput(input) {
-  if (!input || typeof input !== 'string') {
-    return { quoted: [], unquoted: [] };
-  }
-
-  const quoted = [];
-  const unquoted = [];
-
-  // Regex to match quoted phrases and unquoted words
-  const regex = /"([^"]*)"|(\S+)/g;
-
-  let match;
-  while ((match = regex.exec(input)) !== null) {
-    if (match[1] !== undefined) {
-      // Quoted phrase (group 1)
-      const phrase = match[1].trim();
-      if (phrase) {
-        quoted.push(phrase);
-      }
-    } else if (match[2] !== undefined) {
-      // Unquoted word (group 2)
-      const word = match[2].trim();
-      if (word) {
-        unquoted.push(word);
-      }
-    }
-  }
-
-  return { quoted, unquoted };
-}
-
-// Helper: Check if a value matches search terms (quoted and unquoted)
-function matchesSearchTerms(value, quotedTerms, unquotedTerms) {
-  if (!value) return false;
-
-  const lowerValue = String(value).toLowerCase();
-
-  // All quoted terms must match exactly with word boundaries (case-insensitive)
-  const quotedMatch = quotedTerms.every(term => {
-    const lowerTerm = term.toLowerCase();
-
-    // Escape special regex characters in the search term
-    const escapedTerm = lowerTerm.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-
-    // Special handling for authentication terms to exclude modified versions
-    if (lowerTerm.startsWith('juyo')) {
-      // If searching for "Juyo X", first check if "Tokubetsu Juyo X" exists
-      const tokubetsuPattern = new RegExp(
-        `(^|\\s|,|:|;|\\(|\\[|\\{)tokubetsu\\s${escapedTerm}($|\\s|,|:|;|\\)|\\]|\\}|\\.)`,
-        'i'
-      );
-      if (tokubetsuPattern.test(lowerValue)) {
-        // If "Tokubetsu Juyo X" is found, this is NOT a match for just "Juyo X"
-        return false;
-      }
-    } else if (lowerTerm.startsWith('hozon')) {
-      // If searching for "Hozon", first check if "Tokubetsu Hozon" exists
-      const tokubetsuPattern = new RegExp(
-        `(^|\\s|,|:|;|\\(|\\[|\\{)tokubetsu\\s${escapedTerm}($|\\s|,|:|;|\\)|\\]|\\}|\\.)`,
-        'i'
-      );
-      if (tokubetsuPattern.test(lowerValue)) {
-        return false;
-      }
-    } else if (lowerTerm.startsWith('bunkazai')) {
-      // If searching for "Bunkazai", first check if "Juyo Bunkazai" exists
-      const juyoPattern = new RegExp(
-        `(^|\\s|,|:|;|\\(|\\[|\\{)juyo\\s${escapedTerm}($|\\s|,|:|;|\\)|\\]|\\}|\\.)`,
-        'i'
-      );
-      if (juyoPattern.test(lowerValue)) {
-        return false;
-      }
-    }
-
-    // Create regex with word boundaries
-    const pattern = new RegExp(
-      `(^|\\s|,|:|;|\\(|\\[|\\{)${escapedTerm}($|\\s|,|:|;|\\)|\\]|\\}|\\.)`,
-      'i'
-    );
-
-    return pattern.test(lowerValue);
-  });
-
-  // All unquoted terms must be present (partial match)
-  const unquotedMatch = unquotedTerms.every(term => {
-    const lowerTerm = term.toLowerCase();
-    return lowerValue.includes(lowerTerm);
-  });
-
-  return quotedMatch && unquotedMatch;
-}
-
-// API Routes
+// ==================== API ROUTES ====================
 
 // Health check
 app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', message: 'Admin server running' });
+  res.json({
+    status: 'ok',
+    message: 'Admin server running',
+    database: 'MongoDB',
+    storage: 'DigitalOcean Spaces'
+  });
 });
 
-// Authentication Routes
+// ==================== AUTHENTICATION ROUTES ====================
 
-// Register new user
+// Register
 app.post('/api/auth/register', async (req, res) => {
   try {
     const { email, password, username } = req.body;
@@ -301,47 +198,39 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Email, username, and password are required' });
     }
 
-    const users = await readUsers();
-
-    // Check if user already exists
-    if (users.find(u => u.email === email)) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user (all new users are regular users by default)
-    const newUser = {
-      id: Date.now().toString(),
+    const newUser = new User({
       email,
       username,
       password: hashedPassword,
-      role: 'user', // 'user' or 'admin'
-      createdAt: new Date().toISOString()
-    };
+      role: 'user',
+    });
 
-    users.push(newUser);
-    await writeUsers(users);
+    await newUser.save();
 
-    // Generate JWT token
     const token = jwt.sign(
-      { id: newUser.id, email: newUser.email, role: newUser.role },
+      { id: newUser._id, email: newUser.email, role: newUser.role },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    // Set cookie
     res.cookie('token', token, {
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: 'lax'
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
     });
 
     res.json({
       success: true,
-      user: { id: newUser.id, email: newUser.email, username: newUser.username, role: newUser.role },
-      token
+      user: { id: newUser._id, email: newUser.email, username: newUser.username, role: newUser.role },
+      token,
     });
   } catch (error) {
     console.error('Error registering user:', error);
@@ -358,37 +247,33 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const users = await readUsers();
-    const user = users.find(u => u.email === email);
-
+    const user = await User.findOne({ email });
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Check password
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
-    // Generate JWT token
     const token = jwt.sign(
-      { id: user.id, email: user.email, role: user.role },
+      { id: user._id, email: user.email, role: user.role },
       JWT_SECRET,
       { expiresIn: '7d' }
     );
 
-    // Set cookie
     res.cookie('token', token, {
       httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
-      sameSite: 'lax'
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
     });
 
     res.json({
       success: true,
-      user: { id: user.id, email: user.email, username: user.username, role: user.role },
-      token
+      user: { id: user._id, email: user.email, username: user.username, role: user.role },
+      token,
     });
   } catch (error) {
     console.error('Error logging in:', error);
@@ -403,34 +288,32 @@ app.post('/api/auth/logout', (req, res) => {
 });
 
 // Get current user
-app.get('/api/auth/me', authenticateToken, (req, res) => {
-  res.json({
-    user: {
-      id: req.user.id,
-      email: req.user.email,
-      role: req.user.role
+app.get('/api/auth/me', authenticateToken, async (req, res) => {
+  try {
+    const user = await User.findById(req.user.id).select('-password');
+    if (!user) {
+      return res.status(404).json({ error: 'User not found' });
     }
-  });
+    res.json({ user });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
+  }
 });
 
-// User Management Routes (Admin only)
+// ==================== USER MANAGEMENT ROUTES ====================
 
-// Get all users
+// Get all users (Admin only)
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const users = await readUsers();
-
-    // Don't send passwords to client
-    const sanitizedUsers = users.map(({ password, ...user }) => user);
-
-    res.json({ users: sanitizedUsers });
+    const users = await User.find().select('-password');
+    res.json({ users });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Create new user
+// Create user (Admin only)
 app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { email, username, password, role = 'user' } = req.body;
@@ -439,83 +322,67 @@ app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Email, username, and password are required' });
     }
 
-    const users = await readUsers();
-
-    // Check if user already exists
-    if (users.find(u => u.email === email)) {
+    const existingUser = await User.findOne({ email });
+    if (existingUser) {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
 
-    // Hash password
     const hashedPassword = await bcrypt.hash(password, 10);
 
-    // Create new user
-    const newUser = {
-      id: Date.now().toString(),
+    const newUser = new User({
       email,
       username,
       password: hashedPassword,
       role: role === 'admin' ? 'admin' : 'user',
-      createdAt: new Date().toISOString()
-    };
+    });
 
-    users.push(newUser);
-    await writeUsers(users);
+    await newUser.save();
 
-    // Don't send password back
-    const { password: _, ...userWithoutPassword } = newUser;
+    const userResponse = newUser.toObject();
+    delete userResponse.password;
 
-    res.json({ success: true, user: userWithoutPassword });
+    res.json({ success: true, user: userResponse });
   } catch (error) {
     console.error('Error creating user:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Update user (email, username, role)
+// Update user (Admin only)
 app.patch('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
     const { email, username, role } = req.body;
 
-    const users = await readUsers();
-    const userIndex = users.findIndex(u => u.id === id);
-
-    if (userIndex === -1) {
+    const user = await User.findById(id);
+    if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Check if email is being changed and if it already exists
-    if (email && email !== users[userIndex].email) {
-      if (users.find(u => u.email === email && u.id !== id)) {
+    if (email && email !== user.email) {
+      const existingUser = await User.findOne({ email });
+      if (existingUser && existingUser._id.toString() !== id) {
         return res.status(400).json({ error: 'Email already in use by another user' });
       }
-      users[userIndex].email = email;
+      user.email = email;
     }
 
-    // Update username if provided
-    if (username) {
-      users[userIndex].username = username;
-    }
+    if (username) user.username = username;
+    if (role && ['user', 'admin'].includes(role)) user.role = role;
 
-    // Update role if provided and valid
-    if (role && ['user', 'admin'].includes(role)) {
-      users[userIndex].role = role;
-    }
+    await user.save();
 
-    await writeUsers(users);
+    const userResponse = user.toObject();
+    delete userResponse.password;
 
-    // Don't send password back
-    const { password: _, ...userWithoutPassword } = users[userIndex];
-
-    res.json({ success: true, user: userWithoutPassword });
+    res.json({ success: true, user: userResponse });
   } catch (error) {
     console.error('Error updating user:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Update user password
+// Update user password (Admin only)
 app.patch('/api/users/:id/password', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
@@ -525,18 +392,13 @@ app.patch('/api/users/:id/password', authenticateToken, requireAdmin, async (req
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
-    const users = await readUsers();
-    const userIndex = users.findIndex(u => u.id === id);
-
-    if (userIndex === -1) {
+    const user = await User.findById(id);
+    if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    // Hash new password
-    const hashedPassword = await bcrypt.hash(password, 10);
-    users[userIndex].password = hashedPassword;
-
-    await writeUsers(users);
+    user.password = await bcrypt.hash(password, 10);
+    await user.save();
 
     res.json({ success: true, message: 'Password updated successfully' });
   } catch (error) {
@@ -545,33 +407,28 @@ app.patch('/api/users/:id/password', authenticateToken, requireAdmin, async (req
   }
 });
 
-// Delete user
+// Delete user (Admin only)
 app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { id } = req.params;
 
-    // Prevent deleting yourself
     if (id === req.user.id) {
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
 
-    const users = await readUsers();
-    const userIndex = users.findIndex(u => u.id === id);
-
-    if (userIndex === -1) {
+    const user = await User.findByIdAndDelete(id);
+    if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
 
-    const deletedUser = users[userIndex];
-    users.splice(userIndex, 1);
-    await writeUsers(users);
-
-    res.json({ success: true, message: `User ${deletedUser.email} deleted` });
+    res.json({ success: true, message: `User ${user.email} deleted` });
   } catch (error) {
     console.error('Error deleting user:', error);
     res.status(500).json({ error: error.message });
   }
 });
+
+// ==================== SWORD ROUTES ====================
 
 // Get all swords with pagination and filtering
 app.get('/api/swords', async (req, res) => {
@@ -584,64 +441,56 @@ app.get('/api/swords', async (req, res) => {
       hasMedia = ''
     } = req.query;
 
-    // Get search parameter(s) - can be a string or array
     let searchTerms = req.query.search || [];
     if (typeof searchTerms === 'string') {
       searchTerms = searchTerms ? [searchTerms] : [];
     }
 
-    let swords = await readCSV();
+    // Build query
+    const query = {};
 
-    // Filter by search - supports multiple search terms with AND logic
-    // All search terms must match for a sword to be included
+    // Search terms
     if (searchTerms.length > 0) {
-      swords = swords.filter(sword => {
-        // Every search term must match (AND logic)
-        return searchTerms.every(searchTerm => {
-          // Parse search input for quoted and unquoted terms
-          const { quoted, unquoted } = parseSearchInput(searchTerm);
-
-          // Check if any field in the sword matches the search terms
-          return Object.values(sword).some(value => {
-            return matchesSearchTerms(value, quoted, unquoted);
-          });
-        });
-      });
+      Object.assign(query, buildSearchQuery(searchTerms));
     }
 
     // Filter by school
     if (school) {
-      swords = swords.filter(s => s.School === school);
+      query.School = school;
     }
 
     // Filter by type
     if (type) {
-      swords = swords.filter(s => s.Type === type);
+      query.Type = type;
     }
 
     // Filter by media status
     if (hasMedia === 'true') {
-      swords = swords.filter(s => {
-        const media = s.MediaAttachments;
-        return media && media !== 'NA' && media !== '[]';
-      });
+      query.MediaAttachments = { $nin: ['NA', '[]', '', null] };
     } else if (hasMedia === 'false') {
-      swords = swords.filter(s => {
-        const media = s.MediaAttachments;
-        return !media || media === 'NA' || media === '[]';
-      });
+      query.$or = [
+        { MediaAttachments: 'NA' },
+        { MediaAttachments: '[]' },
+        { MediaAttachments: '' },
+        { MediaAttachments: null },
+      ];
     }
 
+    // Count total
+    const total = await Sword.countDocuments(query);
+
     // Paginate
-    const total = swords.length;
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
-    const startIndex = (pageNum - 1) * limitNum;
-    const endIndex = pageNum * limitNum;
-    const paginatedSwords = swords.slice(startIndex, endIndex);
+    const skip = (pageNum - 1) * limitNum;
+
+    const swords = await Sword.find(query)
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
 
     res.json({
-      swords: paginatedSwords,
+      swords,
       total,
       page: pageNum,
       limit: limitNum,
@@ -653,15 +502,16 @@ app.get('/api/swords', async (req, res) => {
   }
 });
 
-// Get unique filter options
+// Get filter options
 app.get('/api/filters', async (req, res) => {
   try {
-    const swords = await readCSV();
+    const schools = await Sword.distinct('School');
+    const types = await Sword.distinct('Type');
 
-    const schools = [...new Set(swords.map(s => s.School).filter(Boolean))].sort();
-    const types = [...new Set(swords.map(s => s.Type).filter(Boolean))].sort();
-
-    res.json({ schools, types });
+    res.json({
+      schools: schools.filter(Boolean).sort(),
+      types: types.filter(Boolean).sort(),
+    });
   } catch (error) {
     console.error('Error fetching filters:', error);
     res.status(500).json({ error: error.message });
@@ -672,8 +522,7 @@ app.get('/api/filters', async (req, res) => {
 app.get('/api/swords/:index', async (req, res) => {
   try {
     const { index } = req.params;
-    const swords = await readCSV();
-    const sword = swords.find(s => s.Index === index);
+    const sword = await Sword.findOne({ Index: index }).lean();
 
     if (!sword) {
       return res.status(404).json({ error: 'Sword not found' });
@@ -709,35 +558,15 @@ app.post('/api/swords/:index/media', authenticateToken, requireAdmin, upload.sin
     }
 
     console.log(`Uploading media for sword ${index}:`, {
-      filename: file.filename,
+      filename: file.originalname,
       category,
       caption
     });
 
-    // Generate thumbnail if image
-    if (file.mimetype.startsWith('image/')) {
-      const thumbnailPath = path.join(
-        path.dirname(file.path),
-        `thumb-${file.filename}`
-      );
-
-      await sharp(file.path)
-        .resize(400, 300, { fit: 'inside' })
-        .jpeg({ quality: 80 })
-        .toFile(thumbnailPath);
-    }
-
-    // Update CSV with new media attachment
-    const swords = await readCSV();
-    const swordIndex = swords.findIndex(s => s.Index === index);
-
-    if (swordIndex === -1) {
-      // Clean up uploaded file
-      await fs.unlink(file.path).catch(() => {});
+    const sword = await Sword.findOne({ Index: index });
+    if (!sword) {
       return res.status(404).json({ error: 'Sword not found' });
     }
-
-    const sword = swords[swordIndex];
 
     // Parse existing media attachments
     let mediaAttachments = [];
@@ -752,15 +581,13 @@ app.post('/api/swords/:index/media', authenticateToken, requireAdmin, upload.sin
       }
     }
 
-    // Calculate MD5 checksum of uploaded file
-    const uploadedFileMD5 = await calculateMD5(file.path);
+    // Calculate MD5 checksum
+    const uploadedFileMD5 = calculateMD5(file.buffer);
     console.log(`Uploaded file MD5: ${uploadedFileMD5}`);
 
-    // Check for duplicate based on MD5 checksum
+    // Check for duplicate
     const duplicate = mediaAttachments.find(attachment => attachment.md5 === uploadedFileMD5);
     if (duplicate) {
-      // Clean up uploaded file since it's a duplicate
-      await fs.unlink(file.path).catch(() => {});
       console.log(`Duplicate file detected for sword ${index}. MD5: ${uploadedFileMD5}`);
       return res.status(409).json({
         error: 'Duplicate file',
@@ -769,12 +596,22 @@ app.post('/api/swords/:index/media', authenticateToken, requireAdmin, upload.sin
       });
     }
 
-    // Add new attachment
-    const fileUrl = `/documents/uploads/${file.filename}`;
-    const thumbnailUrl = file.mimetype.startsWith('image/')
-      ? `/documents/uploads/thumb-${file.filename}`
-      : null;
+    // Generate unique filename
+    const filename = generateFilename(file.originalname);
 
+    // Upload original to Spaces
+    const fileKey = `images/originals/${filename}`;
+    const fileUrl = await uploadToSpaces(file.buffer, fileKey, file.mimetype);
+
+    // Generate and upload thumbnail if image
+    let thumbnailUrl = null;
+    if (file.mimetype.startsWith('image/')) {
+      const thumbnailBuffer = await generateThumbnail(file.buffer);
+      const thumbnailKey = `images/thumbnails/thumb-${filename}`;
+      thumbnailUrl = await uploadToSpaces(thumbnailBuffer, thumbnailKey, 'image/jpeg');
+    }
+
+    // Add new attachment
     const newAttachment = {
       url: fileUrl,
       thumbnailUrl,
@@ -782,19 +619,17 @@ app.post('/api/swords/:index/media', authenticateToken, requireAdmin, upload.sin
       caption: caption || '',
       tags: tags ? tags.split(',').map(t => t.trim()) : [],
       uploadedAt: new Date().toISOString(),
-      filename: file.filename,
-      originalFilename: file.originalname, // Store original filename with Japanese characters
+      filename,
+      originalFilename: file.originalname,
       mimeType: file.mimetype,
-      md5: uploadedFileMD5, // Store MD5 checksum for duplicate detection
+      md5: uploadedFileMD5,
     };
 
     mediaAttachments.push(newAttachment);
 
     // Update sword record
     sword.MediaAttachments = JSON.stringify(mediaAttachments);
-
-    // Write back to CSV
-    await writeCSV(swords);
+    await sword.save();
 
     // Log to changelog
     await addChangelogEntry(index, sword, {
@@ -802,14 +637,14 @@ app.post('/api/swords/:index/media', authenticateToken, requireAdmin, upload.sin
         before: `${mediaAttachments.length - 1} attachment(s)`,
         after: `Added: ${newAttachment.category} - ${newAttachment.caption || newAttachment.filename}`
       }
-    }, 'media_upload');
+    }, 'media_upload', req.user.id);
 
     console.log(`Successfully uploaded media for sword ${index}`);
 
     res.json({
       success: true,
       file: newAttachment,
-      sword,
+      sword: sword.toObject(),
     });
   } catch (error) {
     console.error('Error uploading media:', error);
@@ -825,14 +660,10 @@ app.delete('/api/swords/:index/media', authenticateToken, requireAdmin, async (r
 
     console.log(`Removing media from sword ${index}:`, filename);
 
-    const swords = await readCSV();
-    const swordIndex = swords.findIndex(s => s.Index === index);
-
-    if (swordIndex === -1) {
+    const sword = await Sword.findOne({ Index: index });
+    if (!sword) {
       return res.status(404).json({ error: 'Sword not found' });
     }
-
-    const sword = swords[swordIndex];
 
     // Parse and filter media attachments
     let mediaAttachments = [];
@@ -844,7 +675,7 @@ app.delete('/api/swords/:index/media', authenticateToken, requireAdmin, async (r
       }
     }
 
-    // Find the attachment being removed for changelog
+    // Find the attachment being removed
     const removedAttachment = mediaAttachments.find(m => m.filename === filename);
 
     // Filter out the attachment
@@ -854,15 +685,10 @@ app.delete('/api/swords/:index/media', authenticateToken, requireAdmin, async (r
       ? JSON.stringify(filteredAttachments)
       : 'NA';
 
-    // Delete files from filesystem
-    const filePath = path.join(__dirname, '../public/documents/uploads', filename);
-    const thumbPath = path.join(__dirname, '../public/documents/uploads', `thumb-${filename}`);
+    await sword.save();
 
-    await fs.unlink(filePath).catch(err => console.log('Could not delete file:', err.message));
-    await fs.unlink(thumbPath).catch(() => {}); // Ignore thumbnail errors
-
-    // Write back to CSV
-    await writeCSV(swords);
+    // Note: Files in Spaces are not deleted to prevent accidental data loss
+    // Implement S3 DeleteObject if you want to actually delete files
 
     // Log to changelog
     if (removedAttachment) {
@@ -871,12 +697,12 @@ app.delete('/api/swords/:index/media', authenticateToken, requireAdmin, async (r
           before: `${mediaAttachments.length} attachment(s)`,
           after: `Removed: ${removedAttachment.category} - ${removedAttachment.caption || removedAttachment.filename}`
         }
-      }, 'media_delete');
+      }, 'media_delete', req.user.id);
     }
 
     console.log(`Successfully removed media from sword ${index}`);
 
-    res.json({ success: true, sword });
+    res.json({ success: true, sword: sword.toObject() });
   } catch (error) {
     console.error('Error removing media:', error);
     res.status(500).json({ error: error.message });
@@ -888,14 +714,13 @@ app.post('/api/swords', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const newSwordData = req.body;
 
-    const swords = await readCSV();
-
-    // Generate next available index
-    const maxIndex = Math.max(...swords.map(s => parseInt(s.Index) || 0));
+    // Find highest existing index
+    const maxSword = await Sword.findOne().sort({ Index: -1 }).limit(1);
+    const maxIndex = maxSword ? parseInt(maxSword.Index) : 0;
     const newIndex = (maxIndex + 1).toString();
 
-    // Create new sword with default values
-    const newSword = {
+    // Create new sword
+    const newSword = new Sword({
       Index: newIndex,
       School: newSwordData.School || 'NA',
       Smith: newSwordData.Smith || 'Unknown',
@@ -917,18 +742,14 @@ app.post('/api/swords', authenticateToken, requireAdmin, async (req, res) => {
       Attachments: newSwordData.Attachments || 'NA',
       Tags: newSwordData.Tags || '',
       MediaAttachments: 'NA'
-    };
+    });
 
-    // Add to swords array
-    swords.push(newSword);
-
-    // Write to CSV
-    await writeCSV(swords);
+    await newSword.save();
 
     // Log to changelog
     const changes = {};
-    Object.keys(newSword).forEach(field => {
-      if (field !== 'Index' && newSword[field] !== 'NA' && newSword[field] !== '') {
+    Object.keys(newSword.toObject()).forEach(field => {
+      if (field !== 'Index' && field !== '_id' && field !== '__v' && field !== 'createdAt' && field !== 'updatedAt' && newSword[field] !== 'NA' && newSword[field] !== '') {
         changes[field] = {
           before: '(new sword)',
           after: newSword[field]
@@ -936,11 +757,11 @@ app.post('/api/swords', authenticateToken, requireAdmin, async (req, res) => {
       }
     });
 
-    await addChangelogEntry(newIndex, newSword, changes, 'new_sword');
+    await addChangelogEntry(newIndex, newSword, changes, 'new_sword', req.user.id);
 
     console.log(`Created new sword with index ${newIndex}`);
 
-    res.json({ success: true, sword: newSword });
+    res.json({ success: true, sword: newSword.toObject() });
   } catch (error) {
     console.error('Error creating sword:', error);
     res.status(500).json({ error: error.message });
@@ -953,31 +774,26 @@ app.patch('/api/swords/:index', authenticateToken, requireAdmin, async (req, res
     const { index } = req.params;
     const updates = req.body;
 
-    const swords = await readCSV();
-    const swordIndex = swords.findIndex(s => s.Index === index);
-
-    if (swordIndex === -1) {
+    const sword = await Sword.findOne({ Index: index });
+    if (!sword) {
       return res.status(404).json({ error: 'Sword not found' });
     }
 
-    const sword = swords[swordIndex];
-
-    // Track changes for changelog
+    // Track changes
     const changes = {};
 
-    // Update allowed fields (all major sword properties except Index)
     const allowedFields = [
       'School', 'Smith', 'Mei', 'Type', 'Nagasa', 'Sori',
       'Moto', 'Saki', 'Nakago', 'Ana', 'Length', 'Hori',
       'Authentication', 'Province', 'Period', 'References',
       'Description', 'Attachments', 'Tags'
     ];
+
     allowedFields.forEach(field => {
       if (updates[field] !== undefined) {
         const oldValue = sword[field] || '';
         const newValue = updates[field] || '';
 
-        // Only record if value actually changed
         if (oldValue !== newValue) {
           changes[field] = { before: oldValue, after: newValue };
           sword[field] = newValue;
@@ -985,89 +801,36 @@ app.patch('/api/swords/:index', authenticateToken, requireAdmin, async (req, res
       }
     });
 
-    // Only write if there were actual changes
+    // Only save if there were actual changes
     if (Object.keys(changes).length > 0) {
-      await writeCSV(swords);
-
-      // Record changes in changelog (pass sword data for display)
-      await addChangelogEntry(index, sword, changes);
-
+      await sword.save();
+      await addChangelogEntry(index, sword, changes, 'edit', req.user.id);
       console.log(`Updated sword ${index} with ${Object.keys(changes).length} changes`);
     }
 
-    res.json({ success: true, sword: swords[swordIndex] });
+    res.json({ success: true, sword: sword.toObject() });
   } catch (error) {
     console.error('Error updating sword:', error);
     res.status(500).json({ error: error.message });
   }
 });
 
-// Get changelog entries
-app.get('/api/changelog', async (req, res) => {
-  try {
-    const { page = 1, limit = 50 } = req.query;
-
-    const changelog = await readChangelog();
-
-    // Paginate
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
-    const startIndex = (pageNum - 1) * limitNum;
-    const endIndex = pageNum * limitNum;
-    const paginatedChangelog = changelog.slice(startIndex, endIndex);
-
-    res.json({
-      entries: paginatedChangelog,
-      total: changelog.length,
-      page: pageNum,
-      limit: limitNum,
-      pages: Math.ceil(changelog.length / limitNum),
-    });
-  } catch (error) {
-    console.error('Error fetching changelog:', error);
-    res.status(500).json({ error: error.message });
-  }
-});
-
-// Delete sword record (Admin only)
+// Delete sword (Admin only)
 app.delete('/api/swords/:index', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { index } = req.params;
 
     console.log(`Attempting to delete sword ${index}`);
 
-    const swords = await readCSV();
-    const swordIndex = swords.findIndex(s => s.Index === index);
-
-    if (swordIndex === -1) {
+    const sword = await Sword.findOne({ Index: index });
+    if (!sword) {
       return res.status(404).json({ error: 'Sword not found' });
     }
 
-    const sword = swords[swordIndex];
+    // Note: Files in Spaces are not deleted to prevent accidental data loss
+    // Implement S3 DeleteObject if you want to actually delete files
 
-    // Delete associated media files
-    if (sword.MediaAttachments && sword.MediaAttachments !== 'NA') {
-      try {
-        const mediaAttachments = JSON.parse(sword.MediaAttachments);
-        if (Array.isArray(mediaAttachments)) {
-          for (const media of mediaAttachments) {
-            const filePath = path.join(__dirname, '../public/documents/uploads', media.filename);
-            const thumbPath = path.join(__dirname, '../public/documents/uploads', `thumb-${media.filename}`);
-
-            await fs.unlink(filePath).catch(err => console.log('Could not delete file:', err.message));
-            await fs.unlink(thumbPath).catch(() => {}); // Ignore thumbnail errors
-          }
-        }
-      } catch (err) {
-        console.error('Error deleting media files:', err);
-      }
-    }
-
-    // Remove sword from array
-    swords.splice(swordIndex, 1);
-
-    // Write back to CSV
-    await writeCSV(swords);
+    await Sword.deleteOne({ Index: index });
 
     // Log to changelog
     await addChangelogEntry(index, sword, {
@@ -1075,7 +838,7 @@ app.delete('/api/swords/:index', authenticateToken, requireAdmin, async (req, re
         before: `${sword.Smith} - ${sword.Type}`,
         after: '(deleted)'
       }
-    }, 'delete');
+    }, 'delete', req.user.id);
 
     console.log(`Successfully deleted sword ${index}`);
 
@@ -1087,7 +850,7 @@ app.delete('/api/swords/:index', authenticateToken, requireAdmin, async (req, re
 });
 
 // Bulk upload swords from CSV (Admin only)
-app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('file'), async (req, res) => {
+app.post('/api/swords/bulk', authenticateToken, requireAdmin, upload.single('file'), async (req, res) => {
   try {
     const file = req.file;
 
@@ -1097,12 +860,12 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('
 
     console.log('Processing bulk upload CSV:', file.originalname);
 
-    // Parse CSV from buffer
+    // Parse CSV
     const csvContent = file.buffer.toString('utf8');
     const parsed = Papa.parse(csvContent, {
       header: true,
       skipEmptyLines: true,
-      transformHeader: (header) => header.trim() // Clean up header names
+      transformHeader: (header) => header.trim()
     });
 
     if (parsed.errors.length > 0) {
@@ -1121,9 +884,6 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('
 
     console.log(`Parsed ${uploadData.length} sword records from CSV`);
 
-    // Load existing database
-    const swords = await readCSV();
-
     // Track results
     const results = {
       total: uploadData.length,
@@ -1135,36 +895,9 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('
       duplicateDetails: []
     };
 
-    // Determine next available index
-    let maxIndex = Math.max(...swords.map(s => parseInt(s.Index) || 0));
-
-    // Helper function to check for duplicates
-    // Consider a sword a duplicate if Smith + Mei + Type + Nagasa all match
-    function isDuplicate(newData, existingSwords) {
-      return existingSwords.find(existing => {
-        const smithMatch = existing.Smith === newData.Smith;
-        const meiMatch = existing.Mei === newData.Mei;
-        const typeMatch = existing.Type === newData.Type;
-
-        // Nagasa comparison - allow very small differences (±0.01cm for floating point)
-        let nagasaMatch = existing.Nagasa === newData.Nagasa;
-        if (!nagasaMatch && newData.Nagasa !== 'NA' && existing.Nagasa !== 'NA') {
-          const existingNagasa = parseFloat(existing.Nagasa);
-          const newNagasa = parseFloat(newData.Nagasa);
-          if (!isNaN(existingNagasa) && !isNaN(newNagasa)) {
-            nagasaMatch = Math.abs(existingNagasa - newNagasa) < 0.01;
-          }
-        }
-
-        return smithMatch && meiMatch && typeMatch && nagasaMatch;
-      });
-    }
-
-    // Expected CSV columns (all are optional except at least one identifying field)
-    const requiredFields = ['School', 'Smith', 'Mei', 'Type', 'Nagasa', 'Sori',
-      'Moto', 'Saki', 'Nakago', 'Ana', 'Length', 'Hori',
-      'Authentication', 'Province', 'Period', 'References',
-      'Description', 'Attachments', 'Tags'];
+    // Get max index
+    const maxSword = await Sword.findOne().sort({ Index: -1 }).limit(1);
+    let maxIndex = maxSword ? parseInt(maxSword.Index) : 0;
 
     // Process each row
     for (let i = 0; i < uploadData.length; i++) {
@@ -1172,7 +905,7 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('
       const rowNum = i + 1;
 
       try {
-        // Skip rows that are completely empty
+        // Skip empty rows
         const hasData = Object.values(row).some(val => val && val.trim() !== '');
         if (!hasData) {
           results.skipped++;
@@ -1180,13 +913,42 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('
           continue;
         }
 
-        // Build temporary sword data for duplicate checking
-        const tempSwordData = {
-          School: row.School?.trim() || 'NA',
+        // Build sword data
+        const swordData = {
           Smith: row.Smith?.trim() || 'Unknown',
           Mei: row.Mei?.trim() || 'Mumei',
           Type: row.Type?.trim() || 'NA',
           Nagasa: row.Nagasa?.trim() || 'NA',
+        };
+
+        // Check for duplicates
+        const existing = await Sword.findOne({
+          Smith: swordData.Smith,
+          Mei: swordData.Mei,
+          Type: swordData.Type,
+          Nagasa: swordData.Nagasa,
+        });
+
+        if (existing) {
+          results.duplicates++;
+          results.duplicateDetails.push({
+            row: rowNum,
+            csvData: `${swordData.Smith} ${swordData.Mei} (${swordData.Type})`,
+            existingIndex: existing.Index
+          });
+          console.log(`Row ${rowNum}: Duplicate found - matches Index ${existing.Index}`);
+          continue;
+        }
+
+        // Create new sword
+        maxIndex++;
+        const newSword = new Sword({
+          Index: maxIndex.toString(),
+          School: row.School?.trim() || 'NA',
+          Smith: swordData.Smith,
+          Mei: swordData.Mei,
+          Type: swordData.Type,
+          Nagasa: swordData.Nagasa,
           Sori: row.Sori?.trim() || 'NA',
           Moto: row.Moto?.trim() || 'NA',
           Saki: row.Saki?.trim() || 'NA',
@@ -1200,44 +962,20 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('
           References: row.References?.trim() || 'NA',
           Description: row.Description?.trim() || 'NA',
           Attachments: row.Attachments?.trim() || 'NA',
-          Tags: row.Tags?.trim() || ''
-        };
-
-        // Check for duplicates
-        const existingDuplicate = isDuplicate(tempSwordData, swords);
-        if (existingDuplicate) {
-          results.duplicates++;
-          results.duplicateDetails.push({
-            row: rowNum,
-            csvData: `${tempSwordData.Smith} ${tempSwordData.Mei} (${tempSwordData.Type})`,
-            existingIndex: existingDuplicate.Index
-          });
-          console.log(`Row ${rowNum}: Duplicate found - matches Index ${existingDuplicate.Index}`);
-          continue;
-        }
-
-        // Generate next index
-        maxIndex++;
-        const newIndex = maxIndex.toString();
-
-        // Build new sword record with defaults
-        const newSword = {
-          Index: newIndex,
-          ...tempSwordData,
+          Tags: row.Tags?.trim() || '',
           MediaAttachments: 'NA'
-        };
+        });
 
-        // Add to database
-        swords.push(newSword);
+        await newSword.save();
         results.newSwords.push(newSword);
         results.created++;
 
-        console.log(`Row ${rowNum}: Created sword ${newIndex} - ${newSword.Smith} ${newSword.Mei}`);
+        console.log(`Row ${rowNum}: Created sword ${newSword.Index} - ${newSword.Smith} ${newSword.Mei}`);
 
         // Log to changelog
         const changes = {};
-        Object.keys(newSword).forEach(field => {
-          if (field !== 'Index' && field !== 'MediaAttachments' &&
+        Object.keys(newSword.toObject()).forEach(field => {
+          if (field !== 'Index' && field !== '_id' && field !== '__v' && field !== 'createdAt' && field !== 'updatedAt' && field !== 'MediaAttachments' &&
               newSword[field] !== 'NA' && newSword[field] !== '') {
             changes[field] = {
               before: '(new sword)',
@@ -1246,7 +984,7 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('
           }
         });
 
-        await addChangelogEntry(newIndex, newSword, changes, 'new_sword');
+        await addChangelogEntry(newSword.Index, newSword, changes, 'new_sword', req.user.id);
 
       } catch (error) {
         results.errors.push({
@@ -1258,11 +996,7 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('
       }
     }
 
-    // Write updated database to CSV
-    if (results.created > 0) {
-      await writeCSV(swords);
-      console.log(`Bulk upload complete: ${results.created} swords created`);
-    }
+    console.log(`Bulk upload complete: ${results.created} swords created`);
 
     // Return summary
     res.json({
@@ -1290,10 +1024,45 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('
   }
 });
 
-// Start server
+// ==================== CHANGELOG ROUTES ====================
+
+// Get changelog entries
+app.get('/api/changelog', async (req, res) => {
+  try {
+    const { page = 1, limit = 50 } = req.query;
+
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+    const skip = (pageNum - 1) * limitNum;
+
+    const total = await Changelog.countDocuments();
+    const entries = await Changelog.find()
+      .sort({ timestamp: -1 })
+      .skip(skip)
+      .limit(limitNum)
+      .lean();
+
+    res.json({
+      entries,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum),
+    });
+  } catch (error) {
+    console.error('Error fetching changelog:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== START SERVER ====================
+
 app.listen(PORT, '0.0.0.0', () => {
   console.log(`\n✅ Admin server running on http://localhost:${PORT}`);
   console.log(`   Network: http://0.0.0.0:${PORT}`);
   console.log(`   API endpoint: http://localhost:${PORT}/api`);
-  console.log(`   Health check: http://localhost:${PORT}/api/health\n`);
+  console.log(`   Health check: http://localhost:${PORT}/api/health`);
+  console.log(`   Environment: ${process.env.NODE_ENV || 'development'}`);
+  console.log(`   Database: MongoDB`);
+  console.log(`   Storage: DigitalOcean Spaces\n`);
 });

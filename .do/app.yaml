@@ -1,0 +1,69 @@
+name: nihonto-db
+region: sfo
+
+# Frontend (Static Site)
+static_sites:
+  - name: nihonto-frontend
+    github:
+      repo: chandama/touken-west
+      branch: main
+      deploy_on_push: true
+    build_command: npm run build
+    output_dir: build
+    routes:
+      - path: /
+    envs:
+      - key: NODE_ENV
+        value: production
+
+# Backend API
+services:
+  - name: nihonto-api
+    github:
+      repo: chandama/touken-west
+      branch: main
+      deploy_on_push: true
+    build_command: cd admin-server && npm install
+    run_command: cd admin-server && node server.js
+    environment_slug: node-js
+    instance_count: 1
+    instance_size_slug: basic-xxs
+    http_port: 3002
+    health_check:
+      http_path: /api/health
+    routes:
+      - path: /api
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: "3002"
+      - key: MONGODB_URI
+        value: ${MONGODB_URI}
+        type: SECRET
+      - key: JWT_SECRET
+        value: ${JWT_SECRET}
+        type: SECRET
+      - key: SESSION_SECRET
+        value: ${SESSION_SECRET}
+        type: SECRET
+      - key: SPACES_ENDPOINT
+        value: ${SPACES_ENDPOINT}
+      - key: SPACES_REGION
+        value: ${SPACES_REGION}
+      - key: SPACES_BUCKET
+        value: ${SPACES_BUCKET}
+      - key: SPACES_ACCESS_KEY_ID
+        value: ${SPACES_ACCESS_KEY_ID}
+        type: SECRET
+      - key: SPACES_SECRET_ACCESS_KEY
+        value: ${SPACES_SECRET_ACCESS_KEY}
+        type: SECRET
+      - key: SPACES_CDN_ENDPOINT
+        value: ${SPACES_CDN_ENDPOINT}
+      - key: UPLOAD_MAX_SIZE
+        value: "15728640"
+      - key: ALLOWED_FILE_TYPES
+        value: "image/jpeg,image/jpg,application/pdf"
+      - key: CORS_ORIGIN
+        value: "https://nihonto-db.com,https://www.nihonto-db.com"
