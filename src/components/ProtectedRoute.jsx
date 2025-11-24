@@ -1,6 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import '../styles/Login.css';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+
 const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -16,7 +18,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
 
   const checkAuth = async () => {
     try {
-      const response = await fetch('http://localhost:3002/api/auth/me', {
+      const response = await fetch(`${API_BASE}/auth/me`, {
         credentials: 'include'
       });
       if (response.ok) {
@@ -41,7 +43,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
     setIsLoggingIn(true);
 
     try {
-      const response = await fetch('http://localhost:3002/api/auth/login', {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',

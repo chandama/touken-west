@@ -1,8 +1,7 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 
-// Use the current hostname to allow network access
-const API_BASE = `http://${window.location.hostname}:3002/api`;
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 const CATEGORIES = [
   'Full Blade',

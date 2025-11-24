@@ -11,6 +11,8 @@ import Login from './components/Login.jsx';
 import useSwordData from './hooks/useSwordData.js';
 import { parseSearchInput, matchesSearchTerms } from './utils/searchParser.js';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+
 function App() {
   const { swords, loading, error } = useSwordData();
   const [searchTags, setSearchTags] = useState([]);
@@ -36,7 +38,7 @@ function App() {
   useEffect(() => {
     const checkAuth = async () => {
       try {
-        const response = await fetch('http://localhost:3002/api/auth/me', {
+        const response = await fetch(`${API_BASE}/auth/me`, {
           credentials: 'include'
         });
         if (response.ok) {
@@ -65,7 +67,7 @@ function App() {
 
   const handleLogout = async () => {
     try {
-      await fetch('http://localhost:3002/api/auth/logout', {
+      await fetch(`${API_BASE}/auth/logout`, {
         method: 'POST',
         credentials: 'include'
       });

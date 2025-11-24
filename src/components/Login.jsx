@@ -1,6 +1,8 @@
 import React, { useState } from 'react';
 import '../styles/Login.css';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+
 const Login = ({ onClose, onSwitchToRegister }) => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -13,7 +15,7 @@ const Login = ({ onClose, onSwitchToRegister }) => {
     setLoading(true);
 
     try {
-      const response = await fetch('http://localhost:3002/api/auth/login', {
+      const response = await fetch(`${API_BASE}/auth/login`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
