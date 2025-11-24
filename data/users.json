@@ -1,0 +1,18 @@
+[
+  {
+    "id": "1764003269240",
+    "email": "admin@touken-west.com",
+    "username": "Admin",
+    "password": "$2b$10$TKsRp0YvXFN6wzAoR8aQvOD5LS1Alej04xhGRHswqqkbhWJdmhDMy",
+    "role": "admin",
+    "createdAt": "2025-11-24T16:54:29.240Z"
+  },
+  {
+    "id": "1764004087999",
+    "email": "test@test.com",
+    "username": "test",
+    "password": "$2b$10$1hMeSUjKeLoXrD22Y7XA.ONzBG2QI1xpe4KBLKahERjWQAdrLVGQ6",
+    "role": "user",
+    "createdAt": "2025-11-24T17:08:07.999Z"
+  }
+]

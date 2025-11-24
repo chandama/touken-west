@@ -6,13 +6,23 @@ const Papa = require('papaparse');
 const sharp = require('sharp');
 const cors = require('cors');
 const crypto = require('crypto');
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcryptjs');
+const cookieParser = require('cookie-parser');
 
 const app = express();
 const PORT = 3002;
 
-// Enable CORS for local development
-app.use(cors());
+// JWT Secret (in production, use environment variable)
+const JWT_SECRET = process.env.JWT_SECRET || 'your-secret-key-change-in-production';
+
+// Enable CORS for local development with credentials
+app.use(cors({
+  origin: ['http://localhost:5173', 'http://localhost:3000'], // Vite dev server (both ports)
+  credentials: true
+}));
 app.use(express.json());
+app.use(cookieParser());
 
 // Configure file upload
 const storage = multer.diskStorage({
@@ -137,6 +147,48 @@ async function calculateMD5(filePath) {
   return hash.digest('hex');
 }
 
+// User Management Helpers
+async function readUsers() {
+  const usersPath = path.join(__dirname, '../data/users.json');
+  try {
+    const content = await fs.readFile(usersPath, 'utf8');
+    return JSON.parse(content);
+  } catch (err) {
+    // If file doesn't exist, return empty array
+    return [];
+  }
+}
+
+async function writeUsers(users) {
+  const usersPath = path.join(__dirname, '../data/users.json');
+  await fs.writeFile(usersPath, JSON.stringify(users, null, 2), 'utf8');
+}
+
+// Authentication Middleware
+function authenticateToken(req, res, next) {
+  const token = req.cookies.token || req.headers.authorization?.split(' ')[1];
+
+  if (!token) {
+    return res.status(401).json({ error: 'Access denied. No token provided.' });
+  }
+
+  try {
+    const decoded = jwt.verify(token, JWT_SECRET);
+    req.user = decoded;
+    next();
+  } catch (error) {
+    res.status(403).json({ error: 'Invalid or expired token.' });
+  }
+}
+
+// Admin-only Middleware
+function requireAdmin(req, res, next) {
+  if (req.user.role !== 'admin') {
+    return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+  }
+  next();
+}
+
 // Helper: Parse search input into quoted and unquoted terms
 function parseSearchInput(input) {
   if (!input || typeof input !== 'string') {
@@ -236,6 +288,289 @@ function matchesSearchTerms(value, quotedTerms, unquotedTerms) {
 // Health check
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'Admin server running' });
+});
+
+// Authentication Routes
+
+// Register new user
+app.post('/api/auth/register', async (req, res) => {
+  try {
+    const { email, password, username } = req.body;
+
+    if (!email || !password || !username) {
+      return res.status(400).json({ error: 'Email, username, and password are required' });
+    }
+
+    const users = await readUsers();
+
+    // Check if user already exists
+    if (users.find(u => u.email === email)) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user (all new users are regular users by default)
+    const newUser = {
+      id: Date.now().toString(),
+      email,
+      username,
+      password: hashedPassword,
+      role: 'user', // 'user' or 'admin'
+      createdAt: new Date().toISOString()
+    };
+
+    users.push(newUser);
+    await writeUsers(users);
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: newUser.id, email: newUser.email, role: newUser.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: 'lax'
+    });
+
+    res.json({
+      success: true,
+      user: { id: newUser.id, email: newUser.email, username: newUser.username, role: newUser.role },
+      token
+    });
+  } catch (error) {
+    console.error('Error registering user:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Login
+app.post('/api/auth/login', async (req, res) => {
+  try {
+    const { email, password } = req.body;
+
+    if (!email || !password) {
+      return res.status(400).json({ error: 'Email and password are required' });
+    }
+
+    const users = await readUsers();
+    const user = users.find(u => u.email === email);
+
+    if (!user) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Check password
+    const isValidPassword = await bcrypt.compare(password, user.password);
+    if (!isValidPassword) {
+      return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Generate JWT token
+    const token = jwt.sign(
+      { id: user.id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    // Set cookie
+    res.cookie('token', token, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
+      sameSite: 'lax'
+    });
+
+    res.json({
+      success: true,
+      user: { id: user.id, email: user.email, username: user.username, role: user.role },
+      token
+    });
+  } catch (error) {
+    console.error('Error logging in:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Logout
+app.post('/api/auth/logout', (req, res) => {
+  res.clearCookie('token');
+  res.json({ success: true, message: 'Logged out successfully' });
+});
+
+// Get current user
+app.get('/api/auth/me', authenticateToken, (req, res) => {
+  res.json({
+    user: {
+      id: req.user.id,
+      email: req.user.email,
+      role: req.user.role
+    }
+  });
+});
+
+// User Management Routes (Admin only)
+
+// Get all users
+app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const users = await readUsers();
+
+    // Don't send passwords to client
+    const sanitizedUsers = users.map(({ password, ...user }) => user);
+
+    res.json({ users: sanitizedUsers });
+  } catch (error) {
+    console.error('Error fetching users:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Create new user
+app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { email, username, password, role = 'user' } = req.body;
+
+    if (!email || !username || !password) {
+      return res.status(400).json({ error: 'Email, username, and password are required' });
+    }
+
+    const users = await readUsers();
+
+    // Check if user already exists
+    if (users.find(u => u.email === email)) {
+      return res.status(400).json({ error: 'User with this email already exists' });
+    }
+
+    // Hash password
+    const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Create new user
+    const newUser = {
+      id: Date.now().toString(),
+      email,
+      username,
+      password: hashedPassword,
+      role: role === 'admin' ? 'admin' : 'user',
+      createdAt: new Date().toISOString()
+    };
+
+    users.push(newUser);
+    await writeUsers(users);
+
+    // Don't send password back
+    const { password: _, ...userWithoutPassword } = newUser;
+
+    res.json({ success: true, user: userWithoutPassword });
+  } catch (error) {
+    console.error('Error creating user:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update user (email, username, role)
+app.patch('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { email, username, role } = req.body;
+
+    const users = await readUsers();
+    const userIndex = users.findIndex(u => u.id === id);
+
+    if (userIndex === -1) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Check if email is being changed and if it already exists
+    if (email && email !== users[userIndex].email) {
+      if (users.find(u => u.email === email && u.id !== id)) {
+        return res.status(400).json({ error: 'Email already in use by another user' });
+      }
+      users[userIndex].email = email;
+    }
+
+    // Update username if provided
+    if (username) {
+      users[userIndex].username = username;
+    }
+
+    // Update role if provided and valid
+    if (role && ['user', 'admin'].includes(role)) {
+      users[userIndex].role = role;
+    }
+
+    await writeUsers(users);
+
+    // Don't send password back
+    const { password: _, ...userWithoutPassword } = users[userIndex];
+
+    res.json({ success: true, user: userWithoutPassword });
+  } catch (error) {
+    console.error('Error updating user:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Update user password
+app.patch('/api/users/:id/password', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const { password } = req.body;
+
+    if (!password || password.length < 6) {
+      return res.status(400).json({ error: 'Password must be at least 6 characters' });
+    }
+
+    const users = await readUsers();
+    const userIndex = users.findIndex(u => u.id === id);
+
+    if (userIndex === -1) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    // Hash new password
+    const hashedPassword = await bcrypt.hash(password, 10);
+    users[userIndex].password = hashedPassword;
+
+    await writeUsers(users);
+
+    res.json({ success: true, message: 'Password updated successfully' });
+  } catch (error) {
+    console.error('Error updating password:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Delete user
+app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { id } = req.params;
+
+    // Prevent deleting yourself
+    if (id === req.user.id) {
+      return res.status(400).json({ error: 'Cannot delete your own account' });
+    }
+
+    const users = await readUsers();
+    const userIndex = users.findIndex(u => u.id === id);
+
+    if (userIndex === -1) {
+      return res.status(404).json({ error: 'User not found' });
+    }
+
+    const deletedUser = users[userIndex];
+    users.splice(userIndex, 1);
+    await writeUsers(users);
+
+    res.json({ success: true, message: `User ${deletedUser.email} deleted` });
+  } catch (error) {
+    console.error('Error deleting user:', error);
+    res.status(500).json({ error: error.message });
+  }
 });
 
 // Get all swords with pagination and filtering
@@ -362,8 +697,8 @@ app.get('/api/swords/:index', async (req, res) => {
   }
 });
 
-// Upload media for a sword
-app.post('/api/swords/:index/media', upload.single('file'), async (req, res) => {
+// Upload media for a sword (Admin only)
+app.post('/api/swords/:index/media', authenticateToken, requireAdmin, upload.single('file'), async (req, res) => {
   try {
     const { index } = req.params;
     const { category, caption, tags } = req.body;
@@ -482,8 +817,8 @@ app.post('/api/swords/:index/media', upload.single('file'), async (req, res) => 
   }
 });
 
-// Remove media from sword
-app.delete('/api/swords/:index/media', async (req, res) => {
+// Remove media from sword (Admin only)
+app.delete('/api/swords/:index/media', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { index } = req.params;
     const { filename } = req.body;
@@ -548,8 +883,8 @@ app.delete('/api/swords/:index/media', async (req, res) => {
   }
 });
 
-// Create new sword
-app.post('/api/swords', async (req, res) => {
+// Create new sword (Admin only)
+app.post('/api/swords', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const newSwordData = req.body;
 
@@ -612,8 +947,8 @@ app.post('/api/swords', async (req, res) => {
   }
 });
 
-// Update sword metadata
-app.patch('/api/swords/:index', async (req, res) => {
+// Update sword metadata (Admin only)
+app.patch('/api/swords/:index', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { index } = req.params;
     const updates = req.body;
@@ -694,8 +1029,8 @@ app.get('/api/changelog', async (req, res) => {
   }
 });
 
-// Delete sword record
-app.delete('/api/swords/:index', async (req, res) => {
+// Delete sword record (Admin only)
+app.delete('/api/swords/:index', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const { index } = req.params;
 
@@ -751,8 +1086,8 @@ app.delete('/api/swords/:index', async (req, res) => {
   }
 });
 
-// Bulk upload swords from CSV
-app.post('/api/swords/bulk', csvUpload.single('file'), async (req, res) => {
+// Bulk upload swords from CSV (Admin only)
+app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('file'), async (req, res) => {
   try {
     const file = req.file;
 
