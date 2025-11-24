@@ -16,38 +16,42 @@ Transform Touken West from a simple CSV-based sword catalog into a modern, featu
 ## Phase Overview
 
 ### [Phase 1: Core UX Enhancements](./phase-1/README.md)
-**Status**: 🟡 In Progress (2 of 5 features complete)
-**Timeline**: Started 2024-11-19
+**Status**: 🟢 Completed
+**Timeline**: Started 2025-11-19, Completed 2025-11-20
 **Focus**: Improve user experience with advanced filtering and search capabilities
 
 Key features:
-- ✅ Sticky tag search with multi-keyword support (Complete)
-- ✅ Dynamic cascading filters (Complete)
-- ⏳ Meito (famous sword) extraction and display (Not Started)
-- ⏳ Complex AND/OR filter combinations (Not Started)
-- ⏳ Literal string search with quoted phrases (Not Started)
+- ✅ Sticky tag search with multi-keyword support
+- ✅ Dynamic cascading filters
+- ✅ Meito (famous sword) extraction and display
+- ✅ Complex AND/OR filter combinations
+- ✅ Literal string search with quoted phrases and autocomplete
 
 ### [Phase 2: Visual Redesign](./phase-2/README.md)
-**Status**: 🔵 Not Started
-**Timeline**: TBD
+**Status**: 🟢 Completed
+**Timeline**: Completed 2025-11-20
 **Focus**: Establish a museum-quality design system
 
 Key features:
-- Modern, artistic color scheme
-- Museum-inspired UI/UX
-- Responsive design improvements
-- Typography and layout refinements
+- ✅ Modern, artistic color scheme
+- ✅ Museum-inspired UI/UX with photo galleries
+- ✅ Responsive design improvements
+- ✅ Typography and layout refinements
+- ✅ Media attachments display for Juyo swords with lightbox viewer
 
 ### [Phase 3: Backend & Photo Management](./phase-3/README.md)
-**Status**: 🔵 Not Started
-**Timeline**: TBD
+**Status**: 🟢 Completed
+**Timeline**: Completed 2025-11-21
 **Focus**: Add backend infrastructure and photo capabilities
 
 Key features:
-- Database migration (CSV → PostgreSQL/MongoDB)
-- Photo upload and storage system
-- Enhanced Sword Detail page with photo galleries
-- Admin form for data entry
+- ✅ Backend server with Express.js (admin-server)
+- ✅ CSV-based data management (database migration deferred)
+- ✅ Photo upload and storage system with Sharp image processing
+- ✅ Enhanced Sword Detail page with photo galleries
+- ✅ Admin console for comprehensive sword data entry and editing
+- ✅ Bulk upload support with MD5 duplicate detection
+- ✅ Changelog tracking system for all data modifications
 
 ### [Phase 4: Deployment & CI/CD](./phase-4/README.md)
 **Status**: 🔵 Not Started
@@ -61,15 +65,16 @@ Key features:
 - Performance optimization
 
 ### [Phase 5: Authentication & Subscriptions](./phase-5/README.md)
-**Status**: 🔵 Not Started
-**Timeline**: TBD
+**Status**: 🟡 In Progress (Authentication Complete)
+**Timeline**: Started 2025-11-24
 **Focus**: Implement user accounts and monetization
 
 Key features:
-- User authentication (login/signup)
-- Role-based access control (admin/subscriber/free)
-- Subscription payment integration
-- Premium content gating
+- ✅ User authentication (login/signup) with JWT
+- ✅ Role-based access control (admin/subscriber/free)
+- ✅ Password hashing with bcrypt
+- ⏳ Subscription payment integration (Not Started)
+- ⏳ Premium content gating (Not Started)
 
 ## Status Legend
 
@@ -81,25 +86,26 @@ Key features:
 
 ## Current Phase
 
-**Active**: Phase 1 - Core UX Enhancements
-**Progress**: 2 of 5 features complete (expanded scope)
-**Latest**: Commit `1837fe8` - Multi-tag search and cascading filters implemented
-**Next**: Feature 3 (Meito detection) or Features 4-5 (advanced search)
+**Active**: Phase 5 - Authentication & Subscriptions
+**Progress**: Authentication complete, subscriptions pending
+**Latest**: Commit `b8924aa` - JWT authentication with role-based access control implemented
+**Next**: Subscription payment integration (Stripe) and premium content gating
 
 ## Tech Stack Evolution
 
 ### Current Stack
 - React 19.2.0
+- Vite (build tool)
 - PapaParse (CSV parsing)
-- Create React App
-- Client-side only
+- Express.js backend (admin-server)
+- JWT authentication with bcrypt
+- Sharp (image processing)
+- Multer (file uploads)
 
 ### Planned Additions
-- Backend: Node.js + Express (or Next.js for full-stack React)
-- Database: PostgreSQL or MongoDB
-- File Storage: AWS S3 / Cloudflare R2 / Local storage
-- Authentication: Auth0 / Clerk / Custom JWT
-- Payment: Stripe
+- Database: PostgreSQL or MongoDB (currently using CSV)
+- File Storage: AWS S3 / Cloudflare R2 (currently local)
+- Payment: Stripe (for subscriptions)
 - Hosting: Vercel / Netlify / AWS / Railway
 - CI/CD: GitHub Actions
 
@@ -120,5 +126,5 @@ When working on tasks:
 
 ---
 
-**Last Updated**: 2024-11-19
-**Current Version**: Phase 1 In Progress (2/3 features complete)
+**Last Updated**: 2025-11-24
+**Current Version**: Phase 5 In Progress - Phases 1-3 Complete, Authentication Implemented

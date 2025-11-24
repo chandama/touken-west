@@ -1,8 +1,9 @@
 # Phase 5: Authentication & Subscriptions
 
-**Status**: 🔵 Not Started
+**Status**: 🟡 In Progress (Authentication Complete)
+**Timeline**: Started 2025-11-24
 **Priority**: Medium
-**Estimated Complexity**: High
+**Complexity**: High
 
 ## Overview
 
@@ -10,74 +11,78 @@ Phase 5 introduces user accounts, authentication, and a subscription-based busin
 
 ## Objectives
 
-1. **Implement user authentication** - Secure login and signup functionality
-2. **Create role-based access control** - Admin, subscriber, and free user tiers
-3. **Integrate payment processing** - Subscription payments via Stripe or similar
-4. **Gate premium content** - Restrict certain features to paying subscribers
-5. **Build account management** - User profile, subscription management
-6. **Admin user management** - Tools for managing users and subscriptions
+1. **Implement user authentication** ✅ - Secure login and signup functionality with JWT
+2. **Create role-based access control** ✅ - Admin, subscriber, and free user tiers implemented
+3. **Integrate payment processing** ⏳ - Subscription payments via Stripe (Not Started)
+4. **Gate premium content** ⏳ - Restrict certain features to paying subscribers (Not Started)
+5. **Build account management** ⏳ - User profile, subscription management (Partially Complete)
+6. **Admin user management** ✅ - Admin console with user management capabilities
 
 ## Key Features
 
-### 1. User Authentication
-- Email/password registration
-- Email verification
-- Secure login with JWT or sessions
-- Password reset functionality
-- Social login (Google, GitHub - optional)
-- Remember me functionality
-- Logout
+### 1. User Authentication ✅
+- ✅ Email/password registration
+- ✅ Secure login with JWT tokens
+- ✅ Password hashing with bcrypt
+- ✅ HTTP-only cookie-based token storage
+- ✅ Logout functionality
+- ✅ Authentication context with React Context API
+- ⏳ Email verification (Not Implemented)
+- ⏳ Password reset functionality (Not Implemented)
+- ⏳ Social login (Not Implemented)
 
-### 2. User Roles & Permissions
-**Free Tier (Unauthenticated or registered free users)**
-- View basic sword information
-- Search and filter swords
-- View limited photos (e.g., 1 per sword)
-- Basic sword details
+### 2. User Roles & Permissions ✅
+**Admin Tier** ✅
+- ✅ Add/edit/delete sword entries via Admin Console
+- ✅ Upload/manage photos and media
+- ✅ View and manage changelog
+- ✅ Create and manage user accounts
+- ✅ Role assignment (admin/subscriber/free)
+- ✅ Full access to all features
 
-**Subscriber Tier (Paid users)**
-- Everything in free tier
-- View all photos for each sword
-- Access detailed provenance information
-- Download high-resolution photos
-- Advanced search features
-- Save favorites/collections
-- No ads (if ads are added)
+**Subscriber Tier** (Defined, not yet enforced)
+- ⏳ Everything in free tier
+- ⏳ View all photos for each sword
+- ⏳ Access detailed provenance information
+- ⏳ Download high-resolution photos
+- ⏳ Advanced search features
+- ⏳ Save favorites/collections
 
-**Admin Tier**
-- Everything in subscriber tier
-- Add/edit/delete sword entries
-- Upload/manage photos
-- Manage user accounts
-- View analytics dashboard
-- Moderate content
+**Free Tier** (Current default behavior)
+- ✅ View basic sword information
+- ✅ Search and filter swords
+- ✅ View all photos (not yet restricted)
+- ✅ Basic sword details
 
-### 3. Subscription Management
-- Monthly or annual subscription plans
-- Stripe payment integration
-- Subscription status tracking
-- Automatic renewal
-- Cancellation handling
-- Upgrade/downgrade plans
-- Payment history
-- Invoice generation
+### 3. Subscription Management ⏳
+- ⏳ Monthly or annual subscription plans (Not Implemented)
+- ⏳ Stripe payment integration (Not Implemented)
+- ⏳ Subscription status tracking (Schema prepared)
+- ⏳ Automatic renewal (Not Implemented)
+- ⏳ Cancellation handling (Not Implemented)
+- ⏳ Upgrade/downgrade plans (Not Implemented)
+- ⏳ Payment history (Not Implemented)
+- ⏳ Invoice generation (Not Implemented)
 
 ### 4. User Interface Components
-- Login page
-- Signup page
-- Password reset page
-- User profile page
-- Subscription management page
-- Payment form
-- Account settings
-- Admin dashboard
+- ✅ Login page with email/password
+- ✅ Registration functionality (via admin console)
+- ✅ Admin Console dashboard with user management
+- ✅ Authentication state management (AuthContext)
+- ⏳ User profile page (Not Implemented)
+- ⏳ Password reset page (Not Implemented)
+- ⏳ Subscription management page (Not Implemented)
+- ⏳ Payment form (Not Implemented)
+- ⏳ Account settings (Not Implemented)
 
-### 5. Content Gating
-- Show preview with "Subscribe to view more" prompts
-- Blur or hide premium content for free users
-- Display subscription benefits
-- Easy upgrade flow
-- Trial period (optional)
+### 5. Content Gating ⏳
+- ⏳ Show preview with "Subscribe to view more" prompts (Not Implemented)
+- ⏳ Blur or hide premium content for free users (Not Implemented)
+- ⏳ Display subscription benefits (Not Implemented)
+- ⏳ Easy upgrade flow (Not Implemented)
+- ⏳ Trial period (Not Implemented)
+
+**Note**: Content gating awaits Stripe integration and subscription management implementation.
 
 ## Authentication Strategy Options
 
@@ -115,7 +120,7 @@ Phase 5 introduces user accounts, authentication, and a subscription-based busin
 - ❌ Need to implement all features
 - Cost: Free (development time)
 
-**Recommendation**: Clerk or Auth0 for ease of use, Supabase Auth if using Supabase, NextAuth.js for cost-effectiveness.
+**Decision Made**: ✅ Custom JWT Implementation - Complete control, no third-party dependencies, secure bcrypt password hashing with HTTP-only cookies.
 
 ## Payment Processing Options
 
@@ -188,18 +193,20 @@ CREATE TABLE favorites (
 
 ## Success Criteria
 
-- [ ] Users can register and log in securely
-- [ ] Email verification working
-- [ ] Password reset functional
-- [ ] Role-based access control enforced
-- [ ] Stripe subscription flow working
-- [ ] Payment processing successful
-- [ ] Subscription status tracked correctly
-- [ ] Premium content properly gated
-- [ ] Admin panel functional
-- [ ] User profile/settings working
-- [ ] Security best practices followed
-- [ ] GDPR/privacy compliant
+- [x] Users can register and log in securely
+- [x] Role-based access control implemented
+- [x] Admin panel functional with user management
+- [x] Security best practices followed (JWT, bcrypt, HTTP-only cookies)
+- [x] Password hashing with bcrypt
+- [x] Authentication context provides app-wide auth state
+- [ ] Email verification working (Not Implemented)
+- [ ] Password reset functional (Not Implemented)
+- [ ] Stripe subscription flow working (Not Started)
+- [ ] Payment processing successful (Not Started)
+- [ ] Subscription status tracked correctly (Not Started)
+- [ ] Premium content properly gated (Not Started)
+- [ ] User profile/settings working (Not Started)
+- [ ] GDPR/privacy compliant (Pending subscription implementation)
 
 ## Out of Scope
 
@@ -266,38 +273,67 @@ CREATE TABLE favorites (
 - Consider free trial (7 or 14 days)
 - Grandfather early adopters with discounts
 
-## Files to Create/Modify
+## Files Created/Modified
 
-### Backend
-- Create: `/server/routes/auth.js` - Authentication routes
-- Create: `/server/routes/users.js` - User management
-- Create: `/server/routes/subscriptions.js` - Subscription endpoints
-- Create: `/server/middleware/auth.js` - Auth middleware
-- Create: `/server/middleware/checkRole.js` - Role checking
-- Create: `/server/services/stripe.js` - Stripe integration
-- Modify: All protected routes to require authentication
+### Backend ✅
+- ✅ `/admin-server/server.js` - Authentication routes (register, login)
+- ✅ JWT authentication middleware implemented
+- ✅ User management endpoints in admin-server
+- ✅ Role-based access control (admin/subscriber/free)
+- ✅ bcrypt password hashing
+- ⏳ `/server/routes/subscriptions.js` - Not yet implemented
+- ⏳ `/server/services/stripe.js` - Not yet implemented
 
-### Frontend
-- Create: `src/pages/Login.jsx`
-- Create: `src/pages/Signup.jsx`
-- Create: `src/pages/ForgotPassword.jsx`
-- Create: `src/pages/Profile.jsx`
-- Create: `src/pages/Subscription.jsx`
-- Create: `src/pages/AdminDashboard.jsx`
-- Create: `src/components/ProtectedRoute.jsx`
-- Create: `src/components/SubscriptionGate.jsx`
-- Create: `src/context/AuthContext.jsx`
-- Create: `src/services/authService.js`
+### Frontend ✅
+- ✅ `src/components/Login.jsx` - Login page
+- ✅ `src/context/AuthContext.jsx` - Authentication context
+- ✅ `src/styles/Login.css` - Login page styling
+- ✅ Admin console user management interface
+- ⏳ `src/pages/ForgotPassword.jsx` - Not implemented
+- ⏳ `src/pages/Profile.jsx` - Not implemented
+- ⏳ `src/pages/Subscription.jsx` - Not implemented
+- ⏳ `src/components/ProtectedRoute.jsx` - Not implemented
+- ⏳ `src/components/SubscriptionGate.jsx` - Not implemented
 
-### Configuration
-- Create: `.env` entries for auth secrets
-- Update API routes with auth middleware
+### Configuration ✅
+- ✅ JWT_SECRET environment variable support
+- ✅ Cookie-based authentication
+- ✅ CORS configuration for credentials
 
-## Next Steps
+## Implementation Summary
 
-See [tasks.md](./tasks.md) for detailed implementation checklist.
+### Completed (2025-11-24) ✅
+- ✅ User authentication with JWT tokens
+- ✅ Email/password registration and login
+- ✅ Password hashing with bcrypt (10 rounds)
+- ✅ HTTP-only cookie-based token storage
+- ✅ Role-based access control (admin/subscriber/free)
+- ✅ Admin user management interface
+- ✅ Authentication context for React app
+- ✅ Login page with error handling
+- ✅ User data storage in users.json
+
+### Remaining Work ⏳
+- ⏳ Stripe payment integration
+- ⏳ Subscription management (create, update, cancel)
+- ⏳ Premium content gating
+- ⏳ User profile page
+- ⏳ Password reset flow
+- ⏳ Email verification
+- ⏳ Subscription status tracking
+- ⏳ Payment webhooks
+- ⏳ Legal pages (privacy policy, terms of service)
+
+### Next Steps
+1. Integrate Stripe for subscription payments
+2. Implement subscription CRUD operations
+3. Build content gating logic based on user role
+4. Create user profile/account management pages
+5. Implement password reset flow
+6. Add email verification
 
 ---
 
-**Estimated Duration**: TBD
-**Blockers**: Requires Phase 3 and Phase 4 to be complete
+**Status**: 🟡 In Progress (Authentication Complete, Subscriptions Pending)
+**Started**: 2025-11-24
+**Authentication Completed**: 2025-11-24
