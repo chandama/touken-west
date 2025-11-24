@@ -145,9 +145,14 @@ function SwordList() {
 
   return (
     <div className="admin-page">
-      <div className="page-header">
-        <h2>Sword Management</h2>
-        <p className="subtitle">Browse and manage sword data and media attachments</p>
+      <div className="page-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h2>Sword Management</h2>
+          <p className="subtitle">Browse and manage sword data and media attachments</p>
+        </div>
+        <Link to="/admin/create" className="btn-primary">
+          + Add Record
+        </Link>
       </div>
 
       {/* Filters */}

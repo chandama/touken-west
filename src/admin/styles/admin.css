@@ -971,6 +971,26 @@ select {
   letter-spacing: 0.03em;
 }
 
+.expand-arrow {
+  color: #6b7280;
+  font-size: 0.75rem;
+  margin-right: 0.5rem;
+  transition: transform 0.2s ease;
+  user-select: none;
+}
+
+.changelog-entry.expanded .expand-arrow {
+  transform: rotate(0deg);
+}
+
+.changelog-entry.collapsed .expand-arrow {
+  transform: rotate(0deg);
+}
+
+.changelog-header:hover .expand-arrow {
+  color: #374151;
+}
+
 /* Action type colors */
 .action-edit .action-type-badge {
   background-color: #dbeafe;

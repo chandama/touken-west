@@ -20,7 +20,9 @@ function SwordEdit() {
 
   // Modal state
   const [showConfirmModal, setShowConfirmModal] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false);
 
   // Load sword data
   useEffect(() => {
@@ -193,6 +195,40 @@ function SwordEdit() {
     setIsEditing(false);
   };
 
+  const handleDeleteClick = () => {
+    setShowDeleteModal(true);
+  };
+
+  const handleConfirmDelete = async () => {
+    setIsDeleting(true);
+
+    try {
+      const response = await fetch(`${API_BASE}/swords/${index}`, {
+        method: 'DELETE',
+      });
+
+      const result = await response.json();
+
+      if (result.success) {
+        alert('Sword record deleted successfully');
+        // Navigate back to the sword list
+        navigate('/admin');
+      } else {
+        alert('Failed to delete sword: ' + result.error);
+        setIsDeleting(false);
+        setShowDeleteModal(false);
+      }
+    } catch (err) {
+      alert('Error deleting sword: ' + err.message);
+      setIsDeleting(false);
+      setShowDeleteModal(false);
+    }
+  };
+
+  const handleCancelDelete = () => {
+    setShowDeleteModal(false);
+  };
+
   if (loading) {
     return <div className="admin-page"><div className="loading">Loading sword...</div></div>;
   }
@@ -236,9 +272,14 @@ function SwordEdit() {
           <h3>Sword Information</h3>
           <div className="edit-controls">
             {!isEditing ? (
-              <button onClick={() => setIsEditing(true)} className="btn-primary">
-                Edit Sword Data
-              </button>
+              <>
+                <button onClick={() => setIsEditing(true)} className="btn-primary">
+                  Edit Sword Data
+                </button>
+                <button onClick={handleDeleteClick} className="btn-danger">
+                  Delete Record
+                </button>
+              </>
             ) : (
               <>
                 <button
@@ -657,6 +698,48 @@ function SwordEdit() {
                 disabled={isSaving}
               >
                 Cancel Changes
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-content">
+            <h3 className="modal-title">⚠️ Delete Sword Record</h3>
+            <p className="modal-warning" style={{ color: '#d32f2f', fontWeight: 'bold' }}>
+              Are you sure you want to delete this record from the database?
+            </p>
+            <p className="modal-warning">
+              This action cannot be undone. All associated media files will also be deleted.
+            </p>
+
+            <div style={{ margin: '20px 0', padding: '15px', background: '#f5f5f5', borderRadius: '4px' }}>
+              <strong>Record to be deleted:</strong>
+              <div style={{ marginTop: '10px' }}>
+                <div>Index: #{sword.Index}</div>
+                <div>Smith: {sword.Smith || 'Unknown'}</div>
+                <div>Type: {sword.Type || 'Unknown'}</div>
+                <div>School: {sword.School || 'Unknown'}</div>
+              </div>
+            </div>
+
+            <div className="modal-actions">
+              <button
+                onClick={handleConfirmDelete}
+                className="btn-danger"
+                disabled={isDeleting}
+              >
+                {isDeleting ? 'Deleting...' : 'Yes, Delete Record'}
+              </button>
+              <button
+                onClick={handleCancelDelete}
+                className="btn-secondary"
+                disabled={isDeleting}
+              >
+                Cancel
               </button>
             </div>
           </div>

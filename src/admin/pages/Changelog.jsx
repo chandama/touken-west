@@ -10,12 +10,26 @@ function Changelog() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [expandedEntries, setExpandedEntries] = useState(new Set());
 
   // Pagination
   const [page, setPage] = useState(1);
   const [total, setTotal] = useState(0);
   const [pages, setPages] = useState(0);
   const limit = 100;
+
+  // Toggle entry expansion
+  const toggleEntry = (entryId) => {
+    setExpandedEntries(prev => {
+      const newSet = new Set(prev);
+      if (newSet.has(entryId)) {
+        newSet.delete(entryId);
+      } else {
+        newSet.add(entryId);
+      }
+      return newSet;
+    });
+  };
 
   // Load changelog entries
   useEffect(() => {
@@ -173,15 +187,27 @@ function Changelog() {
             <div className="changelog-list">
               {filteredEntries.map((entry) => {
                 const actionInfo = getActionTypeInfo(entry.actionType);
+                const isExpanded = expandedEntries.has(entry.id);
                 return (
-                  <div key={entry.id} className={`changelog-entry ${actionInfo.className}`}>
-                    <div className="changelog-header">
+                  <div key={entry.id} className={`changelog-entry ${actionInfo.className} ${isExpanded ? 'expanded' : 'collapsed'}`}>
+                    <div
+                      className="changelog-header"
+                      onClick={() => toggleEntry(entry.id)}
+                      style={{ cursor: 'pointer' }}
+                    >
                       <div className="changelog-sword">
+                        <span className="expand-arrow">
+                          {isExpanded ? '▼' : '▶'}
+                        </span>
                         <span className="action-type-badge">
                           <span className="action-icon">{actionInfo.icon}</span>
                           <span className="action-label">{actionInfo.label}</span>
                         </span>
-                        <Link to={`/admin/sword/${entry.swordIndex}`} className="sword-link">
+                        <Link
+                          to={`/admin/sword/${entry.swordIndex}`}
+                          className="sword-link"
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           {entry.swordIndex} - {entry.swordSmith} - {entry.swordType}
                         </Link>
                         <span className="change-count">
@@ -194,25 +220,27 @@ function Changelog() {
                       </div>
                     </div>
 
-                  <div className="changelog-changes">
-                    {entry.changes.map((change, idx) => (
-                      <div key={idx} className="change-detail">
-                        <div className="change-field-name">{change.field}</div>
-                        <div className="change-values">
-                          <div className="value-before">
-                            <span className="value-label">Before:</span>
-                            <span className="value-content">{change.before}</span>
+                    {isExpanded && (
+                      <div className="changelog-changes">
+                        {entry.changes.map((change, idx) => (
+                          <div key={idx} className="change-detail">
+                            <div className="change-field-name">{change.field}</div>
+                            <div className="change-values">
+                              <div className="value-before">
+                                <span className="value-label">Before:</span>
+                                <span className="value-content">{change.before}</span>
+                              </div>
+                              <div className="change-arrow-small">→</div>
+                              <div className="value-after">
+                                <span className="value-label">After:</span>
+                                <span className="value-content">{change.after}</span>
+                              </div>
+                            </div>
                           </div>
-                          <div className="change-arrow-small">→</div>
-                          <div className="value-after">
-                            <span className="value-label">After:</span>
-                            <span className="value-content">{change.after}</span>
-                          </div>
-                        </div>
+                        ))}
                       </div>
-                    ))}
+                    )}
                   </div>
-                </div>
                 );
               })}
             </div>
