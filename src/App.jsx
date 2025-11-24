@@ -7,6 +7,7 @@ import AdvancedFilterGroups from './components/AdvancedFilterGroups.jsx';
 import SwordTable from './components/SwordTable.jsx';
 import SwordDetail from './components/SwordDetail.jsx';
 import DarkModeToggle from './components/DarkModeToggle.jsx';
+import Login from './components/Login.jsx';
 import useSwordData from './hooks/useSwordData.js';
 import { parseSearchInput, matchesSearchTerms } from './utils/searchParser.js';
 
@@ -18,7 +19,8 @@ function App() {
     smith: '',
     type: '',
     authentication: '',
-    province: ''
+    province: '',
+    hasMedia: ''
   });
   const [filterGroups, setFilterGroups] = useState([]);
   const [selectedSword, setSelectedSword] = useState(null);
@@ -26,6 +28,27 @@ function App() {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
   });
+  const [user, setUser] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch('http://localhost:3002/api/auth/me', {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (error) {
+        // Not logged in
+      }
+    };
+    checkAuth();
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(isDarkMode));
@@ -38,6 +61,18 @@ function App() {
 
   const toggleDarkMode = () => {
     setIsDarkMode(prev => !prev);
+  };
+
+  const handleLogout = async () => {
+    try {
+      await fetch('http://localhost:3002/api/auth/logout', {
+        method: 'POST',
+        credentials: 'include'
+      });
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
   };
 
   // Helper function to check if authentication matches
@@ -98,7 +133,13 @@ function App() {
     const matchesAuthentication = checkAuthenticationMatch(sword, filters.authentication);
     const matchesProvince = filters.province === '' || sword.Province === filters.province;
 
-    const matchesBaseFilters = matchesSchool && matchesSmith && matchesType && matchesAuthentication && matchesProvince;
+    // Media filter (only applies when user is logged in)
+    const matchesMedia = filters.hasMedia === '' || (filters.hasMedia === 'true'
+      ? (sword.MediaAttachments && sword.MediaAttachments !== 'NA' && sword.MediaAttachments !== '[]')
+      : (!sword.MediaAttachments || sword.MediaAttachments === 'NA' || sword.MediaAttachments === '[]')
+    );
+
+    const matchesBaseFilters = matchesSchool && matchesSmith && matchesType && matchesAuthentication && matchesProvince && matchesMedia;
 
     // Advanced filter groups (OR logic between groups, AND logic within each group)
     // If no filter groups exist, this passes automatically
@@ -128,7 +169,21 @@ function App() {
               <p>Japanese Sword Database - {swords.length.toLocaleString()} Historical Blades</p>
             </div>
           </div>
-          <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
+          <div className="header-actions">
+            <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
+            {user ? (
+              <div className="user-menu">
+                <span className="user-email">{user.email}</span>
+                <button onClick={handleLogout} className="logout-button">
+                  Logout
+                </button>
+              </div>
+            ) : (
+              <button onClick={() => setShowLogin(true)} className="login-button">
+                Login
+              </button>
+            )}
+          </div>
         </div>
       </header>
 
@@ -148,6 +203,7 @@ function App() {
               onFilterChange={setFilters}
               swords={swords}
               searchTags={searchTags}
+              user={user}
             />
             <AdvancedFilterGroups
               filterGroups={filterGroups}
@@ -172,10 +228,31 @@ function App() {
               <SwordDetail
                 sword={selectedSword}
                 onClose={() => setSelectedSword(null)}
+                user={user}
               />
             )}
           </div>
         </div>
+      )}
+
+      {showLogin && (
+        <Login
+          onClose={() => setShowLogin(false)}
+          onSwitchToRegister={() => {
+            setShowLogin(false);
+            setShowRegister(true);
+          }}
+        />
+      )}
+
+      {showRegister && (
+        <Register
+          onClose={() => setShowRegister(false)}
+          onSwitchToLogin={() => {
+            setShowRegister(false);
+            setShowLogin(true);
+          }}
+        />
       )}
     </div>
   );

@@ -5,7 +5,7 @@ import { getAvailableFilterOptions, getOptionCounts } from '../utils/filterUtils
  * FilterPanel component with dynamic cascading filters
  * Filter options update based on current selections
  */
-const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [] }) => {
+const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = null }) => {
   // Get available filter options based on current filters and search
   const availableOptions = useMemo(
     () => getAvailableFilterOptions(swords, filters, searchTags),
@@ -46,7 +46,8 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [] }) => {
       smith: '',
       type: '',
       authentication: '',
-      province: ''
+      province: '',
+      hasMedia: ''
     });
   };
 
@@ -141,6 +142,22 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [] }) => {
             ))}
           </select>
         </div>
+
+        {/* Media Status filter - only show for logged in users */}
+        {user && (
+          <div className="filter-group">
+            <label htmlFor="media-filter">Media Status</label>
+            <select
+              id="media-filter"
+              value={filters.hasMedia || ''}
+              onChange={(e) => handleFilterChange('hasMedia', e.target.value)}
+            >
+              <option value="">All Swords</option>
+              <option value="true">Has Media</option>
+              <option value="false">No Media</option>
+            </select>
+          </div>
+        )}
       </div>
     </div>
   );

@@ -3,10 +3,23 @@ import React from 'react';
 /**
  * SwordDetail component for displaying detailed information about a selected sword
  */
-const SwordDetail = ({ sword, onClose }) => {
+const SwordDetail = ({ sword, onClose, user }) => {
   const [lightboxImage, setLightboxImage] = React.useState(null);
 
   if (!sword) return null;
+
+  // Helper function to check if media should be restricted
+  const isRestrictedMedia = (tags) => {
+    if (!tags || !Array.isArray(tags)) return false;
+
+    const restrictedTags = ['juyo', 'juyo bijutsuhin', 'tokubetsu juyo'];
+    return tags.some(tag =>
+      restrictedTags.includes(tag.toLowerCase().trim())
+    );
+  };
+
+  // Check if user is logged in
+  const isLoggedIn = !!user;
 
   const DetailRow = ({ label, value }) => {
     if (!value || value === 'NA' || value === '') return null;
@@ -86,7 +99,22 @@ const SwordDetail = ({ sword, onClose }) => {
                 {(() => {
                   try {
                     const parsed = JSON.parse(sword.MediaAttachments);
-                    return parsed.map((item, index) => {
+
+                    // Filter out restricted media for non-logged-in users
+                    const filteredMedia = parsed.filter((item) => {
+                      const tags = typeof item === 'object' ? item.tags : null;
+                      const isRestricted = isRestrictedMedia(tags);
+
+                      // Show all media if logged in, otherwise filter out restricted ones
+                      return isLoggedIn || !isRestricted;
+                    });
+
+                    // If no media to display after filtering, don't render anything
+                    if (filteredMedia.length === 0) {
+                      return null;
+                    }
+
+                    return filteredMedia.map((item, index) => {
                       // Handle both old format (string) and new format (object)
                       const filePath = typeof item === 'string' ? item : item.url;
                       const thumbnailPath = typeof item === 'object' ? item.thumbnailUrl : null;
