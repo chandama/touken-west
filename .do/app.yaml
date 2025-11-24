@@ -35,6 +35,7 @@ services:
       http_path: /api/health
     routes:
       - path: /api
+        preserve_path_prefix: true
     envs:
       - key: NODE_ENV
         value: production
