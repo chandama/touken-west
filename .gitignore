@@ -59,3 +59,13 @@ temp/
 
 # Claude Code project instructions
 CLAUDE.md
+
+# Migration and processing scripts (temporary/one-time use)
+scripts/
+
+# Migration logs
+image-migration.log
+
+# Backup files
+*.backup
+*-old.js
