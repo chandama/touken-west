@@ -77,16 +77,16 @@ jobs:
         run: |
           echo "## Code Pattern Analysis" >> $GITHUB_STEP_SUMMARY
 
-          # Check for dangerouslySetInnerHTML
-          if grep -r "dangerouslySetInnerHTML" src/ admin-server/ 2>/dev/null; then
+          # Check for dangerouslySetInnerHTML (excluding node_modules)
+          if grep -r "dangerouslySetInnerHTML" src/ admin-server/ --exclude-dir=node_modules 2>/dev/null; then
             echo "::warning::dangerouslySetInnerHTML found - ensure proper sanitization"
             echo "- ⚠️ dangerouslySetInnerHTML detected" >> $GITHUB_STEP_SUMMARY
           else
             echo "- ✅ No dangerouslySetInnerHTML" >> $GITHUB_STEP_SUMMARY
           fi
 
-          # Check for eval() usage
-          if grep -rE "eval\s*\(" src/ admin-server/ 2>/dev/null; then
+          # Check for eval() usage (excluding node_modules)
+          if grep -rE "eval\s*\(" src/ admin-server/ --exclude-dir=node_modules 2>/dev/null; then
             echo "::error::eval() usage found - CRITICAL SECURITY RISK"
             echo "- ❌ eval() detected (CRITICAL)" >> $GITHUB_STEP_SUMMARY
             exit 1
@@ -94,8 +94,8 @@ jobs:
             echo "- ✅ No eval() usage" >> $GITHUB_STEP_SUMMARY
           fi
 
-          # Check for hardcoded secrets patterns
-          if grep -rE "(password|secret|api_key|apikey)\s*=\s*['\"][^'\"]{8,}" src/ admin-server/ 2>/dev/null | grep -v node_modules | grep -v ".test." | grep -v ".spec."; then
+          # Check for hardcoded secrets patterns (excluding node_modules)
+          if grep -rE "(password|secret|api_key|apikey)\s*=\s*['\"][^'\"]{8,}" src/ admin-server/ --exclude-dir=node_modules 2>/dev/null | grep -v ".test." | grep -v ".spec."; then
             echo "::warning::Potential hardcoded secrets found"
             echo "- ⚠️ Potential hardcoded secrets" >> $GITHUB_STEP_SUMMARY
           else
