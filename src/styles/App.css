@@ -928,6 +928,80 @@ button {
   margin-left: var(--space-xs);
 }
 
+/* Info tooltip */
+.info-tooltip {
+  position: relative;
+  display: inline-block;
+  margin-left: var(--space-xs);
+}
+
+.info-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--color-text-tertiary);
+  color: var(--color-background);
+  font-size: 11px;
+  font-weight: var(--font-weight-bold);
+  cursor: help;
+  transition: background-color var(--duration-fast) var(--ease-in-out);
+}
+
+.info-icon:hover {
+  background: var(--color-primary);
+}
+
+.info-tooltip-content {
+  visibility: hidden;
+  opacity: 0;
+  position: absolute;
+  bottom: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  margin-bottom: var(--space-xs);
+  padding: var(--space-sm) var(--space-md);
+  background: var(--color-text-primary);
+  color: var(--color-background);
+  font-size: var(--font-size-xs);
+  font-weight: var(--font-weight-normal);
+  line-height: 1.5;
+  border-radius: var(--radius-sm);
+  white-space: nowrap;
+  z-index: 200;
+  box-shadow: var(--shadow-lg);
+  transition: opacity var(--duration-fast) var(--ease-in-out),
+              visibility var(--duration-fast) var(--ease-in-out);
+}
+
+.info-tooltip-content::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: var(--color-text-primary);
+}
+
+.info-tooltip:hover .info-tooltip-content {
+  visibility: visible;
+  opacity: 1;
+}
+
+/* Dark mode tooltip */
+body.dark-mode .info-tooltip-content {
+  background: var(--color-background-elevated);
+  color: var(--color-text-primary);
+  border: 1px solid var(--color-border);
+}
+
+body.dark-mode .info-tooltip-content::after {
+  border-top-color: var(--color-background-elevated);
+}
+
 /* ============================================
    ADVANCED FILTER GROUPS
    ============================================ */
