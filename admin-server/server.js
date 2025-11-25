@@ -1,3 +1,5 @@
+// Load .env from local directory first, then fall back to parent
+require('dotenv').config({ path: require('path').join(__dirname, '.env') });
 require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
 const express = require('express');
 const cors = require('cors');
@@ -36,10 +38,10 @@ connectDB();
 app.use(helmet());
 app.use(mongoSanitize());
 
-// Rate limiting
+// Rate limiting (higher limit in development)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: 100, // limit each IP to 100 requests per windowMs
+  max: process.env.NODE_ENV === 'development' ? 1000 : 100,
   message: 'Too many requests from this IP, please try again later.',
 });
 app.use('/api/', limiter);
@@ -302,11 +304,32 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 
 // ==================== USER MANAGEMENT ROUTES ====================
 
+// Helper function to find user by _id or custom id field
+const findUserById = async (id) => {
+  const mongoose = require('mongoose');
+
+  // Try MongoDB ObjectId first (must be valid AND 24 chars)
+  if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
+    const user = await User.findById(id);
+    if (user) return user;
+  }
+
+  // Fall back to custom id field (for legacy users)
+  return await User.findOne({ id: id });
+};
+
 // Get all users (Admin only)
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const users = await User.find().select('-password');
-    res.json({ users });
+    // Transform to include id for frontend compatibility
+    // Use custom id field if it exists, otherwise use _id
+    const usersWithId = users.map(user => {
+      const userObj = user.toObject();
+      userObj.id = userObj.id || userObj._id.toString();
+      return userObj;
+    });
+    res.json({ users: usersWithId });
   } catch (error) {
     console.error('Error fetching users:', error);
     res.status(500).json({ error: error.message });
@@ -354,7 +377,7 @@ app.patch('/api/users/:id', authenticateToken, requireAdmin, async (req, res) =>
     const { id } = req.params;
     const { email, username, role } = req.body;
 
-    const user = await User.findById(id);
+    const user = await findUserById(id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -392,7 +415,7 @@ app.patch('/api/users/:id/password', authenticateToken, requireAdmin, async (req
       return res.status(400).json({ error: 'Password must be at least 6 characters' });
     }
 
-    const user = await User.findById(id);
+    const user = await findUserById(id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
@@ -416,10 +439,12 @@ app.delete('/api/users/:id', authenticateToken, requireAdmin, async (req, res) =
       return res.status(400).json({ error: 'Cannot delete your own account' });
     }
 
-    const user = await User.findByIdAndDelete(id);
+    const user = await findUserById(id);
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
+
+    await User.deleteOne({ _id: user._id });
 
     res.json({ success: true, message: `User ${user.email} deleted` });
   } catch (error) {

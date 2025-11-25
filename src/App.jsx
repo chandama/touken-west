@@ -38,10 +38,13 @@ function App() {
   const [showRegister, setShowRegister] = useState(false);
 
   // Dynamic meta tags for SEO
+  // Only update title after data loads to avoid "0 Historical Blades" in search results
   useDocumentMeta({
     title: selectedSword
-      ? `${selectedSword.Smith || 'Unknown Smith'} ${selectedSword.Type || 'Sword'} - Touken West`
-      : `Touken West - Japanese Sword Database | ${swords.length.toLocaleString()} Historical Blades`,
+      ? `${selectedSword.Smith || 'Unknown Smith'} ${selectedSword.Type || 'Sword'} - Nihonto DB`
+      : swords.length > 0
+        ? `Nihonto DB - Japanese Sword Database | ${swords.length.toLocaleString()} Historical Blades`
+        : null, // Keep static HTML title until data loads
     description: selectedSword
       ? `${selectedSword.Type || 'Japanese sword'} by ${selectedSword.Smith || 'unknown smith'}${selectedSword.School ? ` of ${selectedSword.School} school` : ''}${selectedSword.Authentication ? `. ${selectedSword.Authentication}` : ''}. View details, dimensions, and provenance.`
       : 'Searchable database of historical Japanese swords. Browse Juyo, Tokubetsu Juyo, and other authenticated nihonto with detailed records of smiths, schools, and provenance.',
