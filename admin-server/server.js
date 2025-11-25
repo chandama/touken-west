@@ -4,12 +4,34 @@ require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') }
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
+const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const Papa = require('papaparse');
+
+// ==================== IN-MEMORY CACHE ====================
+const swordCache = {
+  data: null,
+  timestamp: null,
+  ttl: 5 * 60 * 1000, // 5 minutes cache TTL
+
+  isValid() {
+    return this.data && this.timestamp && (Date.now() - this.timestamp < this.ttl);
+  },
+
+  set(data) {
+    this.data = data;
+    this.timestamp = Date.now();
+  },
+
+  invalidate() {
+    this.data = null;
+    this.timestamp = null;
+  }
+};
 
 // Database connection
 const connectDB = require('./config/database');
@@ -37,6 +59,17 @@ connectDB();
 // Security middleware
 app.use(helmet());
 app.use(mongoSanitize());
+
+// Compression middleware - compress all responses
+app.use(compression({
+  level: 6, // Balanced compression level (1-9)
+  threshold: 1024, // Only compress responses > 1KB
+  filter: (req, res) => {
+    // Compress JSON and text responses
+    if (req.headers['x-no-compression']) return false;
+    return compression.filter(req, res);
+  }
+}));
 
 // Rate limiting (higher limit in development)
 const limiter = rateLimit({
@@ -471,6 +504,27 @@ app.get('/api/swords', async (req, res) => {
       searchTerms = searchTerms ? [searchTerms] : [];
     }
 
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    // Check if this is a "get all" request with no filters (most common case)
+    const isFullListRequest = !school && !type && !hasMedia &&
+      searchTerms.length === 0 && limitNum >= 10000;
+
+    // Use cache for full list requests
+    if (isFullListRequest && swordCache.isValid()) {
+      console.log('Serving sword list from cache');
+
+      // Set cache headers for browser caching (5 min public, 1 hour stale-while-revalidate)
+      res.set({
+        'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
+        'ETag': `"swords-${swordCache.timestamp}"`,
+        'Last-Modified': new Date(swordCache.timestamp).toUTCString()
+      });
+
+      return res.json(swordCache.data);
+    }
+
     // Build query
     const query = {};
 
@@ -505,8 +559,6 @@ app.get('/api/swords', async (req, res) => {
     const total = await Sword.countDocuments(query);
 
     // Paginate
-    const pageNum = parseInt(page);
-    const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
     const swords = await Sword.find(query)
@@ -514,13 +566,33 @@ app.get('/api/swords', async (req, res) => {
       .limit(limitNum)
       .lean();
 
-    res.json({
+    const responseData = {
       swords,
       total,
       page: pageNum,
       limit: limitNum,
       pages: Math.ceil(total / limitNum),
-    });
+    };
+
+    // Cache full list responses
+    if (isFullListRequest) {
+      console.log(`Caching sword list (${swords.length} swords)`);
+      swordCache.set(responseData);
+
+      // Set cache headers
+      res.set({
+        'Cache-Control': 'public, max-age=300, stale-while-revalidate=3600',
+        'ETag': `"swords-${swordCache.timestamp}"`,
+        'Last-Modified': new Date(swordCache.timestamp).toUTCString()
+      });
+    } else {
+      // Shorter cache for filtered requests
+      res.set({
+        'Cache-Control': 'public, max-age=60'
+      });
+    }
+
+    res.json(responseData);
   } catch (error) {
     console.error('Error fetching swords:', error);
     res.status(500).json({ error: error.message });
@@ -771,6 +843,9 @@ app.post('/api/swords', authenticateToken, requireAdmin, async (req, res) => {
 
     await newSword.save();
 
+    // Invalidate cache since sword list changed
+    swordCache.invalidate();
+
     // Log to changelog
     const changes = {};
     Object.keys(newSword.toObject()).forEach(field => {
@@ -829,6 +904,10 @@ app.patch('/api/swords/:index', authenticateToken, requireAdmin, async (req, res
     // Only save if there were actual changes
     if (Object.keys(changes).length > 0) {
       await sword.save();
+
+      // Invalidate cache since sword data changed
+      swordCache.invalidate();
+
       await addChangelogEntry(index, sword, changes, 'edit', req.user.id);
       console.log(`Updated sword ${index} with ${Object.keys(changes).length} changes`);
     }
@@ -856,6 +935,9 @@ app.delete('/api/swords/:index', authenticateToken, requireAdmin, async (req, re
     // Implement S3 DeleteObject if you want to actually delete files
 
     await Sword.deleteOne({ Index: index });
+
+    // Invalidate cache since sword list changed
+    swordCache.invalidate();
 
     // Log to changelog
     await addChangelogEntry(index, sword, {
@@ -1022,6 +1104,11 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, upload.single('fil
     }
 
     console.log(`Bulk upload complete: ${results.created} swords created`);
+
+    // Invalidate cache if any swords were created
+    if (results.created > 0) {
+      swordCache.invalidate();
+    }
 
     // Return summary
     res.json({
