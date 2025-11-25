@@ -374,7 +374,18 @@ const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, 
           </div>
 
           <div className="filter-group-item">
-            <label>Nagasa (cm)</label>
+            <label>
+              Nagasa (cm)
+              <span className="info-tooltip">
+                <span className="info-icon">?</span>
+                <span className="info-tooltip-content">
+                  Filter by blade length in centimeters.<br />
+                  Set Min only: blades longer than value<br />
+                  Set Max only: blades shorter than value<br />
+                  Set both: blades within range
+                </span>
+              </span>
+            </label>
             <div className="range-inputs">
               <input
                 type="number"
@@ -401,7 +412,25 @@ const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, 
           </div>
 
           <div className="filter-group-item" ref={periodDropdownRef}>
-            <label>Period</label>
+            <label>
+              Period
+              <span className="info-tooltip">
+                <span className="info-icon">?</span>
+                <span className="info-tooltip-content">
+                  <strong>Period Date Ranges:</strong><br />
+                  Kofun: before 710<br />
+                  Nara: 710-793<br />
+                  Heian: 794-1184<br />
+                  Kamakura: 1185-1332<br />
+                  Nanbokucho: 1333-1391<br />
+                  Muromachi: 1392-1596<br />
+                  Momoyama: 1573-1596<br />
+                  Shinto: 1597-1780<br />
+                  Shinshinto: 1781-1876<br />
+                  Shinsaku: 1877-present
+                </span>
+              </span>
+            </label>
             <div className="multi-select-dropdown">
               <button
                 type="button"
