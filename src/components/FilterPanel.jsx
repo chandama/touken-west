@@ -1,11 +1,34 @@
-import React, { useMemo } from 'react';
-import { getAvailableFilterOptions, getOptionCounts } from '../utils/filterUtils.js';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { getAvailableFilterOptions, getOptionCounts, getPeriodCounts, getAuthenticationCounts, getMediaCounts } from '../utils/filterUtils.js';
+import { PERIOD_DEFINITIONS } from '../utils/periodUtils.js';
 
 /**
  * FilterPanel component with dynamic cascading filters
  * Filter options update based on current selections
+ * Collapsible on mobile devices - defaults to collapsed on screens <= 768px
  */
 const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = null }) => {
+  // Check if mobile on initial render - default to collapsed on mobile
+  const isMobileInitial = typeof window !== 'undefined' && window.innerWidth <= 768;
+  const [isExpanded, setIsExpanded] = useState(!isMobileInitial);
+  const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
+  const periodDropdownRef = useRef(null);
+
+  // Close period dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (periodDropdownRef.current && !periodDropdownRef.current.contains(event.target)) {
+        setIsPeriodDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const toggleExpanded = () => {
+    setIsExpanded(prev => !prev);
+  };
+
   // Get available filter options based on current filters and search
   const availableOptions = useMemo(
     () => getAvailableFilterOptions(swords, filters, searchTags),
@@ -33,6 +56,24 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
     [swords, filters, searchTags]
   );
 
+  // Get counts for each period option based on other active filters
+  const periodCounts = useMemo(
+    () => getPeriodCounts(swords, filters, searchTags),
+    [swords, filters, searchTags]
+  );
+
+  // Get counts for authentication levels
+  const authenticationCounts = useMemo(
+    () => getAuthenticationCounts(swords, filters, searchTags),
+    [swords, filters, searchTags]
+  );
+
+  // Get counts for media status
+  const mediaCounts = useMemo(
+    () => getMediaCounts(swords, filters, searchTags),
+    [swords, filters, searchTags]
+  );
+
   const handleFilterChange = (filterName, value) => {
     onFilterChange({
       ...filters,
@@ -47,23 +88,57 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
       type: '',
       authentication: '',
       province: '',
-      hasMedia: ''
+      hasMedia: '',
+      nagasaMin: '',
+      nagasaMax: '',
+      periods: []
     });
   };
 
-  const hasActiveFilters = Object.values(filters).some(f => f !== '');
+  const handlePeriodToggle = (periodId) => {
+    const currentPeriods = filters.periods || [];
+    const newPeriods = currentPeriods.includes(periodId)
+      ? currentPeriods.filter(p => p !== periodId)
+      : [...currentPeriods, periodId];
+    handleFilterChange('periods', newPeriods);
+  };
+
+  const hasActiveFilters = Object.entries(filters).some(([key, value]) => {
+    if (key === 'periods') return value && value.length > 0;
+    return value !== '';
+  });
+  const activeFilterCount = Object.entries(filters).filter(([key, value]) => {
+    if (key === 'periods') return value && value.length > 0;
+    return value !== '';
+  }).length;
 
   return (
-    <div className="filter-panel">
-      <div className="filter-header">
-        <h3>Filters</h3>
-        {hasActiveFilters && (
+    <div className={`filter-panel ${isExpanded ? 'expanded' : 'collapsed'}`}>
+      <div className="filter-header" onClick={!isExpanded ? toggleExpanded : undefined}>
+        <div className="filter-title-row">
+          <button
+            className="toggle-arrow-button"
+            onClick={toggleExpanded}
+            aria-expanded={isExpanded}
+            aria-label={isExpanded ? 'Collapse filters' : 'Expand filters'}
+          >
+            {isExpanded ? '▼' : '▶'}
+          </button>
+          <h3>
+            Filters
+            {!isExpanded && activeFilterCount > 0 && (
+              <span className="active-count-badge">{activeFilterCount}</span>
+            )}
+          </h3>
+        </div>
+        {isExpanded && hasActiveFilters && (
           <button onClick={handleClearFilters} className="clear-filters-button">
             Clear All
           </button>
         )}
       </div>
 
+      {isExpanded && (
       <div className="filters-grid">
         <div className="filter-group">
           <label htmlFor="school-filter">School</label>
@@ -73,11 +148,13 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
             onChange={(e) => handleFilterChange('school', e.target.value)}
           >
             <option value="">All Schools</option>
-            {availableOptions.schools.map(school => (
-              <option key={school} value={school}>
-                {school} {schoolCounts[school] ? `(${schoolCounts[school]})` : ''}
-              </option>
-            ))}
+            {availableOptions.schools
+              .filter(school => schoolCounts[school] > 0)
+              .map(school => (
+                <option key={school} value={school}>
+                  {school} ({schoolCounts[school]})
+                </option>
+              ))}
           </select>
         </div>
 
@@ -89,11 +166,13 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
             onChange={(e) => handleFilterChange('smith', e.target.value)}
           >
             <option value="">All Smiths</option>
-            {availableOptions.smiths.map(smith => (
-              <option key={smith} value={smith}>
-                {smith} {smithCounts[smith] ? `(${smithCounts[smith]})` : ''}
-              </option>
-            ))}
+            {availableOptions.smiths
+              .filter(smith => smithCounts[smith] > 0)
+              .map(smith => (
+                <option key={smith} value={smith}>
+                  {smith} ({smithCounts[smith]})
+                </option>
+              ))}
           </select>
         </div>
 
@@ -105,11 +184,13 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
             onChange={(e) => handleFilterChange('type', e.target.value)}
           >
             <option value="">All Types</option>
-            {availableOptions.types.map(type => (
-              <option key={type} value={type}>
-                {type} {typeCounts[type] ? `(${typeCounts[type]})` : ''}
-              </option>
-            ))}
+            {availableOptions.types
+              .filter(type => typeCounts[type] > 0)
+              .map(type => (
+                <option key={type} value={type}>
+                  {type} ({typeCounts[type]})
+                </option>
+              ))}
           </select>
         </div>
 
@@ -121,9 +202,13 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
             onChange={(e) => handleFilterChange('authentication', e.target.value)}
           >
             <option value="">All Levels</option>
-            {availableOptions.authenticationLevels.map(auth => (
-              <option key={auth} value={auth}>{auth}</option>
-            ))}
+            {availableOptions.authenticationLevels
+              .filter(auth => authenticationCounts[auth] > 0)
+              .map(auth => (
+                <option key={auth} value={auth}>
+                  {auth} ({authenticationCounts[auth]})
+                </option>
+              ))}
           </select>
         </div>
 
@@ -135,11 +220,13 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
             onChange={(e) => handleFilterChange('province', e.target.value)}
           >
             <option value="">All Provinces</option>
-            {availableOptions.provinces.map(province => (
-              <option key={province} value={province}>
-                {province} {provinceCounts[province] ? `(${provinceCounts[province]})` : ''}
-              </option>
-            ))}
+            {availableOptions.provinces
+              .filter(province => provinceCounts[province] > 0)
+              .map(province => (
+                <option key={province} value={province}>
+                  {province} ({provinceCounts[province]})
+                </option>
+              ))}
           </select>
         </div>
 
@@ -153,12 +240,81 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
               onChange={(e) => handleFilterChange('hasMedia', e.target.value)}
             >
               <option value="">All Swords</option>
-              <option value="true">Has Media</option>
-              <option value="false">No Media</option>
+              {mediaCounts.hasMedia > 0 && (
+                <option value="true">Has Media ({mediaCounts.hasMedia})</option>
+              )}
+              {mediaCounts.noMedia > 0 && (
+                <option value="false">No Media ({mediaCounts.noMedia})</option>
+              )}
             </select>
           </div>
         )}
+
+        <div className="filter-group">
+          <label>Nagasa (cm)</label>
+          <div className="range-inputs">
+            <input
+              type="number"
+              id="nagasa-min"
+              placeholder="Min"
+              value={filters.nagasaMin || ''}
+              onChange={(e) => handleFilterChange('nagasaMin', e.target.value)}
+              className="range-input"
+              step="0.1"
+              min="0"
+            />
+            <span className="range-separator">-</span>
+            <input
+              type="number"
+              id="nagasa-max"
+              placeholder="Max"
+              value={filters.nagasaMax || ''}
+              onChange={(e) => handleFilterChange('nagasaMax', e.target.value)}
+              className="range-input"
+              step="0.1"
+              min="0"
+            />
+          </div>
+        </div>
+
+        <div className="filter-group" ref={periodDropdownRef}>
+          <label htmlFor="period-filter">Period</label>
+          <div className="multi-select-dropdown">
+            <button
+              type="button"
+              className="multi-select-trigger"
+              onClick={() => setIsPeriodDropdownOpen(!isPeriodDropdownOpen)}
+              aria-expanded={isPeriodDropdownOpen}
+              aria-haspopup="listbox"
+            >
+              <span className="multi-select-value">
+                {(filters.periods || []).length === 0
+                  ? 'All Periods'
+                  : `${(filters.periods || []).length} selected`}
+              </span>
+              <span className="multi-select-arrow">{isPeriodDropdownOpen ? '▲' : '▼'}</span>
+            </button>
+            {isPeriodDropdownOpen && (
+              <div className="multi-select-options" role="listbox" aria-multiselectable="true">
+                {PERIOD_DEFINITIONS.map(period => (
+                  <label key={period.id} className="multi-select-option">
+                    <input
+                      type="checkbox"
+                      checked={(filters.periods || []).includes(period.id)}
+                      onChange={() => handlePeriodToggle(period.id)}
+                    />
+                    <span className="multi-select-option-text">
+                      {period.name}
+                      <span className="multi-select-count">({periodCounts[period.id] || 0})</span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            )}
+          </div>
+        </div>
       </div>
+      )}
     </div>
   );
 };

@@ -1,5 +1,6 @@
-import React, { useMemo } from 'react';
-import { getAvailableFilterOptions } from '../utils/filterUtils.js';
+import React, { useMemo, useState, useRef, useEffect } from 'react';
+import { getAvailableFilterOptions, getOptionCounts, getPeriodCounts, getAuthenticationCounts } from '../utils/filterUtils.js';
+import { PERIOD_DEFINITIONS } from '../utils/periodUtils.js';
 
 /**
  * AdvancedFilterGroups component for creating complex filter combinations
@@ -20,7 +21,10 @@ const AdvancedFilterGroups = ({ filterGroups, onFilterGroupsChange, swords, sear
       smith: '',
       type: '',
       authentication: '',
-      province: ''
+      province: '',
+      nagasaMin: '',
+      nagasaMax: '',
+      periods: []
     };
     onFilterGroupsChange([...filterGroups, newGroup]);
   };
@@ -49,7 +53,10 @@ const AdvancedFilterGroups = ({ filterGroups, onFilterGroupsChange, swords, sear
           smith: '',
           type: '',
           authentication: '',
-          province: ''
+          province: '',
+          nagasaMin: '',
+          nagasaMax: '',
+          periods: []
         };
       }
       return group;
@@ -133,7 +140,20 @@ const AdvancedFilterGroups = ({ filterGroups, onFilterGroupsChange, swords, sear
  * Individual filter group component
  */
 const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, onClear, onRemove }) => {
-  const [tagInputValue, setTagInputValue] = React.useState('');
+  const [tagInputValue, setTagInputValue] = useState('');
+  const [isPeriodDropdownOpen, setIsPeriodDropdownOpen] = useState(false);
+  const periodDropdownRef = useRef(null);
+
+  // Close period dropdown when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (periodDropdownRef.current && !periodDropdownRef.current.contains(event.target)) {
+        setIsPeriodDropdownOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
 
   // Get available options for this group (based on base filters and search)
   const availableOptions = useMemo(
@@ -141,8 +161,51 @@ const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, 
     [swords, baseFilters, group, searchTags]
   );
 
+  // Get period counts for this group's filter context
+  const periodCounts = useMemo(
+    () => getPeriodCounts(swords, { ...baseFilters, ...group }, searchTags),
+    [swords, baseFilters, group, searchTags]
+  );
+
+  // Get counts for each filter option
+  const combinedFilters = { ...baseFilters, ...group };
+
+  const schoolCounts = useMemo(
+    () => getOptionCounts(swords, combinedFilters, searchTags, 'school'),
+    [swords, combinedFilters, searchTags]
+  );
+
+  const smithCounts = useMemo(
+    () => getOptionCounts(swords, combinedFilters, searchTags, 'smith'),
+    [swords, combinedFilters, searchTags]
+  );
+
+  const typeCounts = useMemo(
+    () => getOptionCounts(swords, combinedFilters, searchTags, 'type'),
+    [swords, combinedFilters, searchTags]
+  );
+
+  const provinceCounts = useMemo(
+    () => getOptionCounts(swords, combinedFilters, searchTags, 'province'),
+    [swords, combinedFilters, searchTags]
+  );
+
+  const authenticationCounts = useMemo(
+    () => getAuthenticationCounts(swords, combinedFilters, searchTags),
+    [swords, combinedFilters, searchTags]
+  );
+
   const hasActiveFilters = group.searchTags?.length > 0 ||
-    Object.entries(group).some(([key, value]) => key !== 'searchTags' && value !== '');
+    (group.periods && group.periods.length > 0) ||
+    Object.entries(group).some(([key, value]) => key !== 'searchTags' && key !== 'periods' && value !== '');
+
+  const handlePeriodToggle = (periodId) => {
+    const currentPeriods = group.periods || [];
+    const newPeriods = currentPeriods.includes(periodId)
+      ? currentPeriods.filter(p => p !== periodId)
+      : [...currentPeriods, periodId];
+    onUpdate('periods', newPeriods);
+  };
 
   const handleAddTag = () => {
     const trimmed = tagInputValue.trim();
@@ -228,9 +291,13 @@ const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, 
               onChange={(e) => onUpdate('school', e.target.value)}
             >
               <option value="">All Schools</option>
-              {availableOptions.schools.map(school => (
-                <option key={school} value={school}>{school}</option>
-              ))}
+              {availableOptions.schools
+                .filter(school => schoolCounts[school] > 0)
+                .map(school => (
+                  <option key={school} value={school}>
+                    {school} ({schoolCounts[school]})
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -242,9 +309,13 @@ const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, 
               onChange={(e) => onUpdate('smith', e.target.value)}
             >
               <option value="">All Smiths</option>
-              {availableOptions.smiths.map(smith => (
-                <option key={smith} value={smith}>{smith}</option>
-              ))}
+              {availableOptions.smiths
+                .filter(smith => smithCounts[smith] > 0)
+                .map(smith => (
+                  <option key={smith} value={smith}>
+                    {smith} ({smithCounts[smith]})
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -256,9 +327,13 @@ const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, 
               onChange={(e) => onUpdate('type', e.target.value)}
             >
               <option value="">All Types</option>
-              {availableOptions.types.map(type => (
-                <option key={type} value={type}>{type}</option>
-              ))}
+              {availableOptions.types
+                .filter(type => typeCounts[type] > 0)
+                .map(type => (
+                  <option key={type} value={type}>
+                    {type} ({typeCounts[type]})
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -270,9 +345,13 @@ const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, 
               onChange={(e) => onUpdate('authentication', e.target.value)}
             >
               <option value="">All Levels</option>
-              {availableOptions.authenticationLevels.map(auth => (
-                <option key={auth} value={auth}>{auth}</option>
-              ))}
+              {availableOptions.authenticationLevels
+                .filter(auth => authenticationCounts[auth] > 0)
+                .map(auth => (
+                  <option key={auth} value={auth}>
+                    {auth} ({authenticationCounts[auth]})
+                  </option>
+                ))}
             </select>
           </div>
 
@@ -284,10 +363,78 @@ const FilterGroup = ({ group, index, swords, searchTags, baseFilters, onUpdate, 
               onChange={(e) => onUpdate('province', e.target.value)}
             >
               <option value="">All Provinces</option>
-              {availableOptions.provinces.map(province => (
-                <option key={province} value={province}>{province}</option>
-              ))}
+              {availableOptions.provinces
+                .filter(province => provinceCounts[province] > 0)
+                .map(province => (
+                  <option key={province} value={province}>
+                    {province} ({provinceCounts[province]})
+                  </option>
+                ))}
             </select>
+          </div>
+
+          <div className="filter-group-item">
+            <label>Nagasa (cm)</label>
+            <div className="range-inputs">
+              <input
+                type="number"
+                id={`group-${index}-nagasa-min`}
+                placeholder="Min"
+                value={group.nagasaMin || ''}
+                onChange={(e) => onUpdate('nagasaMin', e.target.value)}
+                className="range-input"
+                step="0.1"
+                min="0"
+              />
+              <span className="range-separator">-</span>
+              <input
+                type="number"
+                id={`group-${index}-nagasa-max`}
+                placeholder="Max"
+                value={group.nagasaMax || ''}
+                onChange={(e) => onUpdate('nagasaMax', e.target.value)}
+                className="range-input"
+                step="0.1"
+                min="0"
+              />
+            </div>
+          </div>
+
+          <div className="filter-group-item" ref={periodDropdownRef}>
+            <label>Period</label>
+            <div className="multi-select-dropdown">
+              <button
+                type="button"
+                className="multi-select-trigger"
+                onClick={() => setIsPeriodDropdownOpen(!isPeriodDropdownOpen)}
+                aria-expanded={isPeriodDropdownOpen}
+                aria-haspopup="listbox"
+              >
+                <span className="multi-select-value">
+                  {(group.periods || []).length === 0
+                    ? 'All Periods'
+                    : `${(group.periods || []).length} selected`}
+                </span>
+                <span className="multi-select-arrow">{isPeriodDropdownOpen ? '▲' : '▼'}</span>
+              </button>
+              {isPeriodDropdownOpen && (
+                <div className="multi-select-options" role="listbox" aria-multiselectable="true">
+                  {PERIOD_DEFINITIONS.map(period => (
+                    <label key={period.id} className="multi-select-option">
+                      <input
+                        type="checkbox"
+                        checked={(group.periods || []).includes(period.id)}
+                        onChange={() => handlePeriodToggle(period.id)}
+                      />
+                      <span className="multi-select-option-text">
+                        {period.name}
+                        <span className="multi-select-count">({periodCounts[period.id] || 0})</span>
+                      </span>
+                    </label>
+                  ))}
+                </div>
+              )}
+            </div>
           </div>
         </div>
 
