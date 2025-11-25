@@ -1,25 +1,72 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" prefix="og: https://ogp.me/ns#">
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <meta name="theme-color" content="#2E4057" />
+    <meta name="theme-color" content="#1a1a2e" />
+
+    <!-- Primary Meta Tags -->
+    <title>Nihonto DB - Japanese Sword Database</title>
     <meta
       name="description"
-      content="Touken West - Searchable database of historical Japanese swords"
+      content="Searchable database of historical Japanese swords. Browse Juyo, Tokubetsu Juyo, and other authenticated nihonto with detailed records of smiths, schools, and provenance."
     />
+    <meta name="keywords" content="Japanese swords, nihonto, katana, wakizashi, tanto, Juyo, Tokubetsu Juyo, NBTHK, sword database, Japanese sword authentication, samurai swords, Japanese sword smiths, sword schools" />
+    <meta name="author" content="Nihonto DB" />
+    <meta name="robots" content="index, follow" />
 
-    <!-- Google Fonts -->
+    <!-- Favicon -->
+    <link rel="icon" type="image/svg+xml" href="/shimazu-mon.svg" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+
+    <!-- Canonical URL (will be updated by React for specific pages) -->
+    <link rel="canonical" href="https://nihonto-db.com/" />
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website" />
+    <meta property="og:url" content="https://nihonto-db.com/" />
+    <meta property="og:title" content="Nihonto DB - Japanese Sword Database" />
+    <meta property="og:description" content="Searchable database of historical Japanese swords. Browse Juyo, Tokubetsu Juyo, and other authenticated nihonto with detailed records." />
+    <meta property="og:image" content="https://nihonto-db.com/og-image.png" />
+    <meta property="og:site_name" content="Nihonto DB" />
+    <meta property="og:locale" content="en_US" />
+
+    <!-- Twitter -->
+    <meta name="twitter:card" content="summary_large_image" />
+    <meta name="twitter:url" content="https://nihonto-db.com/" />
+    <meta name="twitter:title" content="Nihonto DB - Japanese Sword Database" />
+    <meta name="twitter:description" content="Searchable database of historical Japanese swords. Browse Juyo, Tokubetsu Juyo, and other authenticated nihonto with detailed records." />
+    <meta name="twitter:image" content="https://nihonto-db.com/og-image.png" />
+
+    <!-- Structured Data (JSON-LD) -->
+    <script type="application/ld+json">
+    {
+      "@context": "https://schema.org",
+      "@type": "WebSite",
+      "name": "Nihonto DB",
+      "alternateName": "Nihonto DB Japanese Sword Database",
+      "url": "https://nihonto-db.com/",
+      "description": "Searchable database of historical Japanese swords with authentication records",
+      "potentialAction": {
+        "@type": "SearchAction",
+        "target": {
+          "@type": "EntryPoint",
+          "urlTemplate": "https://nihonto-db.com/?search={search_term_string}"
+        },
+        "query-input": "required name=search_term_string"
+      }
+    }
+    </script>
+
+    <!-- Preconnect to external resources for performance -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="dns-prefetch" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Open+Sans:wght@400;500;600&family=Noto+Sans+JP:wght@400;500;600&display=swap" rel="stylesheet">
-
-    <title>Touken West - Japanese Sword Database</title>
   </head>
   <body>
     <noscript>You need to enable JavaScript to run this app.</noscript>
     <div id="root"></div>
-    <!-- Vite requires explicit script module import -->
     <script type="module" src="/src/index.jsx"></script>
   </body>
 </html>

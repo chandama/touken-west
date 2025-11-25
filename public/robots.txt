@@ -1,0 +1,16 @@
+# Touken West - Japanese Sword Database
+# https://www.robotstxt.org/robotstxt.html
+
+User-agent: *
+Allow: /
+
+# Block admin routes from indexing
+Disallow: /admin
+Disallow: /admin/
+
+# Block API endpoints
+Disallow: /api/
+Disallow: /api
+
+# Sitemap location
+Sitemap: https://nihonto-db.com/sitemap.xml
