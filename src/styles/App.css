@@ -622,6 +622,7 @@ button {
   justify-content: space-between;
   align-items: center;
   transition: background-color var(--duration-fast) var(--ease-in-out);
+  cursor: pointer;
 }
 
 .filter-panel.expanded .filter-header {
@@ -630,7 +631,6 @@ button {
 
 .filter-panel.collapsed .filter-header {
   padding: var(--space-sm) var(--space-md);
-  cursor: pointer;
 }
 
 .filter-panel.collapsed .filter-header:hover {
@@ -1046,7 +1046,7 @@ body.dark-mode .info-tooltip-content::after {
 .advanced-filter-groups.expanded .advanced-filter-header {
   padding: 0;
   margin-bottom: var(--space-md);
-  cursor: default;
+  cursor: pointer;
 }
 
 .advanced-filter-title-row {
