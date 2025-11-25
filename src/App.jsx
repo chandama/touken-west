@@ -9,9 +9,12 @@ import SwordDetail from './components/SwordDetail.jsx';
 import DarkModeToggle from './components/DarkModeToggle.jsx';
 import Login from './components/Login.jsx';
 import useSwordData from './hooks/useSwordData.js';
+import useDocumentMeta from './hooks/useDocumentMeta.js';
 import { parseSearchInput, matchesSearchTerms } from './utils/searchParser.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+
+const SITE_URL = 'https://nihonto-db.com';
 
 function App() {
   const { swords, loading, error } = useSwordData();
@@ -33,6 +36,18 @@ function App() {
   const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+
+  // Dynamic meta tags for SEO
+  useDocumentMeta({
+    title: selectedSword
+      ? `${selectedSword.Smith || 'Unknown Smith'} ${selectedSword.Type || 'Sword'} - Touken West`
+      : `Touken West - Japanese Sword Database | ${swords.length.toLocaleString()} Historical Blades`,
+    description: selectedSword
+      ? `${selectedSword.Type || 'Japanese sword'} by ${selectedSword.Smith || 'unknown smith'}${selectedSword.School ? ` of ${selectedSword.School} school` : ''}${selectedSword.Authentication ? `. ${selectedSword.Authentication}` : ''}. View details, dimensions, and provenance.`
+      : 'Searchable database of historical Japanese swords. Browse Juyo, Tokubetsu Juyo, and other authenticated nihonto with detailed records of smiths, schools, and provenance.',
+    canonicalUrl: SITE_URL,
+    ogType: selectedSword ? 'article' : 'website'
+  });
 
   // Check authentication status
   useEffect(() => {
