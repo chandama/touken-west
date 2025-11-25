@@ -11,6 +11,7 @@ import Login from './components/Login.jsx';
 import useSwordData from './hooks/useSwordData.js';
 import useDocumentMeta from './hooks/useDocumentMeta.js';
 import { parseSearchInput, matchesSearchTerms } from './utils/searchParser.js';
+import { matchesPeriodFilter } from './utils/periodUtils.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
@@ -25,7 +26,10 @@ function App() {
     type: '',
     authentication: '',
     province: '',
-    hasMedia: ''
+    hasMedia: '',
+    nagasaMin: '',
+    nagasaMax: '',
+    periods: [] // Array of selected period IDs
   });
   const [filterGroups, setFilterGroups] = useState([]);
   const [selectedSword, setSelectedSword] = useState(null);
@@ -36,6 +40,7 @@ function App() {
   const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [showRegister, setShowRegister] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   // Dynamic meta tags for SEO
   // Only update title after data loads to avoid "0 Historical Blades" in search results
@@ -130,7 +135,23 @@ function App() {
     const matchesAuthentication = checkAuthenticationMatch(sword, group.authentication);
     const matchesProvince = group.province === '' || sword.Province === group.province;
 
-    return matchesGroupSearch && matchesSchool && matchesSmith && matchesType && matchesAuthentication && matchesProvince;
+    // Nagasa (length) filter for group
+    const matchesNagasa = (() => {
+      const nagasaMin = group.nagasaMin || '';
+      const nagasaMax = group.nagasaMax || '';
+      if (nagasaMin === '' && nagasaMax === '') return true;
+      if (!sword.Nagasa) return false;
+      const nagasa = parseFloat(sword.Nagasa);
+      if (isNaN(nagasa)) return false;
+      if (nagasaMin !== '' && nagasa < parseFloat(nagasaMin)) return false;
+      if (nagasaMax !== '' && nagasa > parseFloat(nagasaMax)) return false;
+      return true;
+    })();
+
+    // Period filter for group
+    const matchesPeriod = matchesPeriodFilter(sword.Period, group.periods || []);
+
+    return matchesGroupSearch && matchesSchool && matchesSmith && matchesType && matchesAuthentication && matchesProvince && matchesNagasa && matchesPeriod;
   };
 
   const filteredSwords = swords.filter(sword => {
@@ -159,7 +180,21 @@ function App() {
       : (!sword.MediaAttachments || sword.MediaAttachments === 'NA' || sword.MediaAttachments === '[]')
     );
 
-    const matchesBaseFilters = matchesSchool && matchesSmith && matchesType && matchesAuthentication && matchesProvince && matchesMedia;
+    // Nagasa (length) filter
+    const matchesNagasa = (() => {
+      if (filters.nagasaMin === '' && filters.nagasaMax === '') return true;
+      if (!sword.Nagasa) return false;
+      const nagasa = parseFloat(sword.Nagasa);
+      if (isNaN(nagasa)) return false;
+      if (filters.nagasaMin !== '' && nagasa < parseFloat(filters.nagasaMin)) return false;
+      if (filters.nagasaMax !== '' && nagasa > parseFloat(filters.nagasaMax)) return false;
+      return true;
+    })();
+
+    // Period filter
+    const matchesPeriod = matchesPeriodFilter(sword.Period, filters.periods);
+
+    const matchesBaseFilters = matchesSchool && matchesSmith && matchesType && matchesAuthentication && matchesProvince && matchesMedia && matchesNagasa && matchesPeriod;
 
     // Advanced filter groups (OR logic between groups, AND logic within each group)
     // If no filter groups exist, this passes automatically
@@ -193,10 +228,27 @@ function App() {
             <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
             {user ? (
               <div className="user-menu">
-                <span className="user-email">{user.email}</span>
-                <button onClick={handleLogout} className="logout-button">
-                  Logout
+                <button
+                  className="user-avatar-button"
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  aria-label="User menu"
+                  aria-expanded={showUserDropdown}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="user-avatar-icon">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
                 </button>
+                {showUserDropdown && (
+                  <>
+                    <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
+                    <div className="user-dropdown">
+                      <div className="user-dropdown-email">{user.email}</div>
+                      <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                )}
               </div>
             ) : (
               <button onClick={() => setShowLogin(true)} className="login-button">
@@ -218,20 +270,22 @@ function App() {
               onSearchTagsChange={setSearchTags}
               swords={swords}
             />
-            <FilterPanel
-              filters={filters}
-              onFilterChange={setFilters}
-              swords={swords}
-              searchTags={searchTags}
-              user={user}
-            />
-            <AdvancedFilterGroups
-              filterGroups={filterGroups}
-              onFilterGroupsChange={setFilterGroups}
-              swords={swords}
-              searchTags={searchTags}
-              baseFilters={filters}
-            />
+            <div className="filter-panels-container">
+              <FilterPanel
+                filters={filters}
+                onFilterChange={setFilters}
+                swords={swords}
+                searchTags={searchTags}
+                user={user}
+              />
+              <AdvancedFilterGroups
+                filterGroups={filterGroups}
+                onFilterGroupsChange={setFilterGroups}
+                swords={swords}
+                searchTags={searchTags}
+                baseFilters={filters}
+              />
+            </div>
           </div>
 
           <div className="results-info">
