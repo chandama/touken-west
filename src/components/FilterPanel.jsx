@@ -114,11 +114,10 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
 
   return (
     <div className={`filter-panel ${isExpanded ? 'expanded' : 'collapsed'}`}>
-      <div className="filter-header" onClick={!isExpanded ? toggleExpanded : undefined}>
+      <div className="filter-header" onClick={toggleExpanded}>
         <div className="filter-title-row">
           <button
             className="toggle-arrow-button"
-            onClick={toggleExpanded}
             aria-expanded={isExpanded}
             aria-label={isExpanded ? 'Collapse filters' : 'Expand filters'}
           >
@@ -132,7 +131,7 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
           </h3>
         </div>
         {isExpanded && hasActiveFilters && (
-          <button onClick={handleClearFilters} className="clear-filters-button">
+          <button onClick={(e) => { e.stopPropagation(); handleClearFilters(); }} className="clear-filters-button">
             Clear All
           </button>
         )}
