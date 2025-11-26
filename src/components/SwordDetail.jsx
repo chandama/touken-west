@@ -122,8 +122,9 @@ const SwordDetail = ({ sword, onClose, user }) => {
                       const category = typeof item === 'object' ? item.category : null;
                       const tags = typeof item === 'object' ? item.tags : null;
 
-                      const isImage = filePath.endsWith('.jpg') || filePath.endsWith('.jpeg') || filePath.endsWith('.png');
-                      const isPdf = filePath.endsWith('.pdf');
+                      const lowerPath = filePath.toLowerCase();
+                      const isImage = lowerPath.endsWith('.jpg') || lowerPath.endsWith('.jpeg') || lowerPath.endsWith('.png');
+                      const isPdf = lowerPath.endsWith('.pdf');
                       const fileName = filePath.split('/').pop();
 
                       return (
