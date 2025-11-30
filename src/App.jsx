@@ -226,6 +226,11 @@ function App() {
           </div>
           <div className="header-actions">
             <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
+            {user && (
+              <a href="/library" className="library-link">
+                Digital Library
+              </a>
+            )}
             {user ? (
               <div className="user-menu">
                 <button

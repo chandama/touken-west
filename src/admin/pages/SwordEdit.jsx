@@ -598,12 +598,18 @@ function SwordEdit() {
 
         {mediaAttachments.length > 0 && (
           <div className="media-grid">
-            {mediaAttachments.map((media, idx) => (
+            {mediaAttachments.map((media, idx) => {
+              // Determine if this is a PDF - check mimeType first, then fall back to file extension
+              const isPdf = media.mimeType === 'application/pdf' ||
+                (media.url && media.url.toLowerCase().endsWith('.pdf'));
+              const displayName = media.filename || media.caption || (media.url ? media.url.split('/').pop() : 'File');
+
+              return (
               <div key={idx} className="media-item">
-                {media.mimeType === 'application/pdf' ? (
-                  <div className="media-pdf">
+                {isPdf ? (
+                  <div className="media-pdf" onClick={() => window.open(media.url, '_blank')} style={{ cursor: 'pointer' }}>
                     <div className="pdf-icon">📄</div>
-                    <div className="pdf-name">{media.filename}</div>
+                    <div className="pdf-name">{displayName}</div>
                   </div>
                 ) : (
                   <img
@@ -631,13 +637,14 @@ function SwordEdit() {
                 </div>
 
                 <button
-                  onClick={() => handleRemoveMedia(media.filename)}
+                  onClick={() => handleRemoveMedia(media.filename || displayName)}
                   className="btn-danger btn-small"
                 >
                   Remove
                 </button>
               </div>
-            ))}
+              );
+            })}
           </div>
         )}
 
