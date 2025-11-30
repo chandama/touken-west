@@ -3,13 +3,22 @@ import ReactDOM from 'react-dom/client';
 import './styles/index.css';
 import App from './App.jsx';
 import AdminApp from './admin/AdminApp.jsx';
+import LibraryApp from './library/LibraryApp.jsx';
 
-// Check if we're on the admin route
+// Check which route we're on
 const isAdminRoute = window.location.pathname.startsWith('/admin');
+const isLibraryRoute = window.location.pathname.startsWith('/library');
+
+// Determine which app to render
+const getAppComponent = () => {
+  if (isAdminRoute) return <AdminApp />;
+  if (isLibraryRoute) return <LibraryApp />;
+  return <App />;
+};
 
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    {isAdminRoute ? <AdminApp /> : <App />}
+    {getAppComponent()}
   </React.StrictMode>
 );

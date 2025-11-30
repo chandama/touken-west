@@ -7,7 +7,7 @@ import { PERIOD_DEFINITIONS } from '../utils/periodUtils.js';
  * Filter options update based on current selections
  * Collapsible on mobile devices - defaults to collapsed on screens <= 768px
  */
-const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = null }) => {
+const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = null, hideMediaFilter = false }) => {
   // Check if mobile on initial render - default to collapsed on mobile
   const isMobileInitial = typeof window !== 'undefined' && window.innerWidth <= 768;
   const [isExpanded, setIsExpanded] = useState(!isMobileInitial);
@@ -229,8 +229,8 @@ const FilterPanel = ({ filters, onFilterChange, swords, searchTags = [], user = 
           </select>
         </div>
 
-        {/* Media Status filter - only show for logged in users */}
-        {user && (
+        {/* Media Status filter - only show for logged in users, hide in library view */}
+        {user && !hideMediaFilter && (
           <div className="filter-group">
             <label htmlFor="media-filter">Media Status</label>
             <select

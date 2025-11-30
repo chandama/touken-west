@@ -625,10 +625,14 @@ app.get('/api/swords/:index', async (req, res) => {
       return res.status(404).json({ error: 'Sword not found' });
     }
 
-    // Parse media attachments
+    // Parse media attachments and normalize format
+    // Handles both object format [{url: "...", ...}] and string format ["/path/to/file"]
     if (sword.MediaAttachments && sword.MediaAttachments !== 'NA') {
       try {
-        sword.MediaAttachmentsArray = JSON.parse(sword.MediaAttachments);
+        const parsed = JSON.parse(sword.MediaAttachments);
+        sword.MediaAttachmentsArray = Array.isArray(parsed)
+          ? parsed.map(item => typeof item === 'string' ? { url: item } : item)
+          : [];
       } catch {
         sword.MediaAttachmentsArray = [];
       }
