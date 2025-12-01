@@ -44,6 +44,7 @@ const Changelog = require('./models/Changelog');
 // Spaces configuration
 const {
   upload,
+  csvUpload,
   uploadToSpaces,
   generateThumbnail,
   calculateMD5,
@@ -55,6 +56,12 @@ const PORT = process.env.PORT || 3002;
 
 // Connect to MongoDB
 connectDB();
+
+// Request logging middleware - log ALL requests
+app.use((req, res, next) => {
+  console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
+  next();
+});
 
 // Security middleware
 app.use(helmet());
@@ -960,8 +967,8 @@ app.delete('/api/swords/:index', authenticateToken, requireAdmin, async (req, re
   }
 });
 
-// Bulk upload swords from CSV (Admin only)
-app.post('/api/swords/bulk', authenticateToken, requireAdmin, upload.single('file'), async (req, res) => {
+// Bulk upload swords from CSV (Admin only) - Legacy endpoint
+app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('file'), async (req, res) => {
   try {
     const file = req.file;
 
@@ -1006,9 +1013,14 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, upload.single('fil
       duplicateDetails: []
     };
 
-    // Get max index
-    const maxSword = await Sword.findOne().sort({ Index: -1 }).limit(1);
-    let maxIndex = maxSword ? parseInt(maxSword.Index) : 0;
+    // Get max index - use aggregation to convert string to number for proper sorting
+    const maxIndexResult = await Sword.aggregate([
+      { $addFields: { indexNum: { $toInt: "$Index" } } },
+      { $sort: { indexNum: -1 } },
+      { $limit: 1 },
+      { $project: { Index: 1 } }
+    ]);
+    let maxIndex = maxIndexResult.length > 0 ? parseInt(maxIndexResult[0].Index) : 0;
 
     // Process each row
     for (let i = 0; i < uploadData.length; i++) {
@@ -1140,6 +1152,332 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, upload.single('fil
   }
 });
 
+// Preview bulk upload - parse CSV and check for duplicates without importing
+app.post('/api/swords/bulk/preview', authenticateToken, requireAdmin, (req, res, next) => {
+  csvUpload.single('file')(req, res, (err) => {
+    if (err) {
+      console.error('CSV upload error:', err.message);
+      return res.status(400).json({ error: err.message });
+    }
+    next();
+  });
+}, async (req, res) => {
+  try {
+    const file = req.file;
+
+    if (!file) {
+      return res.status(400).json({ error: 'No CSV file uploaded' });
+    }
+
+    console.log('Previewing bulk upload CSV:', file.originalname);
+
+    // Parse CSV
+    const csvContent = file.buffer.toString('utf8');
+    const parsed = Papa.parse(csvContent, {
+      header: true,
+      skipEmptyLines: true,
+      transformHeader: (header) => header.trim()
+    });
+
+    if (parsed.errors.length > 0) {
+      console.error('CSV parsing errors:', parsed.errors);
+      return res.status(400).json({
+        error: 'CSV parsing failed',
+        details: parsed.errors
+      });
+    }
+
+    const uploadData = parsed.data;
+
+    if (uploadData.length === 0) {
+      return res.status(400).json({ error: 'CSV file is empty' });
+    }
+
+    console.log(`Parsed ${uploadData.length} sword records from CSV for preview`);
+
+    // Track results
+    const results = {
+      total: uploadData.length,
+      skipped: 0,
+      duplicates: [],
+      nonDuplicates: []
+    };
+
+    // Process each row to check for duplicates
+    for (let i = 0; i < uploadData.length; i++) {
+      const row = uploadData[i];
+      const rowNum = i + 2; // +2 because row 1 is header, and we're 0-indexed
+
+      // Skip empty rows
+      const hasData = Object.values(row).some(val => val && val.trim() !== '');
+      if (!hasData) {
+        results.skipped++;
+        continue;
+      }
+
+      // Build sword data from CSV
+      const swordData = {
+        School: row.School?.trim() || 'NA',
+        Smith: row.Smith?.trim() || 'Unknown',
+        Mei: row.Mei?.trim() || 'Mumei',
+        Type: row.Type?.trim() || 'NA',
+        Nagasa: row.Nagasa?.trim() || 'NA',
+        Sori: row.Sori?.trim() || 'NA',
+        Moto: row.Moto?.trim() || 'NA',
+        Saki: row.Saki?.trim() || 'NA',
+        Nakago: row.Nakago?.trim() || 'NA',
+        Ana: row.Ana?.trim() || 'NA',
+        Length: row.Length?.trim() || 'NA',
+        Hori: row.Hori?.trim() || 'NA',
+        Authentication: row.Authentication?.trim() || 'NA',
+        Province: row.Province?.trim() || 'NA',
+        Period: row.Period?.trim() || 'NA',
+        References: row.References?.trim() || 'NA',
+        Description: row.Description?.trim() || 'NA',
+        Attachments: row.Attachments?.trim() || 'NA',
+        Tags: row.Tags?.trim() || ''
+      };
+
+      // Check for duplicates with fuzzy matching
+      // Exact matches required: Smith, School, Type
+      // Fuzzy matches: Mei, Authentication (substring, case/whitespace insensitive)
+      // Measurements (all must match within 0.1cm): Nagasa, Nakago, Sori, Moto, Saki
+
+      // Normalize string for comparison: lowercase, remove whitespace, normalize kanji variants
+      const normalizeForMatch = (str) => {
+        if (!str) return '';
+        return str
+          .toLowerCase()
+          .replace(/\s+/g, '')
+          .replace(/國/g, '国')  // Normalize traditional to simplified kanji
+          .replace(/\[.*?\]/g, '') // Remove bracketed annotations like [来国長]
+          .replace(/\(.*?\)/g, ''); // Remove parenthetical annotations like (再刃)
+      };
+
+      // Parse measurement to number for comparison
+      const parseMeasurement = (val) => {
+        if (!val || val === 'NA' || val === 'N/A' || val === 'N/a') return null;
+        const num = parseFloat(val);
+        return isNaN(num) ? null : num;
+      };
+
+      // Check if two measurements match within tolerance (0.1cm)
+      // If either value is null/NA, we skip that check (return true)
+      const measurementMatches = (csv, db) => {
+        if (csv === null || db === null) return true; // Skip if either is NA
+        return Math.abs(csv - db) <= 0.1;
+      };
+
+      const csvMeiNorm = normalizeForMatch(swordData.Mei);
+      const csvAuthNorm = normalizeForMatch(swordData.Authentication);
+      const csvNagasa = parseMeasurement(swordData.Nagasa);
+      const csvNakago = parseMeasurement(swordData.Nakago);
+      const csvSori = parseMeasurement(swordData.Sori);
+      const csvMoto = parseMeasurement(swordData.Moto);
+      const csvSaki = parseMeasurement(swordData.Saki);
+
+      // Find potential matches by Smith (exact), School (exact), and Type (exact) first
+      const potentialMatches = await Sword.find({
+        Smith: swordData.Smith,
+        School: swordData.School,
+        Type: swordData.Type
+      }).lean();
+
+      // Find best match based on fuzzy criteria
+      let existing = null;
+      for (const sword of potentialMatches) {
+        const dbMeiNorm = normalizeForMatch(sword.Mei);
+        const dbAuthNorm = normalizeForMatch(sword.Authentication);
+        const dbNagasa = parseMeasurement(sword.Nagasa);
+        const dbNakago = parseMeasurement(sword.Nakago);
+        const dbSori = parseMeasurement(sword.Sori);
+        const dbMoto = parseMeasurement(sword.Moto);
+        const dbSaki = parseMeasurement(sword.Saki);
+
+        // Mei match: one contains the other (handles cases like "有成" vs "有成 (再刃)")
+        const meiMatch = csvMeiNorm && dbMeiNorm &&
+          (csvMeiNorm.includes(dbMeiNorm) || dbMeiNorm.includes(csvMeiNorm));
+
+        // Auth match: one contains the other (handles partial matches)
+        const authMatch = csvAuthNorm && dbAuthNorm &&
+          (csvAuthNorm.includes(dbAuthNorm) || dbAuthNorm.includes(csvAuthNorm));
+
+        // Measurements match: all must be within 0.1cm (or skipped if NA)
+        const nagasaMatch = measurementMatches(csvNagasa, dbNagasa);
+        const nakagoMatch = measurementMatches(csvNakago, dbNakago);
+        const soriMatch = measurementMatches(csvSori, dbSori);
+        const motoMatch = measurementMatches(csvMoto, dbMoto);
+        const sakiMatch = measurementMatches(csvSaki, dbSaki);
+        const allMeasurementsMatch = nagasaMatch && nakagoMatch && soriMatch && motoMatch && sakiMatch;
+
+        // Consider it a duplicate if Mei matches AND (Auth matches OR all measurements match)
+        if (meiMatch && (authMatch || allMeasurementsMatch)) {
+          existing = sword;
+          break;
+        }
+      }
+
+      // If no match by Mei, also try matching by measurements + Auth (for cases where Mei differs significantly)
+      if (!existing) {
+        for (const sword of potentialMatches) {
+          const dbAuthNorm = normalizeForMatch(sword.Authentication);
+          const dbNagasa = parseMeasurement(sword.Nagasa);
+          const dbNakago = parseMeasurement(sword.Nakago);
+          const dbSori = parseMeasurement(sword.Sori);
+          const dbMoto = parseMeasurement(sword.Moto);
+          const dbSaki = parseMeasurement(sword.Saki);
+
+          const authMatch = csvAuthNorm && dbAuthNorm &&
+            (csvAuthNorm.includes(dbAuthNorm) || dbAuthNorm.includes(csvAuthNorm));
+
+          const nagasaMatch = measurementMatches(csvNagasa, dbNagasa);
+          const nakagoMatch = measurementMatches(csvNakago, dbNakago);
+          const soriMatch = measurementMatches(csvSori, dbSori);
+          const motoMatch = measurementMatches(csvMoto, dbMoto);
+          const sakiMatch = measurementMatches(csvSaki, dbSaki);
+          const allMeasurementsMatch = nagasaMatch && nakagoMatch && soriMatch && motoMatch && sakiMatch;
+
+          // Match if both Auth and all measurements match
+          if (authMatch && allMeasurementsMatch) {
+            existing = sword;
+            break;
+          }
+        }
+      }
+
+      if (existing) {
+        results.duplicates.push({
+          row: rowNum,
+          data: swordData,
+          existing: existing
+        });
+      } else {
+        results.nonDuplicates.push({
+          row: rowNum,
+          data: swordData
+        });
+      }
+    }
+
+    console.log(`Preview complete: ${results.nonDuplicates.length} new, ${results.duplicates.length} duplicates`);
+
+    res.json(results);
+
+  } catch (error) {
+    console.error('Error in bulk preview:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Import swords from preview - selective import based on user decisions
+app.post('/api/swords/bulk/import', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { swords } = req.body;
+
+    if (!swords || !Array.isArray(swords) || swords.length === 0) {
+      return res.status(400).json({ error: 'No swords provided for import' });
+    }
+
+    console.log(`Importing ${swords.length} swords from bulk preview`);
+
+    const results = {
+      created: 0,
+      errors: 0,
+      errorDetails: [],
+      newSwords: []
+    };
+
+    // Get max index - use aggregation to convert string to number for proper sorting
+    const maxIndexResult = await Sword.aggregate([
+      { $addFields: { indexNum: { $toInt: "$Index" } } },
+      { $sort: { indexNum: -1 } },
+      { $limit: 1 },
+      { $project: { Index: 1 } }
+    ]);
+    let maxIndex = maxIndexResult.length > 0 ? parseInt(maxIndexResult[0].Index) : 0;
+    console.log(`Starting bulk import from index ${maxIndex + 1}`);
+
+    // Process each sword
+    for (let i = 0; i < swords.length; i++) {
+      const swordData = swords[i];
+
+      try {
+        maxIndex++;
+        const newSword = new Sword({
+          Index: maxIndex.toString(),
+          School: swordData.School || 'NA',
+          Smith: swordData.Smith || 'Unknown',
+          Mei: swordData.Mei || 'Mumei',
+          Type: swordData.Type || 'NA',
+          Nagasa: swordData.Nagasa || 'NA',
+          Sori: swordData.Sori || 'NA',
+          Moto: swordData.Moto || 'NA',
+          Saki: swordData.Saki || 'NA',
+          Nakago: swordData.Nakago || 'NA',
+          Ana: swordData.Ana || 'NA',
+          Length: swordData.Length || 'NA',
+          Hori: swordData.Hori || 'NA',
+          Authentication: swordData.Authentication || 'NA',
+          Province: swordData.Province || 'NA',
+          Period: swordData.Period || 'NA',
+          References: swordData.References || 'NA',
+          Description: swordData.Description || 'NA',
+          Attachments: swordData.Attachments || 'NA',
+          Tags: swordData.Tags || '',
+          MediaAttachments: 'NA'
+        });
+
+        await newSword.save();
+        results.created++;
+        results.newSwords.push({
+          Index: newSword.Index,
+          Smith: newSword.Smith,
+          Mei: newSword.Mei,
+          Type: newSword.Type
+        });
+
+        console.log(`Created sword ${newSword.Index} - ${newSword.Smith} ${newSword.Mei}`);
+
+        // Log to changelog
+        const changes = {};
+        Object.keys(newSword.toObject()).forEach(field => {
+          if (field !== 'Index' && field !== '_id' && field !== '__v' && field !== 'createdAt' && field !== 'updatedAt' && field !== 'MediaAttachments' &&
+              newSword[field] !== 'NA' && newSword[field] !== '') {
+            changes[field] = {
+              before: '(new sword)',
+              after: newSword[field]
+            };
+          }
+        });
+
+        await addChangelogEntry(newSword.Index, newSword, changes, 'new_sword', req.user.id);
+
+      } catch (error) {
+        results.errors++;
+        results.errorDetails.push({
+          row: i + 1,
+          data: `${swordData.Smith} ${swordData.Mei}`,
+          error: error.message
+        });
+        console.error(`Error importing sword:`, error.message);
+      }
+    }
+
+    console.log(`Bulk import complete: ${results.created} swords created, ${results.errors} errors`);
+
+    // Invalidate cache if any swords were created
+    if (results.created > 0) {
+      swordCache.invalidate();
+    }
+
+    res.json(results);
+
+  } catch (error) {
+    console.error('Error in bulk import:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // ==================== CHANGELOG ROUTES ====================
 
 // Get changelog entries
@@ -1169,6 +1507,14 @@ app.get('/api/changelog', async (req, res) => {
     console.error('Error fetching changelog:', error);
     res.status(500).json({ error: error.message });
   }
+});
+
+// ==================== GLOBAL ERROR HANDLER ====================
+
+app.use((err, req, res, next) => {
+  console.error('Global error handler caught:', err.message);
+  console.error('Stack:', err.stack);
+  res.status(500).json({ error: err.message || 'Internal server error' });
 });
 
 // ==================== START SERVER ====================

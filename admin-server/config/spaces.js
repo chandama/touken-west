@@ -30,6 +30,22 @@ const upload = multer({
   },
 });
 
+// Configure multer for CSV uploads (bulk import)
+const csvUpload = multer({
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 10 * 1024 * 1024 // 10MB limit for CSV files
+  },
+  fileFilter: (req, file, cb) => {
+    const allowedTypes = ['text/csv', 'application/vnd.ms-excel', 'text/plain'];
+    if (allowedTypes.includes(file.mimetype) || file.originalname.endsWith('.csv')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Invalid file type. Only CSV files allowed.'));
+    }
+  },
+});
+
 /**
  * Upload file to DigitalOcean Spaces
  * @param {Buffer} buffer - File buffer
@@ -97,6 +113,7 @@ function generateFilename(originalName) {
 module.exports = {
   s3Client,
   upload,
+  csvUpload,
   uploadToSpaces,
   generateThumbnail,
   calculateMD5,
