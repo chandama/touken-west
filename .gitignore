@@ -44,9 +44,8 @@ yarn-error.log*
 # Optional eslint cache
 .eslintcache
 
-# Uploaded files (local development only - production uses Spaces)
-public/documents/uploads/*
-!public/documents/uploads/.gitkeep
+# Document files (production uses Spaces)
+public/documents/
 
 # Logs
 logs/
@@ -59,9 +58,13 @@ temp/
 
 # Claude Code project instructions
 CLAUDE.md
+.claude/
 
 # Migration and processing scripts (temporary/one-time use)
 scripts/
+
+# Data files (exports, migrations, working files)
+data/
 
 # Migration logs
 image-migration.log
