@@ -82,6 +82,7 @@ function SwordEdit() {
       const response = await fetch(`${API_BASE}/swords/${index}/media`, {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ filename }),
       });
 
@@ -137,6 +138,7 @@ function SwordEdit() {
       const response = await fetch(`${API_BASE}/swords/${index}`, {
         method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
@@ -204,6 +206,7 @@ function SwordEdit() {
     try {
       const response = await fetch(`${API_BASE}/swords/${index}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       const result = await response.json();
