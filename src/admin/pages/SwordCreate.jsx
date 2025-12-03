@@ -59,14 +59,15 @@ function SwordCreate() {
         headers: {
           'Content-Type': 'application/json',
         },
+        credentials: 'include',
         body: JSON.stringify(formData),
       });
 
-      if (!response.ok) {
-        throw new Error('Failed to create sword');
-      }
-
       const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.error || 'Failed to create sword');
+      }
 
       // Navigate to the edit page for the new sword
       navigate(`/admin/sword/${result.sword.Index}`);

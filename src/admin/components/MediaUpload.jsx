@@ -45,6 +45,7 @@ function MediaUpload({ swordIndex, onUploadComplete }) {
     try {
       const response = await fetch(`${API_BASE}/swords/${swordIndex}/media`, {
         method: 'POST',
+        credentials: 'include',
         body: formData,
       });
 

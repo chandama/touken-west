@@ -822,9 +822,14 @@ app.post('/api/swords', authenticateToken, requireAdmin, async (req, res) => {
   try {
     const newSwordData = req.body;
 
-    // Find highest existing index
-    const maxSword = await Sword.findOne().sort({ Index: -1 }).limit(1);
-    const maxIndex = maxSword ? parseInt(maxSword.Index) : 0;
+    // Find highest existing index - use aggregation to convert string to number for proper sorting
+    const maxIndexResult = await Sword.aggregate([
+      { $addFields: { indexNum: { $toInt: "$Index" } } },
+      { $sort: { indexNum: -1 } },
+      { $limit: 1 },
+      { $project: { Index: 1 } }
+    ]);
+    const maxIndex = maxIndexResult.length > 0 ? parseInt(maxIndexResult[0].Index) : 0;
     const newIndex = (maxIndex + 1).toString();
 
     // Create new sword
