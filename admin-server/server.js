@@ -606,6 +606,34 @@ app.get('/api/swords', async (req, res) => {
   }
 });
 
+// Fast initial load endpoint - returns first page quickly for SEO
+app.get('/api/swords/initial', async (req, res) => {
+  try {
+    // Return first 100 swords with minimal processing for fast initial render
+    const swords = await Sword.find({})
+      .sort({ Index: 1 })
+      .limit(100)
+      .lean();
+
+    const total = await Sword.estimatedDocumentCount();
+
+    // Aggressive caching for initial load
+    res.set({
+      'Cache-Control': 'public, max-age=3600, stale-while-revalidate=86400',
+      'ETag': `"initial-${Date.now()}"`,
+    });
+
+    res.json({
+      swords,
+      total,
+      isInitial: true,
+    });
+  } catch (error) {
+    console.error('Error fetching initial swords:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Get filter options
 app.get('/api/filters', async (req, res) => {
   try {
