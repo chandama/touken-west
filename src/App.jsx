@@ -18,7 +18,7 @@ const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 const SITE_URL = 'https://nihonto-db.com';
 
 function App() {
-  const { swords, loading, error } = useSwordData();
+  const { swords, totalCount, loading, isFullyLoaded, error } = useSwordData();
   const [searchTags, setSearchTags] = useState([]);
   const [filters, setFilters] = useState({
     school: '',
@@ -221,7 +221,7 @@ function App() {
             <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="header-logo" />
             <div className="header-title-group">
               <h1>Touken West</h1>
-              <p>Japanese Sword Database - {swords.length.toLocaleString()} Historical Blades</p>
+              <p>Japanese Sword Database - {(totalCount || swords.length).toLocaleString()} Historical Blades</p>
             </div>
           </div>
           <div className="header-actions">
@@ -265,6 +265,9 @@ function App() {
       </header>
 
       {loading && <div className="loading">Loading sword data...</div>}
+      {!loading && !isFullyLoaded && (
+        <div className="loading-background">Loading complete database...</div>
+      )}
       {error && <div className="error">Error loading data: {error}</div>}
 
       {!loading && !error && (
