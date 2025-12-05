@@ -226,6 +226,9 @@ function App() {
           </div>
           <div className="header-actions">
             <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
+            <a href="/provinces" className="provinces-link">
+              Province Map
+            </a>
             {user && (
               <a href="/library" className="library-link">
                 Digital Library

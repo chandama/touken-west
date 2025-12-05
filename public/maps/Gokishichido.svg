@@ -1,0 +1,564 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="2000"
+   height="2000"
+   id="svg2"
+   sodipodi:version="0.32"
+   inkscape:version="0.92.4 (5da689c313, 2019-01-14)"
+   sodipodi:docname="Gokishichido.svg"
+   version="1.0">
+  <defs
+     id="defs4" />
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#000000"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.613"
+     inkscape:cx="959.57161"
+     inkscape:cy="954.29381"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     inkscape:window-width="1858"
+     inkscape:window-height="1057"
+     inkscape:window-x="54"
+     inkscape:window-y="-8"
+     inkscape:showpageshadow="false"
+     showborder="false"
+     width="425.5px"
+     height="432.13px"
+     showgrid="false"
+     scale-x="1000"
+     inkscape:window-maximized="1"
+     fit-margin-top="0"
+     fit-margin-left="0"
+     fit-margin-right="0"
+     fit-margin-bottom="0"
+     inkscape:snap-global="true" />
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title />
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     inkscape:label="Layer 1"
+     inkscape:groupmode="layer"
+     id="layer1"
+     transform="translate(787.24982,788.63721)">
+    <rect
+       style="color:#000000;display:inline;overflow:visible;visibility:visible;opacity:1;fill:#1275ad;fill-opacity:1;fill-rule:nonzero;stroke:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;marker:none;marker-start:none;marker-mid:none;marker-end:none"
+       id="rect1307"
+       width="2000"
+       height="2000"
+       x="-787.25"
+       y="-788.63721"
+       inkscape:label="海" />
+    <g
+       id="g1422"
+       inkscape:label="国境線">
+      <path
+         inkscape:connector-curvature="0"
+         style="opacity:0.98000004;fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -424.48114,1117.0281 11.75087,-14.101 v -9.4007 h 11.28084 v 21.8566 l -18.8014,35.2526 v 19.2714 l -6.58049,5.4054 -11.04582,1.1751 v -9.4007 l -4.70035,-5.4054 v -5.1704 l 18.09635,-18.3313 v -21.1516 m -45.12336,50.5288 -11.75088,-11.0459 h -11.75087 l -18.33137,9.8708 v 12.9259 l 9.4007,12.456 20.68154,0.47 11.75088,-12.926 v -11.7508"
+         id="path6855"
+         inkscape:label="大隅-多禰" />
+      <path
+         inkscape:connector-curvature="0"
+         style="opacity:0.98000004;fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -436.23202,878.2503 24.67684,23.7368 v 11.2808 h -5.87544 v 9.4007 l 8.69565,5.1704 h 7.05052 l 8.93067,23.5018 22.32666,9.4007 -8.22561,20.6815 h -14.10105 l -7.75558,11.7509 v 7.0505 h 6.58049 l 7.05053,14.1011 v 5.8754 h -22.32667 v 8.2256 l -29.37718,18.8014 h -11.28084 l -5.17039,7.5206 -7.05052,-9.8708 17.62631,-18.8014 v -7.7555 h 4.70035 v -29.3772 l -4.70035,-1.1751 -3.52526,-5.8755 v -15.7461 h -11.75088 v -13.631 h 9.4007 l 5.87544,10.1057 h 7.05052 l 6.34548,-14.8061 V 941.47 l -13.396,-8.2256 h -17.62631 l -5.87544,-12.4559 v -4.7004 l 24.67684,-22.7967 h 7.05052 v -15.0411"
+         id="path6853"
+         inkscape:label="大隅" />
+      <path
+         id="path3369"
+         style="fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -515.27546,830.7416 v 28.6721 l -4.23031,3.5253 -12.69095,-5.1704 v -10.5758 l 12.22091,-16.4512 h 4.70035 m -59.69444,65.0998 -3.52526,4.7004 6.34547,9.4007 h 12.92596 l -8.22561,-14.1011 h -7.52056 m -5.87544,21.1516 -12.92596,20.6815 -11.75088,2.3502 v -7.0505 l 15.27614,-15.9812 h 9.4007 m 145.0058,-54.054 v 30.0822 h -7.05053 l -24.67683,22.7967 v 4.7004 l 5.87543,12.4559 v 14.5711 l -15.98119,20.6815 v 8.2256 h 5.87544 v 22.7967 l 14.8061,12.4559 v 9.4007 l -12.45592,7.0506 h -12.92597 l -7.52056,-14.8061 -34.78259,-7.0506 -7.05052,-16.9212 -6.34547,-9.4007 7.52056,-5.4054 7.05052,7.7556 h 7.05053 l 10.10575,-18.3314 v -25.1469 l -17.15628,-15.2761 v -12.4559 l 5.87544,-4.7004 v -39.4829 l 6.11045,-7.5206 h 12.22091 l 10.57579,-8.6956 9.87074,11.7508 h 10.10575 l 6.34547,-7.0505 h 10.57579 l 15.98119,7.5206"
+         inkscape:connector-curvature="0"
+         inkscape:label="薩摩" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -335.25205,750.1305 h 11.75087 v -4.7003 h 13.396 v 15.9812 h 26.55698 v -9.4007 h 22.32666 v 16.4512 l -21.85663,19.2714 h -7.52056 v 14.1011 h 4.70035 v 10.5757 h -7.28554 l -39.95297,93.537 v 21.6216 h 4.70035 l -5.87544,26.557 c -10.34077,11.7509 -17.86133,26.2436 -22.56168,43.4782 l -0.23502,0.4701 -14.8061,-5.8755 -6.34547,-11.0458 8.22561,-20.6815 -22.32666,-9.4007 -8.93067,-23.5018 h -7.05052 l -8.69565,-5.1704 v -9.4007 h 5.87544 V 901.7168 L -435.83954,877.98 v -15.0411 h 36.42771 l 9.4007,-7.5205 h 9.4007 v -10.5758 l -5.87544,-6.5805 8.69565,-8.2256 v -8.6957 l -11.75087,-6.5805 v -19.9765 l 7.05052,-7.5205 h 5.87544 l 34.31255,-45.8284 7.05053,8.6956"
+         id="path2702"
+         inkscape:label="日向" />
+      <path
+         id="path3594"
+         style="fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -477.79252,790.3961 v -11.7509 l -9.4007,10.1057 h -7.05052 l -11.75088,9.1657 v 11.9859 l 6.58049,3.5253 h 14.57109 l 11.75087,-17.1563 -4.70035,-5.8754 m -33.37248,31.2573 1.64512,-37.6028 h -17.62631 l -18.09635,23.5017 v 10.5758 l 11.04582,7.5206 h -12.92596 v 11.2808 l 7.05052,9.8708 19.97649,-25.1469 h 8.93067 m 132.78488,-142.8906 24.67684,25.3818 11.28084,37.6028 -34.31255,45.8285 h -5.87544 l -7.05053,7.5205 v 19.9765 l 11.75088,6.5805 v 8.6956 l -8.69565,8.2257 5.87544,6.5804 v 10.5758 h -9.4007 l -9.4007,7.5206 h -36.42771 l -15.98119,-7.5206 h -10.57579 l -6.34547,7.0506 h -10.10576 l -9.87073,-11.7509 v -10.5758 l 15.74617,-10.5758 v -8.2256 l 13.63102,-15.2761 v -14.1011 l 14.10105,-11.2808 v -5.8755 h -22.32667 v -5.8754 l 19.27144,-11.7509 v -15.2761 l -9.87074,-5.8755 v -7.5205 l -13.63101,-11.7509 15.98119,-6.5805 14.57108,-21.6216 h 13.63102 l 24.67684,13.396 h 18.8014 v -17.6263 l 5.87543,-5.8754"
+         inkscape:connector-curvature="0"
+         inkscape:label="肥後" />
+      <path
+         id="path1637"
+         style="fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -507.56219,610.6195 -14.10105,6.3454 v 7.0506 h -8.93066 v -9.4007 l -9.87074,-10.1058 h -8.93066 l -7.52056,14.8061 h -10.57579 v 8.2256 h 12.22091 v 12.926 h -11.75088 l -6.34547,-7.0505 h -12.45593 l -7.52056,-4.7004 -4.70035,-5.4054 v 8.9307 h -11.28084 l -16.92126,30.5522 h 11.04583 l 12.45592,-11.2808 v -7.0505 l 11.75088,-7.0505 v 14.101 l -7.05053,8.2256 19.27144,12.926 h 10.10575 V 685.59 l 0.23502,0.2351 20.91656,7.5205 4.70035,5.1704 v 18.8014 l 6.34547,6.5805 v 8.6956 h -9.87074 v -7.5205 h -17.62631 v -25.8519 h -6.58049 v -7.7556 h -11.75087 v 6.5805 l -8.22562,6.3454 5.87544,7.0506 v 15.2761 l 5.87544,6.5805 h 8.93066 l 7.52056,14.101 -12.92596,24.6769 h 9.4007 l 22.32666,-26.557 h 21.15158 v -4.7003 h 14.10105 v 12.9259 l -12.92596,8.9307 v 5.1704 l 10.10575,6.5805 h 9.87073 v -5.8755 h 8.22562 l 13.63101,-14.101 v -11.2809 l -10.57579,-15.2761 h -12.92596 l -5.87544,4.7003 h -7.75557 l -4.70035,-5.8754 12.45592,-8.2256 h 5.17039 v -7.5206 l -8.69565,-16.4512 v -11.7509 l 10.57579,-5.4054 6.34547,-8.6956 11.75088,10.3407 c 14.10105,-11.4375 27.8104,-24.2851 41.12806,-38.5428 h -27.02701 l -38.07284,-19.9765 v -9.8707 m -190.36417,100.3524 v 8.9307 l -10.10575,-5.4054 v 8.9307 l 7.75557,8.2256 7.52056,-10.1058 v -10.5758 h -5.17038 m -32.90245,19.9765 -8.93067,-8.2256 v 15.9812 l 5.40541,7.0505 -8.22562,9.4007 h 13.396 l 5.4054,7.0505 v -11.7508 h 10.57579 v 5.8754 h 10.57579 v -8.2256 l -8.22561,-8.2256 v -9.4007 l -6.58049,-6.5805 -4.70035,7.0505 h -8.69565 m 55.69915,-46.2984 v 12.9259 h -9.4007 l 4.70035,9.4007 v 11.7509 l 4.70035,9.4007 6.58049,-11.2808 v -15.7462 h 11.04582 v -11.7509 l -9.87074,7.0505 v -12.4559 h 5.87544 v -19.2714 l -7.05052,12.9259 -6.58049,7.0506 m 19.50645,-35.9577 -10.57579,-1.1751 v -7.5206 h 10.57579 v 8.6957 m -12.45593,5.4054 v 7.5206 l -8.22561,-7.5206 h 8.22561"
+         inkscape:connector-curvature="0"
+         inkscape:label="肥前" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -274.28146,613.6822 v 27.027 l -16.45123,14.5711 h -14.10105 l -5.87544,7.7555 8.69565,11.0459 h 25.38189 v 5.4054 h 23.50175 l -12.45593,15.2761 11.75088,8.2256 v 6.3455 h 14.8061 v 5.8754 h -11.28084 v 15.9812 h 17.62631 l -15.74617,21.6216 -12.92596,7.7556 v -8.2256 h -22.32666 v 9.4007 h -26.55698 V 745.762 h -13.396 v 4.7004 h -11.75087 l -7.05053,-8.6957 -11.28084,-37.6028 -24.67684,-25.3819 -5.87543,5.8755 v 17.6263 h -18.8014 v -59.9295 l 6.58049,-6.3455 15.74617,13.396 39.95297,9.4007 h 10.10576 l 10.57578,-10.5758 v -13.396 h -5.87543 v -17.1562 h 7.05052 l 11.75088,-16.4513 9.87073,-5.1703 h 8.93067 l 14.10105,17.6263"
+         id="path6051"
+         inkscape:label="豊後" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -374.60103,588.69 7.05052,12.4559 c 16.13787,2.3502 29.84722,7.9906 41.12806,16.9213 v 17.1562 h 5.87544 v 13.396 l -10.57579,10.5758 h -10.10575 l -39.95297,-9.4007 -37.13277,-33.3725 v -11.7508 l 19.97649,-34.7826 1.88014,-12.2209 21.85663,-11.2809 -4.70035,14.1011 4.70035,28.2021"
+         id="path5163"
+         inkscape:label="豊前" />
+      <path
+         inkscape:connector-curvature="0"
+         style="opacity:1;fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -433.85365,641.1646 30.55228,19.9765 v 41.5981 l -24.67684,-13.396 h -13.63102 l -14.57108,21.6216 -15.98119,6.5805 v -22.3267 l -11.75088,-15.5111 c 14.10105,-11.4375 27.81041,-24.2852 41.12807,-38.5429 h 8.93066"
+         id="path7744"
+         inkscape:label="筑後" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -449.24494,555.2188 -9.4007,12.2209 v 10.1057 l -10.57579,9.4007 v 8.2256 l -5.87544,5.8755 h -12.45592 l -5.87544,-8.9307 h -5.87544 l -8.69565,9.4007 v 19.5065 l 38.07284,19.9765 h 35.95768 l 30.55227,19.9764 v -18.3313 l 6.58049,-6.3455 -21.38659,-19.9765 v -11.7509 l 19.97649,-34.7825 1.88014,-12.221 -9.4007,-12.4559 h -16.45123 l -8.22561,10.1058 h -18.8014"
+         id="path3402"
+         inkscape:label="筑前" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -563.4188,547.8345 -10.57578,7.0505 v 14.1011 l 9.4007,8.9306 10.57578,-9.4007 v -10.5757 l -9.4007,-10.1058"
+         id="path9579"
+         inkscape:label="壱岐" />
+      <path
+         id="path10469"
+         style="fill:#eedede;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -637.81984,481.1163 v 18.8014 l 8.69565,4.7003 19.50645,-32.1974 -21.85662,-8.9306 -6.34548,17.6263 m 38.77789,-76.3807 -13.63101,6.5805 v 13.396 l 1.88014,9.4007 h -8.93067 v 18.8014 l -2.11516,3.5253 16.21621,10.5757 v -23.9717 l 8.22561,-9.4007 h 7.05053 v -16.4513 l 5.87544,-6.5805 v -5.8754 h -14.57109"
+         inkscape:connector-curvature="0"
+         inkscape:label="対馬" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dce0c0;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -6.5025173,639.2939 -44.6533297,28.6722 -13.631013,36.4277 -19.27144,22.3266 h -10.10575 v 24.6769 l -8.69565,6.5805 v 5.8754 l 9.4007,4.7003 v 9.4007 h -8.93066 l -7.05053,-10.5757 h -23.97178 l -14.80611,-5.8755 v -11.2808 h 9.4007 v -8.6957 l -4.70035,-11.2808 -7.05052,-31.7274 h 14.10105 l 24.2068,-19.9765 v -28.6721 h 21.15158 c 9.87073,-26.0086 24.36348,-45.8284 43.478233,-59.4594 h 21.62161 l 10.57579,5.4054 7.7555797,-10.5758 27.9670803,-1.1751 28.2021,10.5758 5.87544,-4.7004 h 10.10575 v 19.9765 l 18.09635,9.4007 v 12.926 l 5.87544,10.5758 h 10.57578 c -10.49744,9.0873 -16.68624,25.7736 -18.56638,50.0587 l -46.53346,-47.7085 -40.4230103,-5.8755"
+         id="path11358"
+         inkscape:label="土佐" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dce0c0;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M -47.837397,590.1 C -66.95216,603.7311 -81.4449,623.5509 -91.31564,649.5595 h -21.15157 v 28.6721 l -24.20681,19.9765 h -14.10105 l 7.05053,31.7274 4.70035,11.2808 h -23.97179 l -17.15627,-24.6768 10.57578,-8.2256 -6.34547,-18.3314 h 11.04582 v -7.5206 l -8.22561,-8.2256 8.93067,-5.4054 h -16.45123 v -19.9765 l -7.05052,-7.5205 -23.50175,14.571 -5.40541,6.5805 h -17.15627 l 11.75087,-14.8061 h 13.63102 l 75.2056,-54.054 v -22.7967 h 7.52056 l 6.58049,-19.5064 23.97178,-16.4513 22.32666,31.7274 h 18.331373 l 38.77789,-4.7004 8.9306597,-7.9905 H 15.382313 l -7.5205603,7.5205 v 22.3267 l -15.74618,1.1751 -7.7555697,10.5758 -10.57579,-5.4055 h -21.62161"
+         id="path14025"
+         inkscape:label="伊予" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dce0c0;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 124.61374,533.1036 H 83.955713 l -23.50175,16.9213 -9.87073,-9.4007 -34.78259,14.3361 -7.5205603,7.5205 v 22.3267 H 20.500993 l 28.2021,10.5758 5.87543,-4.7004 h 10.10576 v 19.9765 l 18.09634,9.4007 v 12.926 l 5.87544,10.5758 h 10.57579 c 10.027407,-14.1011 25.773577,-27.6538 47.238517,-40.6581 l 13.39599,-5.8754 -11.75087,-7.0505 6.58049,-7.0506 v -6.3454 l -6.58049,-11.2809 h -7.05053 v -20.4465 l 8.93067,-9.4007 -6.58049,-8.2256 h -18.8014 v 5.8754"
+         id="path12246"
+         inkscape:label="阿波" />
+      <path
+         id="path13136"
+         style="fill:#dce0c0;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 81.585323,492.0226 2.35017,11.0458 h 11.75088 l 4.700347,3.7603 v 8.6957 l 24.67683,11.2808 v 5.8754 H 84.405533 l -23.50175,16.9213 -9.87074,-9.4007 -34.78259,14.3361 H -5.8411873 l 8.69564,-7.7556 v -17.1563 l -5.4054,-15.2761 14.1010503,6.5805 23.50175,-17.6264 v -7.0505 l 7.75558,-7.0505 19.27143,12.926 h 9.4007 l 10.10576,-10.1058 m 1.88014,-12.2209 -1.17509,-7.7556 h 8.22561 l 7.05053,-7.0505 h 14.101047 v 20.6815 H 95.686373 l -5.17039,-5.8754 h -7.05052"
+         inkscape:connector-curvature="0"
+         inkscape:label="讃岐" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dce0c0;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 200.48679,480.5133 7.05052,-14.5711 -7.05052,-4.2303 -33.6075,33.6075 v 8.2256 l -9.4007,6.3455 v 10.1057 l 6.58049,10.5758 h 14.57108 l 5.87544,-7.0505 h 8.22561 l 4.70035,-7.0506 -9.4007,-7.7555 v -16.9213 l 12.45593,-11.2808"
+         id="path14913"
+         inkscape:label="淡路" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dce0c0;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 390.17169,536.1152 -23.9718,-10.5758 v 32.9024 l -5.4054,9.4007 h -12.2209 l -17.6263,14.1011 v 8.2256 h -29.3772 l -14.8061,-12.2209 v -11.2809 l -7.5205,-11.0458 21.1515,-25.3819 V 506.738 h -13.631 l -7.0505,4.7003 h -16.4512 l -52.17391,5.8755 8.69565,7.0505 v 9.4007 h 7.05053 l -12.22091,15.2761 v 6.5805 l 8.22561,5.8754 -7.75558,8.6957 h -5.87544 v 14.101 l 35.95768,27.7321 13.39597,4.7004 v 5.8754 h -7.52053 l -0.70505,5.1704 h 7.05048 v 13.631 l 38.7779,18.0963 h 12.456 v 7.0506 h 9.8707 l 21.8566,-27.027 27.027,-56.4042 19.9765,-8.2257 v -14.101 l -7.0505,-4.7004 9.8707,-8.2256 v -11.7508"
+         id="path2460"
+         inkscape:label="紀伊" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f5fd95;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -260.90426,476.1636 -6.58049,-8.6956 v -37.1328 h -13.63102 l -43.94827,43.4782 h -13.63102 v -8.6956 h -9.87073 v 5.1704 h -15.98119 l -9.4007,-4.7004 v 11.7509 h -14.57109 v 18.3314 h 6.34548 v 11.0458 l -9.87074,9.4007 6.34547,10.1057 v 21.6217 l 13.396,-12.221 h 11.98589 l 12.92597,13.396 h 18.09634 l 7.75558,-9.8707 h 7.52056 v 7.5206 h 9.4007 v -9.8708 l 21.85663,-22.3266 v -12.456 h 14.57108 l 11.51586,-10.8108 -4.23031,-4.4653 v -10.5758"
+         id="path15801"
+         inkscape:label="長門" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f5fd95;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -253.20087,494.8019 -3.9953,-4.4654 -11.51585,10.8108 h -14.57109 v 12.456 l -21.85663,22.3266 10.10576,9.4007 14.57108,-7.7555 h 18.8014 v 20.6815 h 7.75558 l 8.22561,-7.0505 28.2021,20.4465 16.45123,-18.8014 V 523.004 l -22.32667,-34.0776 -11.75087,5.8755 h -18.09635"
+         id="path1689"
+         inkscape:label="周防" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f5fd95;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -124.03712,402.4198 -21.15158,10.5758 h -41.12806 l -15.74617,12.926 -5.40541,27.027 -6.34547,5.8754 v 7.5206 l -8.93066,7.0505 v 15.9812 l 22.32666,34.0775 5.87544,-20.6815 22.79669,-17.1563 12.45593,7.7556 v 6.3455 l 11.04582,14.8061 h 22.32667 l 19.97648,-18.3314 h 23.50175 v -11.7509 l -14.10105,-28.6721 -23.50175,-11.2808 v -9.4007 l 10.57579,-11.0459 -14.57108,-21.6216"
+         id="path2577"
+         inkscape:label="安芸" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f5fd95;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -68.83387,368.9627 -5.4054,-4.7004 h -23.50175 l -26.32196,29.8473 v 8.4606 l 14.57108,21.6216 -10.57579,11.0458 v 9.4007 l 23.50175,11.2809 14.10105,28.6721 v 11.7509 h 9.63572 v -7.0506 h 18.801403 l 4.70035,-7.5205 h 5.17039 v 8.6956 h 9.4007 l 20.68154,-16.4512 v -12.926 l -19.50646,-53.3489 v -27.7321 l -18.33136,-16.6862 -4.700353,5.6404 h -12.22091"
+         id="path3465"
+         inkscape:label="備後" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f5fd95;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -7.8092273,352.8302 -20.4465197,19.2714 -14.57109,0.235 9.16569,8.2257 v 27.732 l 19.50645,53.349 v 12.926 H 3.4716127 L 27.443403,456.4729 V 435.7914 L 8.1719627,415.8149 v -35.7227 l -15.98119,-27.262"
+         id="path4353"
+         inkscape:label="備中" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f5fd95;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 102.52679,400.0249 -13.395997,5.4054 -81.0810303,-1.8801 v 11.7509 l 19.2714303,19.9765 v 20.6815 l -11.98589,9.1657 v 10.1057 h 11.51586 v 7.7556 h 8.22561 l 15.74617,-5.4054 15.98119,-19.2714 h 14.57109 l 25.381887,-24.6769 -4.23032,-15.9811 v -17.6264"
+         id="path5241"
+         inkscape:label="備前" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f5fd95;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 119.5162,354.8663 v 16.9213 l -17.15628,17.6263 v 10.5758 l -13.395987,5.4054 -81.0810403,-1.8802 v -23.9717 l -15.98119,-27.2621 20.6815403,-19.7414 h 49.35367 l 4.46534,-4.2304 12.45592,3.5253 18.33137,23.0317 H 119.5162"
+         id="path6129"
+         inkscape:label="美作" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f5fd95;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 198.63485,364.958 15.51115,23.0317 11.04582,5.4054 -12.22091,66.275 -45.35837,-31.0224 h -11.04583 v 4.7004 h -14.10105 v -7.0505 h -15.98119 l -7.05052,7.0505 h -13.396 l -4.23031,-15.9812 v -28.2021 l 17.15627,-17.6263 v -16.9213 l 17.62632,-11.2808 v 7.0505 l 20.44652,-1.1751 8.22561,8.2256 h 33.6075 l -0.23501,7.5206"
+         id="path7017"
+         inkscape:label="播磨" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dbdbff;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -130.67308,342.6407 6.34547,29.8473 v 30.0822 l -21.15158,10.5758 h -41.12806 l -15.74617,12.9259 -5.4054,27.0271 -6.34548,5.8754 v 7.5206 l -8.93066,7.0505 v 15.9812 l -11.75088,5.8754 h -18.09634 l -8.22562,-8.9307 v -10.5757 l -6.58049,-8.6957 v -37.1328 h 11.28084 l 49.82371,-47.0035 25.85193,-18.0963 h 7.05052 l 5.40541,-5.4054 v -5.1704 l 11.04582,-15.2761 14.10105,-7.0506 12.45593,10.5758"
+         id="path7905"
+         inkscape:label="石見" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dbdbff;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -51.212257,304.6525 h 14.57108 l 7.05053,17.1563 v 12.9259 l -27.027013,34.0776 h -12.22091 l -5.40541,-4.7004 h -23.50175 l -26.32196,29.8473 v -21.6217 l -6.34547,-29.8472 -12.45593,-10.5758 18.09635,-14.8061 v -7.7555 l -6.34547,-8.2257 h 17.62631 l 12.92596,-11.7508 h 20.44653 l 19.97648,-16.9213 8.225623,10.5758 h 21.85662 l -9.4007,7.0505 H -57.0877 l -5.87544,5.1704 h -19.97648 l -8.93067,11.2808 h 10.57579 l 11.28084,-6.5804 h 11.75087 l 7.050533,4.7003"
+         id="path8793"
+         inkscape:label="出雲" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dbdbff;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 22.606743,295.1813 8.0356527,290.481 h -16.45122 l -7.7555797,13.396 h -6.34547 l -12.92596,-9.8707 h -7.75558 l 6.34547,11.0458 7.05053,17.1563 v 12.9259 l -22.32667,28.4371 9.16569,8.4607 14.57108,-0.2351 41.12806,-39.0129 h 49.35368 l 8.69565,-8.2256 v -10.5758 l -12.92597,-18.8014 h -35.25262"
+         id="path9681"
+         inkscape:label="伯耆" />
+      <path
+         id="path10571"
+         style="fill:#dbdbff;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m -63.39087,183.39759 v 20.44652 l 12.925963,-12.22091 -12.925963,-8.22561 m -5.17038,-1.17509 -4.70035,1.64512 v 10.81081 l 4.70035,4.46533 V 182.2225 m -9.4007,3.29024 v 15.27614 l -4.70035,-4.46533 v -9.4007 l 4.70035,-1.41011 m 4.70035,23.73677 h 10.57578 l -7.05052,-5.4054 -3.52526,3.52526 v 1.88014 m 57.579283,-37.13276 -11.28084,7.05052 -7.52056,-1.64512 -11.28084,-7.05053 V 158.0157 l 11.75088,-14.10105 18.33136,14.8061 v 13.396"
+         inkscape:connector-curvature="0"
+         inkscape:label="隠岐" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dbdbff;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 127.97872,295.4539 9.4007,25.3819 v 22.7967 l -17.62631,11.2808 H 97.426443 l -18.33136,-23.0317 -12.45593,-3.5253 4.23032,-3.9953 v -10.5758 l -12.92597,-18.8014 8.93067,-5.8754 11.75087,7.0505 5.87544,-4.7003 h 15.27614 l 18.801397,-14.1011 h 9.4007 v 18.0964"
+         id="path11460"
+         inkscape:label="因幡" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dbdbff;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 190.53615,297.1743 15.27614,7.0505 h 12.92596 l 5.87544,8.6956 -24.67684,19.9765 -0.47004,24.6769 h -33.6075 l -8.22561,-8.2257 -20.44652,1.1751 V 320.676 l -9.4007,-25.3819 v -18.0963 l 14.57108,-6.5805 7.05053,4.7003 h 41.12806 v 21.8567"
+         id="path12348"
+         inkscape:label="但馬" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dbdbff;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 304.43969,330.7817 v 32.9025 l -23.9718,44.1833 h -12.9259 l -16.45126,-14.1011 h -25.38189 l -11.04582,-5.4054 -15.51116,-23.0317 0.23502,-7.5206 0.47003,-24.6768 24.67684,-19.9765 13.63102,18.3314 h 7.52056 l 25.85196,-17.1563 32.9024,16.4512"
+         id="path13236"
+         inkscape:label="丹波" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#dbdbff;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 235.62655,289.414 16.45123,15.2761 19.97651,-19.9765 7.0505,10.5758 -7.7556,6.5805 v 12.2209 l -25.8519,17.1563 h -7.52056 l -19.50646,-27.027 h -12.92596 l -15.27614,-7.0505 v -21.8567 h 10.10576 l 18.09634,-16.9212 h 10.57579 v -4.2304 h 18.8014 l 5.4054,13.6311 -17.62631,21.6216"
+         id="path14124"
+         inkscape:label="丹後" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffba06;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 374.86979,475.0167 h -19.2714 V 451.985 l -5.4055,-4.7003 h -28.6721 l -12.4559,-4.7004 -14.5711,23.5018 v 10.5757 l 5.8754,5.8755 v 48.1786 l -21.1515,25.3819 7.5205,11.0458 v 11.2808 l 14.8061,12.2209 h 29.3772 v -8.2256 l 17.6263,-14.101 h 12.2209 l 5.4054,-9.4007 0.4701,-46.2985 h -7.5206 v -15.9812 h 6.3455 l 14.101,-9.4007 -4.7003,-12.2209"
+         id="path22124"
+         inkscape:label="大和" />
+      <path
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccccccccccc"
+         style="opacity:1;fill:#ffba06;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 300.17379,506.7503 0.649,-24.1491 -5.6335,-6.3982 0.1357,-10.848 13.566,-22.108 -15.9456,-25.0757 -0.9757,10.5047 -9.3299,34.8214 -3.865,21.2902 -15.1975,26.424 15.9274,0.3848 7.5441,-5.1921 12.8113,0.6877"
+         id="path23921"
+         inkscape:label="河内" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffba06;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 282.73819,465.3951 h -15.9812 v 10.1057 l -16.45125,18.0964 -39.24792,23.5017 52.17387,-5.8754 15.2762,-25.1469 4.2303,-20.6815"
+         id="path15900"
+         inkscape:label="和泉" />
+      <path
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccccccccccc"
+         style="fill:#ffba06;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 280.00269,407.3552 h -12.926 l -16.45123,-14.1011 h -25.38189 l -12.70873,67.2506 27.02701,-15.7462 15.76396,-0.9756 11.04578,11.7509 v 9.8707 h 15.9812 l 9.4007,-38.0728 v -12.4559 l -11.7508,-7.5206"
+         id="path15012"
+         inkscape:label="摂津" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffba06;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 320.62299,330.7253 h -16.4512 v 32.9025 l -23.9718,44.1833 11.7509,7.5205 16.9213,27.027 12.4559,4.7004 h 28.6721 l 5.4054,4.7003 v -9.4007 l 1.6452,-14.101 h -4.7004 l -22.7967,-12.2209 -5.4054,-13.631 v -28.2021 h 5.8754 v -33.3725 l -9.4007,-10.1058"
+         id="path23012"
+         inkscape:label="山城" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f4f4f4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 357.16359,305.5362 -26.322,19.2714 h -10.1057 v 5.8754 h -16.4512 l -32.9025,-16.4512 v -12.2209 l 7.7556,-6.5805 5.8754,7.0505 h 11.0458 v 5.8755 h 16.4513 l -6.3455,-9.8708 v -4.7003 h 8.2256 l 5.8754,7.0505 7.5206,-7.7556 v -11.0458 h 10.1058 v 5.1704 h 19.2714 v 18.3314"
+         id="path30926"
+         inkscape:label="若狭" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f4f4f4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 461.60769,226.76772 12.4559,14.10108 v 8.6956 l -11.7509,7.7556 h -56.4042 l -13.866,17.6263 h -14.8061 v 15.2761 l -19.9765,15.2762 v -18.3314 h -9.6357 v -23.9718 h 9.6357 v 13.396 h 10.5758 v -22.7967 l -15.9812,-11.7508 v -27.73211 l 24.6768,-40.42301 15.2762,-7.05052 11.2808,10.57578 v 12.22091 l 12.926,7.05053 h 13.396 l 13.631,9.4007 h 18.5664 v 20.68154"
+         id="path31814"
+         inkscape:label="越前" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f4f4f4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 479.94139,68.72315 v 11.28084 l -12.4559,18.8014 v 27.02701 h 5.8754 v 12.22091 l -7.5206,5.87544 v 24.67684 l 6.3455,4.70035 v 14.8061 l -10.8108,18.09635 h -18.5664 l -13.631,-9.4007 h -13.396 l -12.926,-7.05053 v -12.22091 l -11.2808,-10.57579 7.2855,-7.05052 v -4.70035 h 9.8708 l 18.8014,-27.02701 19.5064,-23.50175 18.8014,-43.47824 14.1011,7.52056"
+         id="path1781"
+         inkscape:label="加賀" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f4f4f4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 515.59829,-1.9278204 501.73219,15.69849 488.80629,7.0028496 481.05069,26.27428 v 7.75558 l 13.631,5.87544 12.2209,-9.4007 v 23.97178 h -14.101 l -12.691,14.10105 -14.101,-7.52056 V 50.48108 l -7.7556,-9.4007 V 24.62916 l -4.2303,-2.35018 V 6.2977896 h 4.7003 V -11.79855 l 21.1516,-12.92597 h 19.5065 l 22.3266,-16.45122 h 22.3267 l 7.0505,7.05052 v 8.22562 h -13.631 v 11.98589 l -11.0458,11.9858896 h -10.8108 M 490.68639,29.79954 v -7.05052 h 12.926 l -4.7004,7.05052 h -8.2256"
+         id="path2669"
+         inkscape:label="能登" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f4f4f4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 582.59239,52.35653 h 11.0458 l 10.1057,20.68154 v 45.82841 l -23.0317,38.07283 h -9.4007 l -15.7462,-9.4007 h -34.5475 l -17.1563,17.15628 -5.8754,13.396 h -8.9307 v -12.22091 h -11.7509 l -8.2256,5.17038 -3.2902,-2.35017 v -24.67684 l 7.5205,-5.87544 V 125.917 h -5.8754 V 98.88999 l 12.4559,-18.8014 V 68.80775 l 12.691,-14.10105 h 14.101 v 6.58049 l -7.0505,4.70035 v 9.87074 l 19.5064,15.98119 h 18.0964 l 18.3313,-11.75088 V 62.93231 l 27.0271,-10.57578"
+         id="path3557"
+         inkscape:label="越中" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f4f4f4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 846.41269,-222.37 -10.1058,24.67684 -6.3455,38.30785 -16.4512,29.84722 -44.1833,19.97649 -22.7967,21.856627 -8.2256,27.027013 -24.2068,43.47824 -43.9483,30.55227 v 7.05053 h -22.3266 l -18.8014,16.92126 -35.2527,15.27613 10.1058,20.68154 v 16.45123 l 9.1657,-10.10575 V 65.0564 h 23.5017 l 7.0505,10.57579 h 30.5523 l 26.557,-32.43242 h 13.396 l 8.9307,5.87544 v 13.63102 l 7.0505,7.52056 v 18.33136 h 24.6768 l 7.0506,-13.63101 h 10.5757 V 50.2503 l 20.4466,-14.10105 14.8061,19.97649 h 5.8754 V 35.67921 l -6.5805,-24.2068 h -5.8754 V -9.6791604 l 5.8754,-1.1750896 v -23.73677 l 5.8754,-3.76028 h 15.2762 l 7.0505,-7.05052 h 22.3267 V -66.5534 l 15.9812,-21.856633 -15.9812,-18.801397 8.2256,-19.27143 v -27.73207 l 8.2256,-8.69564 h 11.7509 l 10.5758,-8.22562 -14.1011,-17.15627 h -8.2256 v -18.09635 l -27.497,-15.98119"
+         id="path4445"
+         inkscape:label="越後" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#f4f4f4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 696.20639,-152.6812 v 13.63102 h 14.101 l 4.7004,4.70035 -9.4007,19.27143 -14.1011,13.63102 -15.2761,9.870727 h -12.4559 v -7.05052 l 10.5758,-8.225607 6.5805,-12.92597 -5.8755,-8.22561 -7.7556,7.05053 v -23.97179 l 24.2068,-30.08224 8.2257,-7.52056 h 7.0505 v 9.87074 l -10.5758,19.97648"
+         id="path5333"
+         inkscape:label="佐渡" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 376.93319,418.8664 h -15.2761 l -4.7003,9.8707 -1.6452,14.101 v 32.4325 h 19.2715 l 4.7003,12.2209 7.0505,-27.4971 v -28.2021 l -9.4007,-12.9259"
+         id="path6236"
+         inkscape:label="伊賀" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 438.99289,358.2703 -6.3455,-6.5805 h -10.1057 l -8.2256,8.9307 v 24.6768 l -22.3267,32.9025 h -15.2761 l 9.4007,12.9259 v 28.2021 l -7.0506,27.4971 -14.101,9.4007 h -6.3455 v 15.9812 h 7.5206 l -0.4701,13.396 23.9718,10.5758 v 5.8754 l 38.3079,-19.2714 18.0963,-6.5805 14.1011,-16.4512 v -17.6264 l -31.7274,-21.6216 v -11.0458 h -5.1704 v -8.9307 l 23.5018,-32.9024 9.8707,-21.1516 -12.2209,-14.8061 h -5.4054 v -13.396"
+         id="path7124"
+         inkscape:label="伊勢" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 473.64759,482.039 h -13.631 v 17.6264 l -14.1011,16.4512 h 12.926 v 11.2808 h 17.1563 V 508.596 l 6.3455,-7.7556 v -9.8707 h -8.6957 v -8.9307"
+         id="path8012"
+         inkscape:label="志摩" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 534.00949,347.9616 h -32.9024 v -15.2762 h -23.0318 l -19.9764,8.2256 v 8.6957 l -7.5206,5.4054 0.235,24.2068 6.1105,7.5206 h 17.1562 v 5.8754 l -5.4054,4.7003 v 19.9765 h 5.8755 v 22.3267 l 11.7509,8.2256 v -32.9024 l 14.8061,-22.3267 11.7508,-7.0505 v -10.1058 l 21.1516,-27.497"
+         id="path8900"
+         inkscape:label="尾張" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 577.23539,346.5609 v 15.2761 h 17.1563 v -6.5805 h 12.2209 l 5.8754,7.0506 v 8.9306 l -28.6721,50.5288 -16.4513,7.5205 v 23.5018 l -55.9341,18.3314 h -15.2762 v -6.5805 l 12.456,-11.0459 h 16.9212 l 19.9765,-9.4007 v -9.4007 l -4.7003,-5.4054 h -16.9213 v 4.7004 h -22.3267 l -15.2761,-11.0458 v -8.2256 l 14.8061,-22.3267 11.7509,-7.0505 V 375.233 l 21.1516,-27.497 26.3219,12.2209 16.9213,-13.396"
+         id="path9788"
+         inkscape:label="三河" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 654.20219,331.8487 -41.8331,30.5523 v 8.9307 l -28.6721,50.5288 -16.4513,7.5205 v 23.5018 l 9.8708,-19.2715 h 10.1057 l -7.0505,11.7509 11.0458,8.6956 h 49.3537 l 30.5523,11.2809 v -17.6263 l 7.7556,-8.2256 h -11.2809 l -7.0505,-24.2068 v -7.5206 h 4.2303 v -51.2338 l -10.5758,-9.4007 v -15.2762"
+         id="path10676"
+         inkscape:label="遠江" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 786.18329,334.1754 -24.2068,-12.926 v 4.7004 l -25.8519,5.8754 -9.8708,-9.4007 h -8.2256 v 34.7826 l -8.2256,5.8754 h -8.9306 l -16.9213,-24.6768 h -11.7509 v -17.6263 h 5.1704 v -17.1563 l -11.0458,-19.9765 -12.2209,48.1786 v 15.2762 l 10.5758,9.4007 v 51.2338 h -4.2304 v 7.5205 l 7.0506,24.2068 h 11.2808 l 15.7462,-31.2573 18.0963,-13.396 v -7.7556 l 17.1563,-13.396 h 23.5018 l 11.7508,9.4007 18.0964,-21.1515 -5.1704,-5.8755 v -9.4007 l 8.2256,-12.4559"
+         id="path11564"
+         inkscape:label="駿河" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 783.13279,362.1331 -18.0964,21.1516 v 7.0505 h -17.1562 v 50.5288 h -5.1704 v 9.4007 l 13.396,12.2209 h 11.2808 l 13.396,-13.396 15.2762,-32.4324 h 5.8754 v -16.4513 l -7.0505,-7.0505 V 373.884 l -11.7509,-11.7509"
+         id="path12452"
+         inkscape:label="伊豆" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 800.32909,297.7712 -38.3079,23.5018 24.2068,12.9259 -8.2256,12.4559 v 9.4007 l 16.9213,17.6264 6.5804,-7.0506 v -10.5758 l 31.2574,-20.6815 h 21.6216 l 10.1057,7.7556 7.0506,16.4512 v 10.5758 h 5.1703 v -16.4512 l 11.2809,-7.0506 v -5.4054 h -12.4559 v -16.4512 h -7.5206 l -26.557,-27.497 -41.128,-21.1516 v 21.6216"
+         id="path13340"
+         inkscape:label="相模" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 740.88609,237.54563 -8.2257,8.69567 h -8.6956 v -7.05055 h -18.3314 l -11.0458,-12.22091 h -5.4054 l -7.0505,16.92126 h -8.6957 l -7.0505,14.1011 v 25.8519 l 11.0458,19.9765 v 17.1562 h -5.1704 v 17.6264 h 11.7509 l 16.9213,24.6768 h 8.9306 l 8.2257,-5.8754 V 322.622 h 8.2256 l 9.8707,9.4007 25.8519,-5.8755 v -4.7003 l 38.3079,-23.5018 v -21.6216 l -24.2068,-10.5758 -14.1011,-20.6815 -21.1515,-7.52057"
+         id="path14228"
+         inkscape:label="甲斐" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="M 908.99409,235.36463 V 266.622 l 3.5253,5.8754 v 11.0458 h -19.5065 v 12.926 l -16.9213,12.4559 v 15.7462 h -7.5205 l -26.557,-27.4971 -65.3349,-31.7273 -14.101,-20.6816 -21.1516,-7.52053 v -11.75088 l 5.4054,-14.10105 h 10.1058 l 18.8014,-14.8061 h 10.5758 v -12.22091 l 14.571,-14.33607 47.0035,14.33607 h 16.4513 l 11.2808,-4.70035 25.1469,55.69915 h 8.2256"
+         id="path15116"
+         inkscape:label="武蔵" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 950.50289,369.2466 -26.322,17.6263 v 12.926 l -11.2808,10.5757 h -11.7509 l -10.5758,-18.8014 h 14.8061 l -8.9307,-9.4007 4.7004,-9.4007 -5.8755,-4.7003 v -11.7509 l 10.1058,-5.6404 v 6.8155 h 19.2714 v -4.7003 h 21.8567 l 24.6768,10.1057 -20.6815,6.3455"
+         id="path16004"
+         inkscape:label="安房" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 966.05819,290.4472 -10.1058,4.9353 h -17.8613 l -25.6169,21.3866 v 5.4054 l -15.9812,12.2209 v 10.1058 h 8.9306 v 13.396 h 19.2715 v -4.7004 h 21.8566 l 24.6768,10.1058 10.1058,-9.4007 3.5253,-10.5758 V 328.52 h -4.7004 v -15.7462 l 12.2209,-23.0317 14.80611,-13.396 -17.15631,-11.2808 h -12.2209 l -11.7508,25.3819"
+         id="path16892"
+         inkscape:label="上総" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 875.64499,179.76889 25.1469,55.69914 h 8.2256 v 31.25737 l 3.5253,5.8754 h 10.5758 l 17.6263,15.2761 v 5.1704 l -2.5852,2.1152 h 17.8613 l 10.1058,-4.9354 11.7509,-25.3819 h 12.2209 l 17.15621,11.2809 15.2762,-10.1058 h 23.9718 v -7.0505 l -53.34901,-25.85194 h -21.8566 l -36.4278,-16.45123 -10.5757,-10.57578 v -22.7967 l -23.9718,-15.98119 -24.6769,12.45593"
+         id="path17780"
+         inkscape:label="下総" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ff9494;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 1006.6391,128.42699 v 25.85193 l -6.3455,5.17038 v 27.02701 l 40.188,69.80019 -47.23851,-22.79669 h -21.8566 l -36.4278,-16.45122 -10.5757,-10.57579 v -22.7967 l -23.9718,-15.98119 35.2526,-19.97648 10.5758,1.17508 12.926,-16.92126 V 61.91704 h -3.5253 v -9.63572 l 12.926,10.81081 h 18.8014 L 1001.9387,52.0463 h 13.6311 l 17.6263,12.22091 v 9.4007 c -13.7877,18.33137 -22.6401,36.58439 -26.557,54.75908"
+         id="path18668"
+         inkscape:label="常陸" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 376.98029,290.4067 -46.2985,34.5475 h -10.1057 v 5.8755 l 9.4007,10.1057 v 33.3725 h -5.8755 V 402.51 l 5.4054,13.631 22.7967,12.2209 h 4.7004 l 4.7003,-9.8707 h 30.5523 l 22.3267,-32.9025 v -24.6768 l -8.2256,-16.4512 8.9306,-14.8061 v -18.0964 l -7.2855,-11.5158 -7.5206,-0.235 -0.705,-12.221 -7.9906,-12.4559 h -14.8061 v 15.2762"
+         id="path21305"
+         inkscape:label="近江" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 491.38209,233.89031 -18.8014,-18.8014 h -11.2809 v 11.75088 l 12.456,14.10101 v 8.6957 l -11.7509,7.7556 h -56.4042 l -13.866,17.6263 7.9906,12.4559 0.705,12.2209 7.5206,0.235 7.2855,11.5159 v 18.0963 l -8.9307,14.8061 8.2257,16.4513 8.2256,-8.9307 h 10.1057 l 6.3455,6.5805 v 13.396 h 5.4054 l 6.1105,7.2855 -0.2351,-24.2068 7.5206,-5.4054 v -8.6956 l 19.9765,-8.2256 h 23.0317 v 15.2761 h 32.9024 l 26.322,12.2209 16.9213,-13.396 7.0505,-7.7556 4.7003,-14.5711 v -20.6815 h -11.2808 l -5.8754,-8.6956 v -18.3314 l -13.6311,-9.4007 -29.1421,14.101 h -18.3314 l -7.5205,-6.3454 12.2209,-12.456 v -21.6216 l -5.1704,-7.05049 h -18.8014"
+         id="path23942"
+         inkscape:label="美濃" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 580.99419,174.9135 v -18.33137 h -9.4007 l -15.7462,-9.4007 h -34.5475 l -17.1563,17.15628 -5.8754,13.396 h -8.9307 V 165.5128 h -11.7509 l -8.2256,5.17038 3.0552,2.35018 v 14.8061 l -10.8108,18.09635 v 8.93066 h 11.2809 l 18.8014,18.8014 h 18.8014 l 5.1703,7.05053 V 262.34 l -12.2209,12.4559 7.5206,6.3455 h 18.3314 l 29.1421,-14.101 -13.396,-9.4007 v -5.1704 l 9.4007,-11.2809 h 11.7509 l 18.3314,-27.02698 -12.2209,-16.92126 8.6956,-22.32666"
+         id="path24830"
+         inkscape:label="飛騨" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 700.74459,42.96993 -26.557,32.43241 h -30.5523 l -7.0505,-10.57578 h -23.5017 v 14.57108 l -9.1657,10.10575 v 29.37719 l -23.0317,38.07284 v 18.33136 l -8.6957,22.32666 12.2209,16.92126 -18.3313,27.027 h -11.7509 l -9.4007,11.2809 v 5.1703 l 27.027,18.8014 v 18.3314 l 5.8754,8.6957 h 11.2809 v 20.6815 l -4.7004,14.5711 -7.0505,7.7556 v 15.2761 h 17.1563 v -6.5805 h 12.2209 l 5.8754,7.0505 41.8331,-30.5522 12.221,-48.1786 v -25.852 l 7.0505,-14.101 h 8.6956 l 7.0506,-16.92127 h 5.4054 l 11.0458,12.22091 h 18.3313 v 7.05056 h 8.6957 l 8.2256,-8.69568 v -11.75088 l -11.7509,-8.93066 v -9.4007 l -4.7003,-4.70035 v -27.02701 l 6.5805,-4.70035 v -8.69565 l -7.7556,-11.75088 h -21.6216 l -8.9307,-10.57578 v -11.75088 l 6.5805,-9.4007 12.926,-10.57579 v -7.75557 h 12.2209 l 10.1057,-5.87544 v -6.34547 h -4.7003 V 69.99694 l -7.0505,-7.52056 V 48.84537 l -8.9307,-5.87544 h -13.396"
+         id="path25718"
+         inkscape:label="信濃" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 813.86839,55.71258 14.8061,4.70035 v 14.8061 l 7.5205,4.70035 -7.0505,5.17038 v 28.90716 l 13.631,4.70035 v 7.05052 l -11.2808,21.62161 v 12.45593 l 11.7509,11.75087 h 19.9765 l 12.4559,8.22562 -11.2809,4.70035 h -16.4512 l -47.0035,-14.33607 -14.5711,14.33607 v 12.22091 h -10.5758 l -18.8014,14.8061 h -10.1057 l -5.4054,14.10105 -11.7509,-8.93067 v -9.4007 l -4.7003,-4.70035 V 175.5715 l 6.5805,-4.70035 v -8.69565 l -7.7556,-11.75087 h -21.6216 l -8.9307,-10.57579 v -11.75087 l 6.5805,-9.4007 12.926,-10.57579 v -7.75558 h 12.2209 l 10.1057,-5.87544 v -6.34547 h 19.9765 l 7.0505,-13.63101 h 10.5758 V 49.83714 l 20.4465,-14.10105 14.8061,19.97649 h 5.8755"
+         id="path1669"
+         inkscape:label="上野" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 932.42999,21.94996 c 5.7971,2.66353 11.5158,5.24872 17.1563,7.75558 l 5.8754,12.92596 v 19.27143 h 3.5253 v 70.03522 l -12.926,16.92126 -10.5758,-1.17509 -59.9295,32.43242 -12.4559,-8.22562 h -19.9765 l -11.7508,-11.75087 v -12.45593 l 11.2808,-21.62161 v -7.05052 l -13.631,-4.70035 V 85.40468 l 7.0505,-5.17038 -7.5206,-4.70035 v -14.8061 l 53.349,-29.84723 h 6.5805 l 14.1011,-14.8061 h 9.8707 l 19.9765,5.87544"
+         id="path26606"
+         inkscape:label="下野" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 958.22919,-109.24151 -14.8061,24.676837 -6.3454,5.87544 h -13.6311 l -32.4324,-10.10576 h -17.3913 l -15.9812,21.856633 v 21.15158 h -22.3266 l -7.0505,7.05052 h -15.2762 l -5.8754,3.76028 v 23.73677 l -5.8755,1.17509 v 21.15157 h 5.8755 l 6.5805,24.2068 v 20.44653 l 14.8061,4.70035 53.3489,-29.84723 h 6.5805 l 14.1011,-14.8061 h 9.8707 l 19.9765,5.87544 8.4606,3.76028 h 22.5617 l 17.6263,-10.10575 18.8014,-23.5017504 V -21.815 l 13.63101,-19.27143 v -15.27614 l -5.4054,-4.70035 v -17.626313 h 6.5805 v -14.10105 l -18.80141,-16.451227 h -37.6028"
+         id="path27494"
+         inkscape:label="岩代" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 1039.4898,-122.92423 15.2762,46.533467 4.7003,21.621613 v 50.5287596 l -9.4007,23.0317204 v 29.37718 h -17.1563 l 0.235,15.74618 -17.6263,-12.22091 h -13.631 L 987.31589,62.7396 h -18.8014 l -12.9259,-10.81081 v -9.63571 l -5.8755,-12.92597 -8.6956,-3.99529 h 22.5617 l 17.6263,-10.10576 18.80141,-23.5017504 V -21.8667 l 13.631,-19.27144 v -15.27613 l -5.4054,-4.70035 v -17.626323 h 6.5805 v -14.10105 l -18.80141,-16.451217 h -37.6028 v -21.15158 l 5.1704,-5.87543 h 9.4007 l 10.5757,-10.57579 h 11.2809 l 16.45121,16.45122 18.0964,-18.33136 h 10.1057 v 25.85192"
+         id="path28382"
+         inkscape:label="磐城" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 922.06569,-308.57865 28.2021,5.4054 37.6028,28.67214 7.0505,29.37719 -6.3455,14.10105 v 13.63101 l 5.1704,5.87544 v 5.17038 l -17.6263,41.12807 1.8802,23.73676 -5.4054,5.17039 h -9.4007 l -5.1704,5.87544 v 21.15157 l -14.8061,24.676837 -6.3455,5.87544 h -13.631 l -32.4324,-10.10576 h -17.3913 l -15.9812,-18.801397 8.2256,-19.27143 v -27.73207 l 8.2256,-8.69564 h 11.7509 l 10.5758,-8.22562 -14.1011,-17.15627 h -8.2256 v -18.09635 l -27.497,-15.98119 v -12.22091 l 31.0223,-36.42771 4.7003,-24.20681 h 8.9307 l 9.4007,9.4007 8.6956,14.10105 h 6.5805 l 6.3455,-8.69564 v -27.73207"
+         id="path29270"
+         inkscape:label="羽前" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 946.27259,-557.04437 h -22.7967 l -6.5805,7.52056 h -26.322 l 9.8708,10.57579 v 35.25263 l -18.5664,33.13746 h -19.5065 v 16.21621 l 7.5206,6.58049 h 8.9307 v -7.05052 h 17.6263 l 7.5205,9.87073 5.4054,33.6075 v 16.92126 l -8.9306,35.95768 -13.396,11.75088 v 30.55227 l -4.9354,20.44652 h 8.9307 l 9.4007,9.4007 8.6956,14.10105 h 6.5805 l 6.3455,-8.69564 v -27.73207 l 28.2021,5.4054 37.6028,28.67214 19.50641,-21.62161 v -45.35838 l -11.28081,-15.27614 v -29.37718 l 15.98121,-31.72737 v -51.70385 h -7.7556 l -9.87071,-25.85192 v -22.32666 l -5.8755,-23.97179 -10.5758,-8.22561 h -25.8519 l -5.8754,-7.05053"
+         id="path31046"
+         inkscape:label="羽後" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 1130.3006,-306.36948 v 15.98119 l -14.5711,14.10105 v 15.27613 l -9.4007,6.34548 v 6.58049 h 8.2256 v 12.22091 l 5.1704,5.4054 v 4.70035 h -6.3455 v 16.92126 l 14.1011,21.15157 h -8.2256 l -8.2257,5.87544 v -11.75087 l -15.9811,-14.57109 h -21.1516 v 9.87074 h -14.8061 v 14.10105 l -9.8708,10.57578 -9.8707,24.67684 h -10.1057 l -18.0964,18.33137 -16.45121,-16.45123 h -11.2809 l -5.1703,5.4054 -1.8802,-23.73676 17.6263,-41.12807 v -5.17038 l -5.1704,-5.87544 v -13.63101 l 6.3455,-14.10105 -7.0505,-29.37719 19.50641,-21.62161 55.6992,28.2021 h 28.9071 l 12.926,-7.75558 v -21.15157 l -11.7509,-27.49705 v -9.4007 l 9.4007,-7.75558 h 38.7779 l 16.9213,6.58049 v 15.27614 l -13.396,7.05052 h -9.4007 l -5.4054,6.34548"
+         id="path30158"
+         inkscape:label="陸前" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#ffd9b4;fill-opacity:1;stroke:#000000;stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 1164.3264,-488.25422 v 15.27613 l 7.7556,8.93067 v 27.49705 h -7.0505 v 12.92596 h 11.0458 l 7.0505,8.93066 v 9.87074 l -7.0505,8.22561 v 9.4007 h -5.8754 l -7.0506,18.8014 h 10.5758 l -8.2256,5.87544 v 7.75558 l 5.4054,5.87543 -12.4559,14.10105 -16.9213,-6.58049 h -38.7779 l -9.4007,7.75558 v 9.4007 l 11.7509,27.49705 v 21.15157 l -12.926,7.75558 h -28.9071 l -55.6992,-28.2021 v -45.35838 l -11.28081,-15.27613 v -29.37719 l 15.98121,-31.72736 v -51.70385 h -7.7556 l -9.87071,-25.85193 v -22.32666 l -5.8755,-23.97179 -10.5757,-8.22561 18.8014,-15.27614 h 11.75081 v 15.27614 h 11.7509 v -15.27614 l 11.0458,11.75088 v 16.92126 l -19.9765,29.37719 0.7051,37.6028 16.4512,-8.69565 h 5.8755 l 8.2256,-13.63102 h 19.2714 l 17.6263,-5.17038 6.5805,-7.75558 v -30.55227 l 14.5711,-18.8014 h 7.0505 l 10.5758,-12.22091 24.2068,31.02231 v 15.27613 l 9.4007,6.58049 v 7.52056 h -4.7003 v 9.4007 l 8.6956,8.22562 h 8.2256"
+         id="path32828"
+         inkscape:label="陸中" />
+      <path
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="ccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccccc"
+         style="opacity:1;fill:#ffd9b4;fill-opacity:1;stroke:#000b00;stroke-width:2.50000024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+         d="m 1019.6749,-564.88375 10.5069,11.89751 -0.268,17.406 -18.4542,28.72734 0.5208,38.11025 15.0533,-8.82252 8.0756,0.0597 8.1348,-13.72699 19.6707,-0.17561 16.9242,-5.75199 7.523,-8.25492 -0.1824,-29.5683 13.2267,-19.44856 6.4935,-0.0447 12.4465,-10.25824 -11.9623,-13.73894 -10.5822,-0.0257 -15.7752,-32.79934 -0.1326,-17.63416 -5.3297,-17.49881 -0.7215,-28.16428 5.8315,-7.36903 v -35.95769 h 4.2303 v -19.97648 h -6.3454 l -11.7509,11.28084 h -18.3314 l -6.3454,-11.75088 -17.6263,-7.75558 -12.456,-12.22091 v 18.09635 l -9.4007,12.45593 v 15.74617 l -8.22561,11.28084 v 19.27144 h 19.97651 l 21.8566,-5.87544 12.926,-18.09635 9.4007,9.4007 0.721,37.91697 -14.7754,26.92532 -7.3938,-10.39079 -11.6459,0.32407 -0.7339,-7.34302 -12.0492,-11.03215 -9.1781,10.03138 0.1119,12.28814 5.57,-0.40415 -0.035,6.34112 -8.9558,8.86224 -8.52351,-0.18284 c -5.7122,-16.28484 -10.5367,-34.34514 -12.3734,-58.38079 l -11.0333,-12.31185 -7.0511,10.99022 -9.6728,0.19403 -17.1638,-21.35438 0.7492,23.29223 -7.8119,7.39187 12.13,18.38632 -10.3159,34.00031 -17.0695,11.60398 -20.2842,0.27287 0.3949,9.79737 -14.4342,11.56346 0.083,8.69443 13.0946,12.47684 0.1582,16.26165 24.5721,0.12484 7.045,-6.69838 21.9798,-0.50423 8.2298,7.37123 25.2067,-0.37801 20.5978,-14.82837 21.31861,-0.60741"
+         id="path31934"
+         inkscape:label="陸奥" />
+    </g>
+    <g
+       id="g31932"
+       transform="matrix(4.70035,0,0,4.70035,998.18319,-614.28004)"
+       style="fill:#1275ad;fill-opacity:1;stroke:#000000;stroke-width:0.31912518;stroke-linejoin:bevel;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1"
+       inkscape:label="湖">
+      <path
+         inkscape:connector-curvature="0"
+         style="opacity:1;vector-effect:none;fill:#1275ad;fill-opacity:1;stroke:#000000;stroke-width:0.42550024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+         d="m -131.91099,197.82219 2.9,4.25 v 2 l -3.25001,1.5 -3.64999,3.00001 v 1.4 h -2.59999 l -2.50001,5.5 v -4.25001 l 1.24999,-2.39999 v -2 l 3.5,-3.85001 0.10001,-4.25 4.25,-2.74999 v 1.84999"
+         id="path21307"
+         inkscape:label="琵琶湖" />
+      <path
+         inkscape:connector-curvature="0"
+         style="fill:#1275ad;fill-opacity:1;stroke:#000000;stroke-width:0.42550024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-opacity:1;paint-order:normal"
+         d="m -1.2010151,171.36101 4,6.5 0.15001,2 -1.49999,-1.25 -2.65002,-4.5 v -2.75 m 0.40000996,6.9 -2.89999996,-5.65 -3.1,-1.75 -0.05,1.15 1.39999,1.25 -1.34999,1.6 -3.15,-1.75 v 1.4 l 5.89999,2.85 3.25000996,0.9"
+         id="path18670"
+         inkscape:label="霞ヶ浦" />
+      <path
+         inkscape:connector-curvature="0"
+         sodipodi:nodetypes="cccccc"
+         style="opacity:1;vector-effect:none;fill:#1275ad;fill-opacity:1;stroke:#260000;stroke-width:0.42550024;stroke-linecap:round;stroke-linejoin:round;stroke-miterlimit:4;stroke-dasharray:none;stroke-dashoffset:0;stroke-opacity:1;paint-order:normal"
+         d="m 2.2561813,12.16681 -0.0092,1.545197 h 2.5000054 l -1e-7,-3.250001 H 2.2469837 Z"
+         id="path36337"
+         inkscape:label="十和田湖" />
+    </g>
+  </g>
+  <style
+     id="stylish-1"
+     class="stylish"
+     type="text/css">@-moz-document domain(&quot;msm.marchao.co.jp&quot;) {
+    body {
+        white-space: nowrap !important;
+    }
+}
+@-moz-document url-prefix(&quot;http://msm.marchao.co.jp/selectBranch/tenposelect.php&quot;) {
+    body {
+        white-space: normal !important;
+    }
+}</style>
+</svg>

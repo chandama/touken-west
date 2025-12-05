@@ -1,0 +1,235 @@
+.japan-province-map-container {
+  position: relative;
+  width: 100%;
+  max-width: 800px;
+  margin: 0 auto;
+}
+
+.japan-province-map {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+/* Water/ocean background */
+.japan-province-map .water {
+  fill: #d4e5f7;
+}
+
+/* Dark mode water */
+.dark-mode .japan-province-map .water {
+  fill: #1a3a5c;
+}
+
+/* Default province styling */
+.japan-province-map .province {
+  fill: #f5f0e1;
+  stroke: #8b7355;
+  stroke-width: 1;
+  cursor: pointer;
+  transition: fill 0.2s ease, stroke-width 0.2s ease;
+}
+
+.dark-mode .japan-province-map .province {
+  fill: #3d3830;
+  stroke: #6b5d4d;
+}
+
+.japan-province-map .province:hover,
+.japan-province-map .province.hovered {
+  stroke-width: 2;
+  filter: brightness(1.1);
+}
+
+.japan-province-map .province.selected {
+  stroke: #000;
+  stroke-width: 3;
+}
+
+.dark-mode .japan-province-map .province.selected {
+  stroke: #fff;
+}
+
+/* Gokaden province colors */
+.japan-province-map .province.den-yamato {
+  fill: #d4a574;
+}
+
+.dark-mode .japan-province-map .province.den-yamato {
+  fill: #8B4513;
+}
+
+.japan-province-map .province.den-yamashiro {
+  fill: #b88bc7;
+}
+
+.dark-mode .japan-province-map .province.den-yamashiro {
+  fill: #6a0dad;
+}
+
+.japan-province-map .province.den-soshu {
+  fill: #90c695;
+}
+
+.dark-mode .japan-province-map .province.den-soshu {
+  fill: #2e7d32;
+}
+
+.japan-province-map .province.den-bizen {
+  fill: #e57373;
+}
+
+.dark-mode .japan-province-map .province.den-bizen {
+  fill: #8B0000;
+}
+
+.japan-province-map .province.den-mino {
+  fill: #f0c674;
+}
+
+.dark-mode .japan-province-map .province.den-mino {
+  fill: #B8860B;
+}
+
+/* Province number labels */
+.japan-province-map .province-number {
+  font-size: 8px;
+  font-weight: 500;
+  fill: #4a4a4a;
+  pointer-events: none;
+  text-anchor: middle;
+  dominant-baseline: middle;
+}
+
+.dark-mode .japan-province-map .province-number {
+  fill: #c0c0c0;
+}
+
+/* Gokaden Legend */
+.gokaden-legend {
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  padding: 16px;
+  margin-top: 20px;
+}
+
+.dark-mode .gokaden-legend {
+  background: rgba(40, 40, 40, 0.95);
+  border-color: #444;
+}
+
+.gokaden-legend h4 {
+  margin: 0 0 4px 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+}
+
+.dark-mode .gokaden-legend h4 {
+  color: #eee;
+}
+
+.gokaden-legend .legend-subtitle {
+  margin: 0 0 12px 0;
+  font-size: 12px;
+  color: #666;
+}
+
+.dark-mode .gokaden-legend .legend-subtitle {
+  color: #999;
+}
+
+.legend-items {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+
+.legend-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.legend-color {
+  width: 20px;
+  height: 20px;
+  border-radius: 4px;
+  border: 1px solid rgba(0, 0, 0, 0.2);
+  flex-shrink: 0;
+}
+
+.legend-name {
+  font-size: 14px;
+  font-weight: 500;
+  color: #333;
+}
+
+.dark-mode .legend-name {
+  color: #eee;
+}
+
+.legend-name-en {
+  font-size: 12px;
+  color: #666;
+}
+
+.dark-mode .legend-name-en {
+  color: #999;
+}
+
+/* Tooltip */
+.province-tooltip {
+  position: fixed;
+  transform: translate(-50%, -100%);
+  background: rgba(0, 0, 0, 0.85);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 6px;
+  font-size: 13px;
+  pointer-events: none;
+  z-index: 1000;
+  white-space: nowrap;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+}
+
+.province-tooltip::after {
+  content: '';
+  position: absolute;
+  top: 100%;
+  left: 50%;
+  transform: translateX(-50%);
+  border: 6px solid transparent;
+  border-top-color: rgba(0, 0, 0, 0.85);
+}
+
+.tooltip-name {
+  font-weight: 600;
+  font-size: 16px;
+}
+
+.tooltip-name-en {
+  font-size: 12px;
+  opacity: 0.8;
+}
+
+.tooltip-den {
+  margin-top: 4px;
+  padding-top: 4px;
+  border-top: 1px solid rgba(255, 255, 255, 0.2);
+  font-size: 11px;
+  color: #ffd700;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .legend-items {
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .gokaden-legend {
+    padding: 12px;
+  }
+}

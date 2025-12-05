@@ -19,6 +19,7 @@ const LibraryLightbox = ({
   const media = parseMediaAttachments(sword.MediaAttachments);
   const [selectedMediaIndex, setSelectedMediaIndex] = useState(0);
   const [isFullSizeOpen, setIsFullSizeOpen] = useState(false);
+  const [isDetailsPanelOpen, setIsDetailsPanelOpen] = useState(false);
 
   const currentMedia = media[selectedMediaIndex];
   const mainImageUrl = getFullUrl(currentMedia);
@@ -167,69 +168,93 @@ const LibraryLightbox = ({
             )}
           </div>
 
-          {/* Details panel (right ~30%) */}
-          <div className="lightbox-details">
+          {/* Details panel (right ~30%) - collapsible on mobile */}
+          <div className={`lightbox-details ${isDetailsPanelOpen ? 'mobile-open' : ''}`}>
+            {/* Mobile toggle header - always visible on mobile */}
+            <button
+              className="lightbox-details-toggle"
+              onClick={() => setIsDetailsPanelOpen(!isDetailsPanelOpen)}
+              aria-expanded={isDetailsPanelOpen}
+              aria-label={isDetailsPanelOpen ? 'Collapse sword info' : 'Expand sword info'}
+            >
+              <span className="toggle-title">
+                <span className="toggle-smith">{sword.Smith || 'Unknown Smith'}</span>
+                <span className="toggle-type">{sword.Type || 'Unknown Type'}</span>
+              </span>
+              <svg
+                className={`toggle-icon ${isDetailsPanelOpen ? 'open' : ''}`}
+                viewBox="0 0 24 24"
+                fill="currentColor"
+              >
+                <path d="M7.41 8.59L12 13.17l4.59-4.58L18 10l-6 6-6-6 1.41-1.41z"/>
+              </svg>
+            </button>
+
+            {/* Desktop header - hidden on mobile */}
             <div className="lightbox-details-header">
               <h2 className="lightbox-smith">{sword.Smith || 'Unknown Smith'}</h2>
               <div className="lightbox-type">{sword.Type || 'Unknown Type'}</div>
             </div>
 
-            {sword.isMeito && (
-              <div className="lightbox-meito">
-                <span className="meito-badge">★ Meito</span>
-                <span className="meito-name">{sword.meitoName}</span>
-              </div>
-            )}
-
-            <div className="lightbox-section">
-              <h3>Basic Information</h3>
-              <DetailRow label="Index" value={sword.Index} />
-              <DetailRow label="School" value={sword.School} />
-              <DetailRow label="Mei (Signature)" value={sword.Mei} />
-            </div>
-
-            <div className="lightbox-section">
-              <h3>Dimensions</h3>
-              <DetailRow label="Nagasa (Length)" value={sword.Nagasa ? `${sword.Nagasa} cm` : null} />
-              <DetailRow label="Sori (Curvature)" value={sword.Sori ? `${sword.Sori} cm` : null} />
-              <DetailRow label="Moto (Width at base)" value={sword.Moto ? `${sword.Moto} cm` : null} />
-              <DetailRow label="Saki (Width at tip)" value={sword.Saki ? `${sword.Saki} cm` : null} />
-            </div>
-
-            <div className="lightbox-section">
-              <h3>Tang (Nakago)</h3>
-              <DetailRow label="Condition" value={sword.Nakago} />
-              <DetailRow label="Mekugi-ana (Holes)" value={sword.Ana} />
-              <DetailRow label="Length" value={sword.Length ? `${sword.Length} cm` : null} />
-            </div>
-
-            <div className="lightbox-section">
-              <h3>Historical Context</h3>
-              <DetailRow label="Province" value={sword.Province} />
-              <DetailRow label="Period" value={sword.Period} />
-              <DetailRow label="Authentication" value={sword.Authentication} />
-            </div>
-
-            {sword.Description && sword.Description !== 'NA' && (
-              <div className="lightbox-section">
-                <h3>Description</h3>
-                <p className="lightbox-description">{sword.Description}</p>
-              </div>
-            )}
-
-            <div className="lightbox-counter">
-              Sword {currentIndex + 1} of {totalCount}
-              {media.length > 1 && (
-                <span className="media-counter">
-                  {' '}| Image {selectedMediaIndex + 1} of {media.length}
-                </span>
+            {/* Collapsible content wrapper for mobile */}
+            <div className="lightbox-details-content">
+              {sword.isMeito && (
+                <div className="lightbox-meito">
+                  <span className="meito-badge">★ Meito</span>
+                  <span className="meito-name">{sword.meitoName}</span>
+                </div>
               )}
-            </div>
 
-            <div className="lightbox-keyboard-hint">
-              <span>← → Navigate images</span>
-              <span>Shift + ← → Navigate swords</span>
-              <span>Esc Close</span>
+              <div className="lightbox-section">
+                <h3>Basic Information</h3>
+                <DetailRow label="Index" value={sword.Index} />
+                <DetailRow label="School" value={sword.School} />
+                <DetailRow label="Mei (Signature)" value={sword.Mei} />
+              </div>
+
+              <div className="lightbox-section">
+                <h3>Dimensions</h3>
+                <DetailRow label="Nagasa (Length)" value={sword.Nagasa ? `${sword.Nagasa} cm` : null} />
+                <DetailRow label="Sori (Curvature)" value={sword.Sori ? `${sword.Sori} cm` : null} />
+                <DetailRow label="Moto (Width at base)" value={sword.Moto ? `${sword.Moto} cm` : null} />
+                <DetailRow label="Saki (Width at tip)" value={sword.Saki ? `${sword.Saki} cm` : null} />
+              </div>
+
+              <div className="lightbox-section">
+                <h3>Tang (Nakago)</h3>
+                <DetailRow label="Condition" value={sword.Nakago} />
+                <DetailRow label="Mekugi-ana (Holes)" value={sword.Ana} />
+                <DetailRow label="Length" value={sword.Length ? `${sword.Length} cm` : null} />
+              </div>
+
+              <div className="lightbox-section">
+                <h3>Historical Context</h3>
+                <DetailRow label="Province" value={sword.Province} />
+                <DetailRow label="Period" value={sword.Period} />
+                <DetailRow label="Authentication" value={sword.Authentication} />
+              </div>
+
+              {sword.Description && sword.Description !== 'NA' && (
+                <div className="lightbox-section">
+                  <h3>Description</h3>
+                  <p className="lightbox-description">{sword.Description}</p>
+                </div>
+              )}
+
+              <div className="lightbox-counter">
+                Sword {currentIndex + 1} of {totalCount}
+                {media.length > 1 && (
+                  <span className="media-counter">
+                    {' '}| Image {selectedMediaIndex + 1} of {media.length}
+                  </span>
+                )}
+              </div>
+
+              <div className="lightbox-keyboard-hint">
+                <span>← → Navigate images</span>
+                <span>Shift + ← → Navigate swords</span>
+                <span>Esc Close</span>
+              </div>
             </div>
           </div>
         </div>
