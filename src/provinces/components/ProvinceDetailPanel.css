@@ -407,6 +407,21 @@
   color: #164e63;
 }
 
+.auth-badge.auth-kokuho {
+  background: linear-gradient(135deg, #fecaca, #f87171);
+  color: #7f1d1d;
+}
+
+.auth-badge.auth-juyo-bunkazai {
+  background: linear-gradient(135deg, #fed7aa, #fb923c);
+  color: #7c2d12;
+}
+
+.auth-badge.auth-juyo-bijutsuhin {
+  background: linear-gradient(135deg, #d9f99d, #a3e635);
+  color: #365314;
+}
+
 /* View All Button */
 .panel-actions {
   margin-top: var(--space-xl, 24px);

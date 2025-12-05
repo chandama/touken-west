@@ -12,6 +12,7 @@ import useSwordData from './hooks/useSwordData.js';
 import useDocumentMeta from './hooks/useDocumentMeta.js';
 import { parseSearchInput, matchesSearchTerms } from './utils/searchParser.js';
 import { matchesPeriodFilter } from './utils/periodUtils.js';
+import { parseUrlFilters, updateUrlWithFilters } from './utils/urlFilters.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
@@ -19,18 +20,12 @@ const SITE_URL = 'https://nihonto-db.com';
 
 function App() {
   const { swords, totalCount, loading, isFullyLoaded, error } = useSwordData();
-  const [searchTags, setSearchTags] = useState([]);
-  const [filters, setFilters] = useState({
-    school: '',
-    smith: '',
-    type: '',
-    authentication: '',
-    province: '',
-    hasMedia: '',
-    nagasaMin: '',
-    nagasaMax: '',
-    periods: [] // Array of selected period IDs
-  });
+
+  // Parse initial state from URL parameters
+  const initialUrlState = parseUrlFilters(new URLSearchParams(window.location.search));
+
+  const [searchTags, setSearchTags] = useState(initialUrlState.searchTags);
+  const [filters, setFilters] = useState(initialUrlState.filters);
   const [filterGroups, setFilterGroups] = useState([]);
   const [selectedSword, setSelectedSword] = useState(null);
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -83,6 +78,23 @@ function App() {
       document.body.classList.remove('dark-mode');
     }
   }, [isDarkMode]);
+
+  // Update URL when filters or search tags change
+  useEffect(() => {
+    updateUrlWithFilters(filters, searchTags);
+  }, [filters, searchTags]);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const urlState = parseUrlFilters(new URLSearchParams(window.location.search));
+      setFilters(urlState.filters);
+      setSearchTags(urlState.searchTags);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const toggleDarkMode = () => {
     setIsDarkMode(prev => !prev);

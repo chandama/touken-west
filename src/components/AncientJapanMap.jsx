@@ -106,6 +106,13 @@ const AncientJapanMap = ({ onProvinceClick, selectedProvince }) => {
     loadMapData();
   }, []);
 
+  // Close popup when selectedProvince is cleared from parent
+  useEffect(() => {
+    if (!selectedProvince) {
+      setPopupProvince(null);
+    }
+  }, [selectedProvince]);
+
   // Calculate label positions after paths are rendered
   useEffect(() => {
     if (!mapData || !svgRef.current) return;
@@ -318,36 +325,36 @@ const AncientJapanMap = ({ onProvinceClick, selectedProvince }) => {
       <div className="ancient-map-legend">
         <div className="legend-header">
           <h4>{isJapanese ? '五畿七道' : 'Gokishichidō Circuits'}</h4>
-          <div className="language-toggle">
-            <span className={`flag-icon ${!isJapanese ? 'active' : ''}`} title="English">
-              <svg viewBox="0 0 60 30" width="20" height="10">
-                <clipPath id="us-clip"><rect width="60" height="30"/></clipPath>
-                <g clipPath="url(#us-clip)">
-                  <rect width="60" height="30" fill="#bf0a30"/>
-                  <rect y="2.31" width="60" height="2.31" fill="#fff"/>
-                  <rect y="6.92" width="60" height="2.31" fill="#fff"/>
-                  <rect y="11.54" width="60" height="2.31" fill="#fff"/>
-                  <rect y="16.15" width="60" height="2.31" fill="#fff"/>
-                  <rect y="20.77" width="60" height="2.31" fill="#fff"/>
-                  <rect y="25.38" width="60" height="2.31" fill="#fff"/>
-                  <rect width="24" height="16.15" fill="#002868"/>
-                </g>
-              </svg>
+          <button
+            className={`language-toggle ${isJapanese ? 'jp' : 'en'}`}
+            onClick={() => setIsJapanese(!isJapanese)}
+            aria-label={isJapanese ? 'Switch to English' : 'Switch to Japanese'}
+          >
+            <span className="lang-toggle-track">
+              <span className="lang-toggle-thumb">
+                {isJapanese ? (
+                  <svg viewBox="0 0 60 40" className="flag-icon">
+                    <rect width="60" height="40" fill="#fff"/>
+                    <circle cx="30" cy="20" r="12" fill="#bc002d"/>
+                  </svg>
+                ) : (
+                  <svg viewBox="0 0 60 30" className="flag-icon">
+                    <clipPath id="us-clip"><rect width="60" height="30"/></clipPath>
+                    <g clipPath="url(#us-clip)">
+                      <rect width="60" height="30" fill="#bf0a30"/>
+                      <rect y="2.31" width="60" height="2.31" fill="#fff"/>
+                      <rect y="6.92" width="60" height="2.31" fill="#fff"/>
+                      <rect y="11.54" width="60" height="2.31" fill="#fff"/>
+                      <rect y="16.15" width="60" height="2.31" fill="#fff"/>
+                      <rect y="20.77" width="60" height="2.31" fill="#fff"/>
+                      <rect y="25.38" width="60" height="2.31" fill="#fff"/>
+                      <rect width="24" height="16.15" fill="#002868"/>
+                    </g>
+                  </svg>
+                )}
+              </span>
             </span>
-            <button
-              className={`toggle-switch ${isJapanese ? 'jp' : 'en'}`}
-              onClick={() => setIsJapanese(!isJapanese)}
-              aria-label="Toggle language"
-            >
-              <span className="toggle-knob"></span>
-            </button>
-            <span className={`flag-icon ${isJapanese ? 'active' : ''}`} title="Japanese">
-              <svg viewBox="0 0 60 40" width="20" height="13">
-                <rect width="60" height="40" fill="#fff"/>
-                <circle cx="30" cy="20" r="12" fill="#bc002d"/>
-              </svg>
-            </span>
-          </div>
+          </button>
         </div>
         {Object.entries(circuitColors).map(([circuit, color]) => (
           <div key={circuit} className="legend-item">

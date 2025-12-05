@@ -83,14 +83,25 @@ function ProvincesApp() {
         stats[normalizedProvince].types[sword.Type] = (stats[normalizedProvince].types[sword.Type] || 0) + 1;
       }
 
-      // Count authentications
+      // Count authentications - check for all types present in the string
       if (sword.Authentication && sword.Authentication !== 'NA') {
-        // Extract the base authentication type (e.g., "Juyo 45" -> "Juyo")
-        const authMatch = sword.Authentication.match(/^(Tokubetsu Juyo|Juyo|Tokubetsu Hozon|Hozon)/);
-        if (authMatch) {
-          const authType = authMatch[1];
-          stats[normalizedProvince].authentications[authType] = (stats[normalizedProvince].authentications[authType] || 0) + 1;
-        }
+        const authStr = sword.Authentication;
+        // Check each authentication type (order matters - check longer/specific matches first)
+        const authTypes = [
+          { pattern: /Kokuho/i, name: 'Kokuho' },
+          { pattern: /Juyo Bunkazai/i, name: 'Juyo Bunkazai' },
+          { pattern: /Juyo Bijutsuhin/i, name: 'Juyo Bijutsuhin' },
+          { pattern: /Tokubetsu Juyo/i, name: 'Tokubetsu Juyo' },
+          { pattern: /Tokubetsu Hozon/i, name: 'Tokubetsu Hozon' },
+          { pattern: /(?<!Tokubetsu )(?<!Bunkazai )(?<!Bijutsuhin )Juyo(?! Bunkazai)(?! Bijutsuhin)/i, name: 'Juyo' },
+          { pattern: /(?<!Tokubetsu )Hozon/i, name: 'Hozon' }
+        ];
+
+        authTypes.forEach(({ pattern, name }) => {
+          if (pattern.test(authStr)) {
+            stats[normalizedProvince].authentications[name] = (stats[normalizedProvince].authentications[name] || 0) + 1;
+          }
+        });
       }
     });
 

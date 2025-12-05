@@ -138,6 +138,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 10;
   font-size: 11px;
+  width: 215px;
 }
 
 .dark-mode .ancient-map-legend {
@@ -151,6 +152,7 @@
   justify-content: space-between;
   gap: 12px;
   margin-bottom: var(--space-xs, 4px);
+  position: relative;
 }
 
 .ancient-map-legend h4 {
@@ -167,74 +169,71 @@
 
 /* Language Toggle */
 .language-toggle {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.flag-icon {
+  position: absolute;
+  top: -4px;
+  right: -8px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.4;
-  transition: opacity 0.2s ease;
 }
 
-.flag-icon.active {
-  opacity: 1;
-}
-
-.flag-icon svg {
-  border-radius: 2px;
-  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-}
-
-.toggle-switch {
-  position: relative;
-  width: 32px;
-  height: 18px;
+.lang-toggle-track {
+  width: 40px;
+  height: 22px;
   background: #d1d5db;
-  border: none;
-  border-radius: 9px;
-  cursor: pointer;
-  padding: 0;
-  transition: background 0.2s ease;
+  border-radius: 11px;
+  position: relative;
+  transition: background-color 0.2s ease;
 }
 
-.dark-mode .toggle-switch {
+.dark-mode .lang-toggle-track {
   background: #4b5563;
 }
 
-.toggle-switch.jp {
+.language-toggle.jp .lang-toggle-track {
   background: #bc002d;
 }
 
-.toggle-switch .toggle-knob {
-  position: absolute;
-  top: 2px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
-  background: white;
-  border-radius: 50%;
-  transition: transform 0.2s ease;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
-}
-
-.toggle-switch.jp .toggle-knob {
-  transform: translateX(14px);
-}
-
-.toggle-switch:hover {
+.language-toggle:hover .lang-toggle-track {
   background: #9ca3af;
 }
 
-.dark-mode .toggle-switch:hover {
+.dark-mode .language-toggle:hover .lang-toggle-track {
   background: #6b7280;
 }
 
-.toggle-switch.jp:hover {
+.language-toggle.jp:hover .lang-toggle-track {
   background: #d4003a;
+}
+
+.lang-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 18px;
+  height: 18px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.language-toggle.jp .lang-toggle-thumb {
+  transform: translateX(18px);
+}
+
+.lang-toggle-thumb .flag-icon {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
 }
 
 .legend-item {
