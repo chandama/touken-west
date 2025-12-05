@@ -2101,6 +2101,51 @@ body.dark-mode .filter-group-item label {
     padding: var(--space-md);
   }
 
+  /* Prevent filter content from spilling out on mobile */
+  .filter-panels-container {
+    max-width: 100%;
+    overflow: hidden;
+  }
+
+  .filter-panel.expanded {
+    overflow: hidden;
+    max-width: 100%;
+    box-sizing: border-box;
+    width: 100%;
+  }
+
+  .filters-grid {
+    max-width: 100%;
+    overflow: hidden;
+    box-sizing: border-box;
+  }
+
+  .filter-group {
+    max-width: 100%;
+    min-width: 0;
+    box-sizing: border-box;
+  }
+
+  .filter-group select,
+  .filter-group input,
+  .multi-select-dropdown,
+  .multi-select-trigger {
+    max-width: 100%;
+    min-width: 0;
+    width: 100%;
+    box-sizing: border-box;
+  }
+
+  .range-inputs {
+    max-width: 100%;
+    box-sizing: border-box;
+  }
+
+  .range-input {
+    min-width: 0;
+    flex: 1;
+  }
+
 }
 
 @media (max-width: 640px) {

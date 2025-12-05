@@ -455,24 +455,81 @@
   background: rgba(255, 255, 255, 0.15);
 }
 
+/* Mobile Language Toggle - floating position */
+.mobile-language-toggle {
+  position: absolute;
+  top: var(--space-md, 12px);
+  left: var(--space-md, 12px);
+  background: rgba(255, 255, 255, 0.95);
+  border: none;
+  border-radius: var(--radius-md, 6px);
+  padding: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 10;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dark-mode .mobile-language-toggle {
+  background: rgba(30, 41, 59, 0.95);
+}
+
+.mobile-language-toggle .lang-toggle-track {
+  width: 44px;
+  height: 24px;
+  background: #d1d5db;
+  border-radius: 12px;
+  position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.dark-mode .mobile-language-toggle .lang-toggle-track {
+  background: #4b5563;
+}
+
+.mobile-language-toggle.jp .lang-toggle-track {
+  background: #bc002d;
+}
+
+.mobile-language-toggle .lang-toggle-thumb {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background: white;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s ease;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.3);
+  overflow: hidden;
+}
+
+.mobile-language-toggle.jp .lang-toggle-thumb {
+  transform: translateX(20px);
+}
+
+.mobile-language-toggle .lang-toggle-thumb .flag-icon {
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+}
+
 /* Responsive adjustments */
 @media (max-width: 768px) {
   .ancient-map-container {
     min-height: 400px;
+    /* Prevent default touch behavior for pinch-zoom */
+    touch-action: none;
   }
 
+  /* Legend is hidden on mobile via JS, but also hide via CSS as backup */
   .ancient-map-legend {
-    font-size: 10px;
-    padding: 6px 10px;
-  }
-
-  .ancient-map-legend h4 {
-    font-size: 11px;
-  }
-
-  .legend-color {
-    width: 12px;
-    height: 12px;
+    display: none;
   }
 
   .ancient-map-container .map-control-btn {
@@ -483,5 +540,10 @@
   .ancient-map-container .map-control-btn svg {
     width: 18px;
     height: 18px;
+  }
+
+  /* Hide tooltip on mobile (use popup instead) */
+  .ancient-map-tooltip {
+    display: none;
   }
 }
