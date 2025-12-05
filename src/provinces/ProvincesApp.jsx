@@ -1,9 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import './styles/Provinces.css';
 import '../styles/theme.css';
 import '../styles/App.css';
 import AncientJapanMap from '../components/AncientJapanMap.jsx';
 import DarkModeToggle from '../components/DarkModeToggle.jsx';
+import ProvinceDetailPanel from './components/ProvinceDetailPanel.jsx';
+import useSwordData from '../hooks/useSwordData.js';
 
 /**
  * Provinces page - Interactive map of historical Japanese provinces (Gokishichidō)
@@ -14,6 +16,111 @@ function ProvincesApp() {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
   });
+
+  // Load sword data for province statistics
+  const { swords, loading: swordsLoading } = useSwordData();
+
+  // Normalize accented characters for matching (e.g., "Hōki" -> "Hoki")
+  const normalizeProvinceName = (name) => {
+    if (!name) return '';
+    return name
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '') // Remove diacritical marks
+      .replace(/ō/g, 'o')
+      .replace(/Ō/g, 'O')
+      .replace(/ū/g, 'u')
+      .replace(/Ū/g, 'U')
+      .replace(/ā/g, 'a')
+      .replace(/Ā/g, 'A')
+      .replace(/ē/g, 'e')
+      .replace(/Ē/g, 'E')
+      .replace(/ī/g, 'i')
+      .replace(/Ī/g, 'I');
+  };
+
+  // Aggregate sword data by province
+  const provinceStats = useMemo(() => {
+    const stats = {};
+    const normalizedToOriginal = {}; // Map normalized names back to original
+
+    swords.forEach(sword => {
+      const province = sword.Province;
+      if (!province || province === 'NA' || province === '') return;
+
+      // Normalize the province name for consistent matching
+      const normalizedProvince = normalizeProvinceName(province);
+
+      // Keep track of original name (prefer the first one we encounter)
+      if (!normalizedToOriginal[normalizedProvince]) {
+        normalizedToOriginal[normalizedProvince] = province;
+      }
+
+      if (!stats[normalizedProvince]) {
+        stats[normalizedProvince] = {
+          totalSwords: 0,
+          schools: {},
+          smiths: {},
+          types: {},
+          authentications: {},
+          originalName: province
+        };
+      }
+
+      stats[normalizedProvince].totalSwords++;
+
+      // Count schools
+      if (sword.School && sword.School !== 'NA') {
+        stats[normalizedProvince].schools[sword.School] = (stats[normalizedProvince].schools[sword.School] || 0) + 1;
+      }
+
+      // Count smiths
+      if (sword.Smith && sword.Smith !== 'NA') {
+        stats[normalizedProvince].smiths[sword.Smith] = (stats[normalizedProvince].smiths[sword.Smith] || 0) + 1;
+      }
+
+      // Count types
+      if (sword.Type && sword.Type !== 'NA') {
+        stats[normalizedProvince].types[sword.Type] = (stats[normalizedProvince].types[sword.Type] || 0) + 1;
+      }
+
+      // Count authentications
+      if (sword.Authentication && sword.Authentication !== 'NA') {
+        // Extract the base authentication type (e.g., "Juyo 45" -> "Juyo")
+        const authMatch = sword.Authentication.match(/^(Tokubetsu Juyo|Juyo|Tokubetsu Hozon|Hozon)/);
+        if (authMatch) {
+          const authType = authMatch[1];
+          stats[normalizedProvince].authentications[authType] = (stats[normalizedProvince].authentications[authType] || 0) + 1;
+        }
+      }
+    });
+
+    // Convert counts to sorted arrays
+    Object.keys(stats).forEach(province => {
+      // Total counts
+      stats[province].totalSchools = Object.keys(stats[province].schools).length;
+      stats[province].totalSmiths = Object.keys(stats[province].smiths).length;
+
+      stats[province].topSchools = Object.entries(stats[province].schools)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([name, count]) => ({ name, count }));
+
+      stats[province].topSmiths = Object.entries(stats[province].smiths)
+        .sort((a, b) => b[1] - a[1])
+        .slice(0, 10)
+        .map(([name, count]) => ({ name, count }));
+
+      stats[province].typeBreakdown = Object.entries(stats[province].types)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => ({ name, count }));
+
+      stats[province].authBreakdown = Object.entries(stats[province].authentications)
+        .sort((a, b) => b[1] - a[1])
+        .map(([name, count]) => ({ name, count }));
+    });
+
+    return stats;
+  }, [swords]);
 
   // Dark mode effect
   useEffect(() => {
@@ -32,6 +139,15 @@ function ProvincesApp() {
   const handleProvinceClick = (province) => {
     setSelectedProvince(prev => prev?.id === province.id ? null : province);
   };
+
+  const handleClosePanel = () => {
+    setSelectedProvince(null);
+  };
+
+  // Get stats for the selected province (normalize name for matching)
+  const selectedProvinceStats = selectedProvince
+    ? provinceStats[normalizeProvinceName(selectedProvince.nameEn)] || null
+    : null;
 
   return (
     <div className="ProvincesApp">
@@ -62,6 +178,14 @@ function ProvincesApp() {
           selectedProvince={selectedProvince?.id}
         />
       </div>
+
+      {/* Province Detail Panel */}
+      <ProvinceDetailPanel
+        province={selectedProvince}
+        stats={selectedProvinceStats}
+        loading={swordsLoading}
+        onClose={handleClosePanel}
+      />
     </div>
   );
 }
