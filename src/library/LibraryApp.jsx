@@ -42,6 +42,9 @@ function LibraryApp() {
   // Lightbox state
   const [selectedSwordIndex, setSelectedSwordIndex] = useState(null);
 
+  // User dropdown state
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
   // Dark mode
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -258,6 +261,19 @@ function LibraryApp() {
     }
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      setUser(null);
+      setShowLogin(true);
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
+
   // Loading state
   if (authLoading) {
     return (
@@ -274,18 +290,18 @@ function LibraryApp() {
   if (!user) {
     return (
       <div className="LibraryApp">
-        <header className="library-header">
-          <div className="library-header-content">
-            <div className="library-header-text">
-              <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="library-header-logo" />
-              <div className="library-header-title">
+        <header className="subpage-header">
+          <div className="subpage-header-content">
+            <div className="subpage-header-text">
+              <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
+              <div className="subpage-header-title">
                 <h1>Digital Library</h1>
                 <p>Japanese Sword Image Archive</p>
               </div>
             </div>
-            <div className="library-header-actions">
+            <div className="subpage-header-actions">
               <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-              <a href="/" className="library-back-link">
+              <a href="/" className="header-nav-link">
                 <svg viewBox="0 0 24 24" fill="currentColor">
                   <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
                 </svg>
@@ -315,23 +331,51 @@ function LibraryApp() {
 
   return (
     <div className="LibraryApp">
-      <header className="library-header">
-        <div className="library-header-content">
-          <div className="library-header-text">
-            <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="library-header-logo" />
-            <div className="library-header-title">
+      <header className="subpage-header">
+        <div className="subpage-header-content">
+          <div className="subpage-header-text">
+            <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
+            <div className="subpage-header-title">
               <h1>Digital Library</h1>
               <p>Japanese Sword Image Archive - {swordsWithMedia.length.toLocaleString()} Swords with Media</p>
             </div>
           </div>
-          <div className="library-header-actions">
+          <div className="subpage-header-actions">
             <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-            <a href="/" className="library-back-link">
+            {user.role === 'admin' && (
+              <a href="/admin" className="header-nav-link header-nav-link-highlight">
+                Admin Panel
+              </a>
+            )}
+            <a href="/" className="header-nav-link">
               <svg viewBox="0 0 24 24" fill="currentColor">
                 <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
               </svg>
               Back to Database
             </a>
+            <div className="user-menu">
+              <button
+                className="user-avatar-button"
+                onClick={() => setShowUserDropdown(!showUserDropdown)}
+                aria-label="User menu"
+                aria-expanded={showUserDropdown}
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" className="user-avatar-icon">
+                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                </svg>
+              </button>
+              {showUserDropdown && (
+                <>
+                  <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
+                  <div className="user-dropdown">
+                    <div className="user-dropdown-email">{user.email}</div>
+                    <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
+                      Logout
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
           </div>
         </div>
       </header>
