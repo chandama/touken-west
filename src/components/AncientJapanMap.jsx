@@ -1,6 +1,19 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import './AncientJapanMap.css';
 
+// Hook to detect mobile viewport
+const useIsMobile = () => {
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+
+  useEffect(() => {
+    const handleResize = () => setIsMobile(window.innerWidth <= 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  return isMobile;
+};
+
 // Manual label position adjustments for oddly-shaped provinces
 const LABEL_OFFSETS = {
   'Tosa': { x: 0, y: -60 },
@@ -83,6 +96,11 @@ const AncientJapanMap = ({ onProvinceClick, selectedProvince }) => {
   const svgRef = useRef(null);
   const pathRefs = useRef({});
   const containerRef = useRef(null);
+  const isMobile = useIsMobile();
+
+  // Touch pinch-to-zoom tracking
+  const lastTouchDistance = useRef(null);
+  const lastTouchCenter = useRef(null);
 
   // Initial viewBox dimensions
   const INITIAL_WIDTH = 2000;
@@ -205,6 +223,87 @@ const AncientJapanMap = ({ onProvinceClick, selectedProvince }) => {
     setIsDragging(false);
   }, []);
 
+  // Touch handlers for pinch-to-zoom on mobile
+  const getTouchDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const getTouchCenter = (touches, rect) => {
+    return {
+      x: (touches[0].clientX + touches[1].clientX) / 2 - rect.left,
+      y: (touches[0].clientY + touches[1].clientY) / 2 - rect.top
+    };
+  };
+
+  const handleTouchStart = useCallback((e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const rect = svgRef.current.getBoundingClientRect();
+      lastTouchDistance.current = getTouchDistance(e.touches);
+      lastTouchCenter.current = getTouchCenter(e.touches, rect);
+    } else if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (e.touches.length === 2 && lastTouchDistance.current !== null) {
+      e.preventDefault();
+      const rect = svgRef.current.getBoundingClientRect();
+      const currentDistance = getTouchDistance(e.touches);
+      const currentCenter = getTouchCenter(e.touches, rect);
+
+      // Calculate zoom based on pinch distance change
+      const zoomFactor = currentDistance / lastTouchDistance.current;
+      const newScale = Math.max(MIN_SCALE, Math.min(MAX_SCALE, scale * zoomFactor));
+
+      if (newScale !== scale) {
+        // Convert touch center to SVG coordinates
+        const svgX = viewBox.x + (currentCenter.x / rect.width) * viewBox.width;
+        const svgY = viewBox.y + (currentCenter.y / rect.height) * viewBox.height;
+
+        const newWidth = INITIAL_WIDTH / newScale;
+        const newHeight = INITIAL_HEIGHT / newScale;
+
+        // Adjust viewBox to zoom towards pinch center
+        const newX = svgX - (currentCenter.x / rect.width) * newWidth;
+        const newY = svgY - (currentCenter.y / rect.height) * newHeight;
+
+        setScale(newScale);
+        setViewBox({
+          x: newX,
+          y: newY,
+          width: newWidth,
+          height: newHeight
+        });
+      }
+
+      lastTouchDistance.current = currentDistance;
+      lastTouchCenter.current = currentCenter;
+    } else if (e.touches.length === 1 && isDragging && svgRef.current) {
+      const rect = svgRef.current.getBoundingClientRect();
+      const dx = (e.touches[0].clientX - dragStart.x) * (viewBox.width / rect.width);
+      const dy = (e.touches[0].clientY - dragStart.y) * (viewBox.height / rect.height);
+
+      setViewBox(prev => ({
+        ...prev,
+        x: prev.x - dx,
+        y: prev.y - dy
+      }));
+
+      setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    }
+  }, [scale, viewBox, isDragging, dragStart]);
+
+  const handleTouchEnd = useCallback(() => {
+    lastTouchDistance.current = null;
+    lastTouchCenter.current = null;
+    setIsDragging(false);
+  }, []);
+
   // Handle zoom buttons
   const handleZoomIn = () => {
     const newScale = Math.min(MAX_SCALE, scale * 1.3);
@@ -321,48 +420,84 @@ const AncientJapanMap = ({ onProvinceClick, selectedProvince }) => {
         </button>
       </div>
 
-      {/* Legend */}
-      <div className="ancient-map-legend">
-        <div className="legend-header">
-          <h4>{isJapanese ? '五畿七道' : 'Gokishichidō Circuits'}</h4>
-          <button
-            className={`language-toggle ${isJapanese ? 'jp' : 'en'}`}
-            onClick={() => setIsJapanese(!isJapanese)}
-            aria-label={isJapanese ? 'Switch to English' : 'Switch to Japanese'}
-          >
-            <span className="lang-toggle-track">
-              <span className="lang-toggle-thumb">
-                {isJapanese ? (
-                  <svg viewBox="0 0 60 40" className="flag-icon">
-                    <rect width="60" height="40" fill="#fff"/>
-                    <circle cx="30" cy="20" r="12" fill="#bc002d"/>
-                  </svg>
-                ) : (
-                  <svg viewBox="0 0 60 30" className="flag-icon">
-                    <clipPath id="us-clip"><rect width="60" height="30"/></clipPath>
-                    <g clipPath="url(#us-clip)">
-                      <rect width="60" height="30" fill="#bf0a30"/>
-                      <rect y="2.31" width="60" height="2.31" fill="#fff"/>
-                      <rect y="6.92" width="60" height="2.31" fill="#fff"/>
-                      <rect y="11.54" width="60" height="2.31" fill="#fff"/>
-                      <rect y="16.15" width="60" height="2.31" fill="#fff"/>
-                      <rect y="20.77" width="60" height="2.31" fill="#fff"/>
-                      <rect y="25.38" width="60" height="2.31" fill="#fff"/>
-                      <rect width="24" height="16.15" fill="#002868"/>
-                    </g>
-                  </svg>
-                )}
+      {/* Legend - hidden on mobile */}
+      {!isMobile && (
+        <div className="ancient-map-legend">
+          <div className="legend-header">
+            <h4>{isJapanese ? '五畿七道' : 'Gokishichidō Circuits'}</h4>
+            <button
+              className={`language-toggle ${isJapanese ? 'jp' : 'en'}`}
+              onClick={() => setIsJapanese(!isJapanese)}
+              aria-label={isJapanese ? 'Switch to English' : 'Switch to Japanese'}
+            >
+              <span className="lang-toggle-track">
+                <span className="lang-toggle-thumb">
+                  {isJapanese ? (
+                    <svg viewBox="0 0 60 40" className="flag-icon">
+                      <rect width="60" height="40" fill="#fff"/>
+                      <circle cx="30" cy="20" r="12" fill="#bc002d"/>
+                    </svg>
+                  ) : (
+                    <svg viewBox="0 0 60 30" className="flag-icon">
+                      <clipPath id="us-clip"><rect width="60" height="30"/></clipPath>
+                      <g clipPath="url(#us-clip)">
+                        <rect width="60" height="30" fill="#bf0a30"/>
+                        <rect y="2.31" width="60" height="2.31" fill="#fff"/>
+                        <rect y="6.92" width="60" height="2.31" fill="#fff"/>
+                        <rect y="11.54" width="60" height="2.31" fill="#fff"/>
+                        <rect y="16.15" width="60" height="2.31" fill="#fff"/>
+                        <rect y="20.77" width="60" height="2.31" fill="#fff"/>
+                        <rect y="25.38" width="60" height="2.31" fill="#fff"/>
+                        <rect width="24" height="16.15" fill="#002868"/>
+                      </g>
+                    </svg>
+                  )}
+                </span>
               </span>
-            </span>
-          </button>
-        </div>
-        {Object.entries(circuitColors).map(([circuit, color]) => (
-          <div key={circuit} className="legend-item">
-            <span className="legend-color" style={{ backgroundColor: color }}></span>
-            <span className="legend-label">{isJapanese ? CIRCUIT_NAMES_JP[circuit] : circuit}</span>
+            </button>
           </div>
-        ))}
-      </div>
+          {Object.entries(circuitColors).map(([circuit, color]) => (
+            <div key={circuit} className="legend-item">
+              <span className="legend-color" style={{ backgroundColor: color }}></span>
+              <span className="legend-label">{isJapanese ? CIRCUIT_NAMES_JP[circuit] : circuit}</span>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Mobile language toggle - floating in top left */}
+      {isMobile && (
+        <button
+          className={`mobile-language-toggle ${isJapanese ? 'jp' : 'en'}`}
+          onClick={() => setIsJapanese(!isJapanese)}
+          aria-label={isJapanese ? 'Switch to English' : 'Switch to Japanese'}
+        >
+          <span className="lang-toggle-track">
+            <span className="lang-toggle-thumb">
+              {isJapanese ? (
+                <svg viewBox="0 0 60 40" className="flag-icon">
+                  <rect width="60" height="40" fill="#fff"/>
+                  <circle cx="30" cy="20" r="12" fill="#bc002d"/>
+                </svg>
+              ) : (
+                <svg viewBox="0 0 60 30" className="flag-icon">
+                  <clipPath id="us-clip-mobile"><rect width="60" height="30"/></clipPath>
+                  <g clipPath="url(#us-clip-mobile)">
+                    <rect width="60" height="30" fill="#bf0a30"/>
+                    <rect y="2.31" width="60" height="2.31" fill="#fff"/>
+                    <rect y="6.92" width="60" height="2.31" fill="#fff"/>
+                    <rect y="11.54" width="60" height="2.31" fill="#fff"/>
+                    <rect y="16.15" width="60" height="2.31" fill="#fff"/>
+                    <rect y="20.77" width="60" height="2.31" fill="#fff"/>
+                    <rect y="25.38" width="60" height="2.31" fill="#fff"/>
+                    <rect width="24" height="16.15" fill="#002868"/>
+                  </g>
+                </svg>
+              )}
+            </span>
+          </span>
+        </button>
+      )}
 
       {/* Tooltip */}
       {hoveredProvince && !popupProvince && (
@@ -416,6 +551,9 @@ const AncientJapanMap = ({ onProvinceClick, selectedProvince }) => {
         className={`ancient-map-svg ${isDragging ? 'dragging' : ''}`}
         viewBox={`${viewBox.x} ${viewBox.y} ${viewBox.width} ${viewBox.height}`}
         onMouseDown={handleMouseDown}
+        onTouchStart={handleTouchStart}
+        onTouchMove={handleTouchMove}
+        onTouchEnd={handleTouchEnd}
       >
         {/* Ocean background */}
         <rect
@@ -467,7 +605,7 @@ const AncientJapanMap = ({ onProvinceClick, selectedProvince }) => {
       </svg>
 
       <div className="ancient-map-hint">
-        Scroll to zoom, drag to pan
+        {isMobile ? 'Pinch to zoom, drag to pan' : 'Scroll to zoom, drag to pan'}
       </div>
     </div>
   );
