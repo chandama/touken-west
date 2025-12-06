@@ -1,5 +1,8 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link } from 'react-router-dom';
+import useAutocomplete from '../../hooks/useAutocomplete.js';
+import AutocompleteDropdown from '../../components/AutocompleteDropdown.jsx';
+import { getAvailableFilterOptions, getOptionCounts, getAuthenticationCounts, getMediaCounts } from '../../utils/filterUtils.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
@@ -30,12 +33,87 @@ function SwordList() {
   const [searchInput, setSearchInput] = useState(storedFilters?.searchInput || '');
   const [searchTags, setSearchTags] = useState(storedFilters?.searchTags || []);
   const [school, setSchool] = useState(storedFilters?.school || '');
+  const [smith, setSmith] = useState(storedFilters?.smith || '');
   const [type, setType] = useState(storedFilters?.type || '');
+  const [authentication, setAuthentication] = useState(storedFilters?.authentication || '');
+  const [province, setProvince] = useState(storedFilters?.province || '');
   const [hasMedia, setHasMedia] = useState(storedFilters?.hasMedia || '');
 
-  // Filter options
-  const [schools, setSchools] = useState([]);
-  const [types, setTypes] = useState([]);
+  // All swords for autocomplete and filter options (fetched once)
+  const [allSwords, setAllSwords] = useState([]);
+
+  // Current filters object for filterUtils
+  const currentFilters = useMemo(() => ({
+    school,
+    smith,
+    type,
+    authentication,
+    province,
+    hasMedia
+  }), [school, smith, type, authentication, province, hasMedia]);
+
+  // Get available filter options based on current filters (cascading)
+  const availableOptions = useMemo(
+    () => getAvailableFilterOptions(allSwords, currentFilters, searchTags),
+    [allSwords, currentFilters, searchTags]
+  );
+
+  // Get counts for each filter option
+  const schoolCounts = useMemo(
+    () => getOptionCounts(allSwords, currentFilters, searchTags, 'school'),
+    [allSwords, currentFilters, searchTags]
+  );
+
+  const smithCounts = useMemo(
+    () => getOptionCounts(allSwords, currentFilters, searchTags, 'smith'),
+    [allSwords, currentFilters, searchTags]
+  );
+
+  const typeCounts = useMemo(
+    () => getOptionCounts(allSwords, currentFilters, searchTags, 'type'),
+    [allSwords, currentFilters, searchTags]
+  );
+
+  const provinceCounts = useMemo(
+    () => getOptionCounts(allSwords, currentFilters, searchTags, 'province'),
+    [allSwords, currentFilters, searchTags]
+  );
+
+  const authenticationCounts = useMemo(
+    () => getAuthenticationCounts(allSwords, currentFilters, searchTags),
+    [allSwords, currentFilters, searchTags]
+  );
+
+  const mediaCounts = useMemo(
+    () => getMediaCounts(allSwords, currentFilters, searchTags),
+    [allSwords, currentFilters, searchTags]
+  );
+
+  // Search input ref for autocomplete
+  const searchInputRef = useRef(null);
+
+  // Autocomplete hook
+  const handleAutocompleteSelect = (suggestion) => {
+    setSearchTags([...searchTags, suggestion]);
+    setSearchInput('');
+    setPage(1);
+    searchInputRef.current?.focus();
+  };
+
+  const {
+    suggestions,
+    isOpen: isAutocompleteOpen,
+    selectedIndex,
+    dropdownRef,
+    handleKeyDown: handleAutocompleteKeyDown,
+    selectSuggestionByIndex,
+    close: closeAutocomplete
+  } = useAutocomplete(searchInput, allSwords, {
+    debounceDelay: 150,
+    minChars: 2,
+    maxSuggestions: 8,
+    onSelect: handleAutocompleteSelect
+  });
 
   // Save filters to sessionStorage whenever they change
   useEffect(() => {
@@ -43,22 +121,24 @@ function SwordList() {
       searchInput,
       searchTags,
       school,
+      smith,
       type,
+      authentication,
+      province,
       hasMedia,
       page
     };
     sessionStorage.setItem('adminFilters', JSON.stringify(filters));
-  }, [searchInput, searchTags, school, type, hasMedia, page]);
+  }, [searchInput, searchTags, school, smith, type, authentication, province, hasMedia, page]);
 
-  // Load filter options
+  // Load all swords for autocomplete and filter options (once on mount)
   useEffect(() => {
-    fetch(`${API_BASE}/filters`)
+    fetch(`${API_BASE}/swords?limit=50000`)
       .then(res => res.json())
       .then(data => {
-        setSchools(data.schools || []);
-        setTypes(data.types || []);
+        setAllSwords(data.swords || []);
       })
-      .catch(err => console.error('Error loading filters:', err));
+      .catch(err => console.error('Error loading swords for autocomplete:', err));
   }, []);
 
   // Load swords with debounced live search
@@ -72,7 +152,10 @@ function SwordList() {
         page,
         limit,
         school,
+        smith,
         type,
+        authentication,
+        province,
         hasMedia
       });
 
@@ -101,14 +184,15 @@ function SwordList() {
     }, 300);
 
     return () => clearTimeout(timeoutId);
-  }, [page, searchTags, searchInput, school, type, hasMedia]);
+  }, [page, searchTags, searchInput, school, smith, type, authentication, province, hasMedia]);
 
   const handleSearchSubmit = (e) => {
-    e.preventDefault();
+    if (e) e.preventDefault();
     if (searchInput.trim()) {
       setSearchTags([...searchTags, searchInput.trim()]);
       setSearchInput('');
       setPage(1);
+      closeAutocomplete();
     }
   };
 
@@ -122,13 +206,36 @@ function SwordList() {
     setPage(1);
   };
 
-  const clearFilters = () => {
-    setSearchInput('');
-    setSearchTags([]);
+  // Clear only dropdown filters (not search tags)
+  const clearDropdownFilters = () => {
     setSchool('');
+    setSmith('');
     setType('');
+    setAuthentication('');
+    setProvince('');
     setHasMedia('');
     setPage(1);
+  };
+
+  // Clear only search (not dropdown filters)
+  const clearSearch = () => {
+    setSearchTags([]);
+    setSearchInput('');
+    closeAutocomplete();
+    setPage(1);
+  };
+
+  // Handle keyboard events for search input
+  const handleSearchKeyDown = (e) => {
+    // Let autocomplete handle its keyboard events first
+    if (handleAutocompleteKeyDown(e)) {
+      return;
+    }
+    // If Enter and no autocomplete selection, add the search tag
+    if (e.key === 'Enter' && selectedIndex === -1) {
+      e.preventDefault();
+      handleSearchSubmit();
+    }
   };
 
   const hasMediaCount = (sword) => {
@@ -154,80 +261,169 @@ function SwordList() {
         </Link>
       </div>
 
-      {/* Filters */}
-      <div className="filters-panel">
-        <div className="filter-group">
-          <label>Search (live updates as you type, or click "Add Filter" for multi-tag search):</label>
-          <form onSubmit={handleSearchSubmit} className="search-form">
+      {/* Full-width Search Bar (matching main site SearchBar exactly) */}
+      <div className="search-bar">
+        <div className="search-input-wrapper" ref={dropdownRef}>
+          <div className="search-input-container">
+            {/* Display search tags */}
+            {searchTags.map((tag, index) => (
+              <span key={index} className="search-tag">
+                {tag}
+                <button
+                  type="button"
+                  onClick={() => removeSearchTag(index)}
+                  className="tag-remove-button"
+                  aria-label={`Remove ${tag} tag`}
+                >
+                  ×
+                </button>
+              </span>
+            ))}
+
+            {/* Input field */}
             <input
+              ref={searchInputRef}
               type="text"
               value={searchInput}
               onChange={(e) => setSearchInput(e.target.value)}
-              placeholder='Type to search live, or add as filter (supports "quoted phrases")...'
+              onKeyDown={handleSearchKeyDown}
+              onBlur={() => setTimeout(closeAutocomplete, 150)}
+              placeholder={searchTags.length === 0 ? 'Search swords by name, smith, school... (Use "quotes" for exact match)' : 'Add another search term...'}
               className="search-input"
+              autoComplete="off"
+              role="combobox"
+              aria-expanded={isAutocompleteOpen}
+              aria-autocomplete="list"
             />
-            <button type="submit" className="btn-primary">Add as Filter Tag</button>
-          </form>
+          </div>
 
-          {searchTags.length > 0 && (
-            <div className="search-tags">
-              {searchTags.map((tag, index) => (
-                <span key={index} className="search-tag">
-                  {tag}
-                  <button
-                    type="button"
-                    onClick={() => removeSearchTag(index)}
-                    className="tag-remove"
-                    aria-label="Remove tag"
-                  >
-                    ×
-                  </button>
-                </span>
-              ))}
-            </div>
+          {/* Autocomplete Dropdown */}
+          {isAutocompleteOpen && suggestions.length > 0 && (
+            <AutocompleteDropdown
+              suggestions={suggestions}
+              selectedIndex={selectedIndex}
+              onSelect={selectSuggestionByIndex}
+              dropdownRef={dropdownRef}
+              inputValue={searchInput}
+            />
           )}
         </div>
 
-        <div className="filter-row">
+        <div className="search-actions">
+          {searchInput && !isAutocompleteOpen && (
+            <button
+              type="button"
+              onClick={handleSearchSubmit}
+              className="add-tag-button"
+            >
+              Add
+            </button>
+          )}
+          {searchTags.length > 0 && (
+            <button
+              type="button"
+              onClick={clearSearch}
+              className="clear-all-button"
+            >
+              Clear All
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* Filters - matching main site FilterPanel structure */}
+      <div className="filter-panel expanded">
+        <div className="filter-header">
+          <div className="filter-title-row">
+            <h3>Filters</h3>
+          </div>
+          {(school || smith || type || authentication || province || hasMedia) && (
+            <button onClick={clearDropdownFilters} className="clear-filters-button">
+              Clear All
+            </button>
+          )}
+        </div>
+
+        <div className="filters-grid">
           <div className="filter-group">
-            <label>School:</label>
+            <label>School</label>
             <select value={school} onChange={handleFilterChange(setSchool)}>
               <option value="">All Schools</option>
-              {schools.map(s => (
-                <option key={s} value={s}>{s}</option>
-              ))}
+              {availableOptions.schools
+                .filter(s => schoolCounts[s] > 0)
+                .map(s => (
+                  <option key={s} value={s}>{s} ({schoolCounts[s]})</option>
+                ))}
             </select>
           </div>
 
           <div className="filter-group">
-            <label>Type:</label>
+            <label>Smith</label>
+            <select value={smith} onChange={handleFilterChange(setSmith)}>
+              <option value="">All Smiths</option>
+              {availableOptions.smiths
+                .filter(s => smithCounts[s] > 0)
+                .map(s => (
+                  <option key={s} value={s}>{s} ({smithCounts[s]})</option>
+                ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label>Type</label>
             <select value={type} onChange={handleFilterChange(setType)}>
               <option value="">All Types</option>
-              {types.map(t => (
-                <option key={t} value={t}>{t}</option>
-              ))}
+              {availableOptions.types
+                .filter(t => typeCounts[t] > 0)
+                .map(t => (
+                  <option key={t} value={t}>{t} ({typeCounts[t]})</option>
+                ))}
             </select>
           </div>
 
           <div className="filter-group">
-            <label>Media Status:</label>
-            <select value={hasMedia} onChange={handleFilterChange(setHasMedia)}>
-              <option value="">All</option>
-              <option value="true">Has Media</option>
-              <option value="false">No Media</option>
+            <label>Authentication</label>
+            <select value={authentication} onChange={handleFilterChange(setAuthentication)}>
+              <option value="">All Levels</option>
+              {availableOptions.authenticationLevels
+                .filter(a => authenticationCounts[a] > 0)
+                .map(a => (
+                  <option key={a} value={a}>{a} ({authenticationCounts[a]})</option>
+                ))}
             </select>
           </div>
 
-          <button onClick={clearFilters} className="btn-secondary">
-            Clear Filters
-          </button>
+          <div className="filter-group">
+            <label>Province</label>
+            <select value={province} onChange={handleFilterChange(setProvince)}>
+              <option value="">All Provinces</option>
+              {availableOptions.provinces
+                .filter(p => provinceCounts[p] > 0)
+                .map(p => (
+                  <option key={p} value={p}>{p} ({provinceCounts[p]})</option>
+                ))}
+            </select>
+          </div>
+
+          <div className="filter-group">
+            <label>Media Status</label>
+            <select value={hasMedia} onChange={handleFilterChange(setHasMedia)}>
+              <option value="">All</option>
+              {mediaCounts.hasMedia > 0 && (
+                <option value="true">Has Media ({mediaCounts.hasMedia})</option>
+              )}
+              {mediaCounts.noMedia > 0 && (
+                <option value="false">No Media ({mediaCounts.noMedia})</option>
+              )}
+            </select>
+          </div>
         </div>
       </div>
 
       {/* Results */}
       <div className="results-info">
         Showing {swords.length} of {total.toLocaleString()} swords
-        {(searchInput.trim() || searchTags.length > 0 || school || type || hasMedia) && ' (filtered)'}
+        {(searchInput.trim() || searchTags.length > 0 || school || smith || type || authentication || province || hasMedia) && ' (filtered)'}
       </div>
 
       {/* Loading / Error */}

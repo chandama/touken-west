@@ -1,4 +1,8 @@
 /* Admin Dashboard Styles */
+/* Import theme variables for consistent styling */
+@import '../../styles/theme.css';
+/* Import shared App styles for search bar, filter panel, etc. */
+@import '../../styles/App.css';
 
 * {
   box-sizing: border-box;
@@ -6,7 +10,7 @@
 
 .admin-container {
   min-height: 100vh;
-  background-color: #f5f7fa;
+  background-color: var(--color-background-subtle);
 }
 
 /* Header */
@@ -124,43 +128,7 @@
   font-weight: 500;
 }
 
-/* Filters */
-.filters-panel {
-  background-color: #f9fafb;
-  padding: 1.5rem;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
-}
-
-.filter-group {
-  margin-bottom: 1rem;
-}
-
-.filter-group:last-child {
-  margin-bottom: 0;
-}
-
-.filter-group label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: #374151;
-}
-
-.filter-row {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  align-items: end;
-}
-
-.search-input {
-  flex: 1;
-  padding: 0.75rem;
-  border: 1px solid #d1d5db;
-  border-radius: 6px;
-  font-size: 1rem;
-}
+/* Note: Filter and search styles are now imported from App.css */
 
 .search-form {
   display: flex;
@@ -678,9 +646,6 @@ select {
     grid-template-columns: 1fr;
   }
 
-  .filter-row {
-    grid-template-columns: 1fr;
-  }
 }
 
 /* Edit Mode Styles */
@@ -1954,4 +1919,515 @@ select {
   .results-summary {
     flex-direction: column;
   }
+}
+
+/* ============================================
+   DARK MODE STYLES
+   Uses CSS variables from theme.css which automatically
+   update when body.dark-mode is applied
+   ============================================ */
+
+.dark-mode .admin-container {
+  background-color: var(--color-background-subtle);
+}
+
+.dark-mode .admin-header {
+  background: linear-gradient(135deg, #0a0a0a 0%, #1a1a1a 100%);
+}
+
+.dark-mode .admin-page {
+  background: var(--color-background-elevated);
+  color: var(--color-text-primary);
+}
+
+.dark-mode .page-header {
+  border-bottom-color: var(--color-border);
+}
+
+.dark-mode .page-header h2 {
+  color: var(--color-text-primary);
+}
+
+.dark-mode .subtitle {
+  color: var(--color-text-secondary);
+}
+
+/* Note: Filter panel and search bar dark mode styles are now handled by App.css */
+
+.dark-mode .form-input,
+.dark-mode .form-textarea,
+.dark-mode select,
+.dark-mode .form-field input,
+.dark-mode .form-field select,
+.dark-mode .form-field textarea {
+  background-color: var(--color-background);
+  border-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.dark-mode .form-input:focus,
+.dark-mode .form-textarea:focus,
+.dark-mode select:focus,
+.dark-mode .form-field input:focus,
+.dark-mode .form-field select:focus,
+.dark-mode .form-field textarea:focus {
+  border-color: var(--color-interactive-primary);
+  box-shadow: 0 0 0 3px rgba(106, 111, 118, 0.2);
+}
+
+.dark-mode .btn-primary {
+  background-color: var(--color-primary);
+}
+
+.dark-mode .btn-primary:hover {
+  background-color: var(--color-primary-light);
+}
+
+.dark-mode .btn-secondary {
+  background-color: var(--color-background-elevated-2);
+  color: var(--color-text-primary);
+}
+
+.dark-mode .btn-secondary:hover {
+  background-color: var(--color-border);
+}
+
+.dark-mode .results-info {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .sword-card {
+  background: var(--color-background-elevated);
+  border-color: var(--color-border);
+}
+
+.dark-mode .sword-card:hover {
+  box-shadow: var(--shadow-lg);
+}
+
+.dark-mode .sword-smith {
+  color: var(--color-text-primary);
+}
+
+.dark-mode .sword-meta {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .sword-measurements {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .measurement-label {
+  color: var(--color-text-tertiary);
+}
+
+.dark-mode .sword-auth {
+  color: var(--color-highlight);
+}
+
+.dark-mode .sword-card-footer {
+  border-top-color: var(--color-border);
+}
+
+.dark-mode .page-info {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .loading {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .error {
+  background-color: rgba(177, 74, 61, 0.15);
+  border-color: var(--color-error);
+  color: var(--color-error-light);
+}
+
+.dark-mode .detail-item {
+  background-color: var(--color-background-elevated);
+}
+
+.dark-mode .detail-item label {
+  color: var(--color-text-tertiary);
+}
+
+.dark-mode .detail-item span {
+  color: var(--color-text-primary);
+}
+
+.dark-mode .detail-section h3 {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-border);
+}
+
+.dark-mode .media-item {
+  background: var(--color-background-elevated);
+  border-color: var(--color-border);
+}
+
+.dark-mode .media-pdf {
+  background-color: var(--color-background);
+}
+
+.dark-mode .media-category {
+  color: var(--color-primary-light);
+}
+
+.dark-mode .media-caption {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .tag {
+  background-color: var(--color-background-elevated-2);
+  color: var(--color-text-primary);
+}
+
+.dark-mode .media-upload {
+  background-color: var(--color-background-elevated);
+}
+
+.dark-mode .dropzone {
+  background-color: var(--color-background);
+  border-color: var(--color-border-strong);
+}
+
+.dark-mode .dropzone:hover:not(.dropzone-disabled) {
+  border-color: var(--color-primary);
+  background-color: var(--color-background-elevated);
+}
+
+.dark-mode .dropzone-active {
+  border-color: var(--color-success);
+  background-color: rgba(93, 133, 73, 0.15);
+}
+
+.dark-mode .upload-form {
+  background-color: var(--color-background);
+}
+
+.dark-mode .modal-overlay {
+  background-color: rgba(0, 0, 0, 0.8);
+}
+
+.dark-mode .modal-content {
+  background: var(--color-background-elevated);
+}
+
+.dark-mode .modal-title {
+  color: var(--color-text-primary);
+}
+
+.dark-mode .modal-warning {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .changes-list {
+  background-color: var(--color-background);
+  border-color: var(--color-border);
+}
+
+.dark-mode .change-item {
+  border-bottom-color: var(--color-border);
+}
+
+.dark-mode .change-field {
+  color: var(--color-primary-light);
+}
+
+.dark-mode .change-before {
+  background-color: rgba(177, 74, 61, 0.15);
+  border-color: var(--color-error);
+}
+
+.dark-mode .change-before strong {
+  color: var(--color-error-light);
+}
+
+.dark-mode .change-after {
+  background-color: rgba(93, 133, 73, 0.15);
+  border-color: var(--color-success);
+}
+
+.dark-mode .change-after strong {
+  color: var(--color-success-light);
+}
+
+.dark-mode .change-arrow {
+  color: var(--color-text-tertiary);
+}
+
+/* Changelog dark mode */
+.dark-mode .changelog-entry {
+  background: var(--color-background-elevated);
+  border-color: var(--color-border);
+}
+
+.dark-mode .changelog-header {
+  background-color: var(--color-background);
+  border-bottom-color: var(--color-border);
+}
+
+.dark-mode .sword-link {
+  color: var(--color-primary-light);
+}
+
+.dark-mode .sword-link:hover {
+  color: var(--color-highlight);
+}
+
+.dark-mode .change-count {
+  background-color: var(--color-background-elevated-2);
+  color: var(--color-text-primary);
+}
+
+.dark-mode .relative-time {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .exact-time {
+  color: var(--color-text-tertiary);
+}
+
+.dark-mode .change-detail {
+  border-bottom-color: var(--color-background-elevated);
+}
+
+.dark-mode .change-field-name {
+  color: var(--color-primary-light);
+}
+
+.dark-mode .value-before {
+  background-color: rgba(177, 74, 61, 0.15);
+  border-color: var(--color-error);
+}
+
+.dark-mode .value-after {
+  background-color: rgba(93, 133, 73, 0.15);
+  border-color: var(--color-success);
+}
+
+.dark-mode .value-content {
+  color: var(--color-text-primary);
+}
+
+/* User management dark mode */
+.dark-mode .stat-card {
+  background: var(--color-background-elevated);
+  border-color: var(--color-border);
+}
+
+.dark-mode .stat-value {
+  color: var(--color-text-primary);
+}
+
+.dark-mode .stat-label {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .users-table-container {
+  background: var(--color-background-elevated);
+  border-color: var(--color-border);
+}
+
+.dark-mode .users-table thead {
+  background: var(--color-background);
+}
+
+.dark-mode .users-table th {
+  color: var(--color-text-primary);
+  border-bottom-color: var(--color-border);
+}
+
+.dark-mode .users-table td {
+  border-bottom-color: var(--color-background-elevated);
+  color: var(--color-text-primary);
+}
+
+.dark-mode .users-table tbody tr:hover {
+  background: var(--color-background);
+}
+
+/* Bulk upload dark mode */
+.dark-mode .csv-format-help {
+  background-color: var(--color-background-elevated);
+  border-color: var(--color-border);
+}
+
+.dark-mode .csv-format-help h3 {
+  color: var(--color-text-primary);
+}
+
+.dark-mode .csv-format-help p {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .csv-format-help .note {
+  background-color: rgba(229, 163, 61, 0.15);
+}
+
+.dark-mode .field-tag {
+  background-color: var(--color-background-elevated-2);
+  color: var(--color-text-primary);
+}
+
+.dark-mode .preview-table-container {
+  border-color: var(--color-border);
+}
+
+.dark-mode .preview-table th {
+  background-color: var(--color-background);
+  color: var(--color-text-primary);
+}
+
+.dark-mode .preview-table td {
+  border-bottom-color: var(--color-border);
+  color: var(--color-text-primary);
+}
+
+.dark-mode .preview-table tbody tr:hover {
+  background-color: var(--color-background);
+}
+
+.dark-mode .import-actions {
+  background-color: var(--color-background-elevated);
+  border-color: var(--color-border);
+}
+
+.dark-mode .import-summary {
+  color: var(--color-text-primary);
+}
+
+/* Form section dark mode */
+.dark-mode .form-section {
+  border-bottom-color: var(--color-border);
+}
+
+.dark-mode .form-section h3 {
+  color: var(--color-text-primary);
+}
+
+.dark-mode .form-field label {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .form-actions {
+  border-top-color: var(--color-border);
+}
+
+/* Note: Search bar and autocomplete styles are now imported from App.css */
+
+.autocomplete-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: -0.5rem;
+  right: -0.5rem;
+  background: var(--color-background-elevated, white);
+  border: 1px solid var(--color-border, #ddd6cf);
+  border-radius: var(--radius-md, 0.5rem);
+  box-shadow: var(--shadow-lg, 0 8px 16px rgba(0, 0, 0, 0.1));
+  z-index: 100;
+  max-height: 320px;
+  overflow-y: auto;
+}
+
+.dark-mode .autocomplete-dropdown {
+  background: var(--color-background-elevated);
+  border-color: var(--color-border);
+  box-shadow: var(--shadow-lg);
+}
+
+.autocomplete-group {
+  border-bottom: 1px solid var(--color-border-subtle, #eeebe7);
+}
+
+.autocomplete-group:last-child {
+  border-bottom: none;
+}
+
+.dark-mode .autocomplete-group {
+  border-bottom-color: var(--color-border-subtle);
+}
+
+.autocomplete-category {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--color-text-tertiary, #8a7660);
+  background-color: var(--color-background-subtle, #faf9f7);
+}
+
+.dark-mode .autocomplete-category {
+  color: var(--color-text-tertiary);
+  background-color: var(--color-background);
+}
+
+.autocomplete-suggestion {
+  padding: 0.6rem 0.75rem;
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  transition: background-color 0.1s;
+}
+
+.autocomplete-suggestion:hover,
+.autocomplete-suggestion.highlighted {
+  background-color: var(--color-background-elevated-2, #f7f5f3);
+}
+
+.dark-mode .autocomplete-suggestion:hover,
+.dark-mode .autocomplete-suggestion.highlighted {
+  background-color: var(--color-background-elevated-2);
+}
+
+.autocomplete-suggestion-text {
+  color: var(--color-text-primary, #362304);
+  font-size: 0.9rem;
+}
+
+.dark-mode .autocomplete-suggestion-text {
+  color: var(--color-text-primary);
+}
+
+.autocomplete-suggestion-count {
+  color: var(--color-text-tertiary, #8a7660);
+  font-size: 0.8rem;
+  font-weight: 500;
+}
+
+.dark-mode .autocomplete-suggestion-count {
+  color: var(--color-text-tertiary);
+}
+
+.autocomplete-highlight {
+  background-color: var(--color-highlight-light, #ffc66b);
+  padding: 0 1px;
+  border-radius: 2px;
+}
+
+.dark-mode .autocomplete-highlight {
+  background-color: var(--color-accent-medium);
+  color: var(--color-text-primary);
+}
+
+.autocomplete-no-results {
+  padding: 1rem;
+  text-align: center;
+  color: var(--color-text-secondary, #6b5a3d);
+}
+
+.dark-mode .autocomplete-no-results {
+  color: var(--color-text-secondary);
+}
+
+.autocomplete-no-results-hint {
+  font-size: 0.8rem;
+  margin-top: 0.25rem;
+  color: var(--color-text-tertiary, #8a7660);
+}
+
+.dark-mode .autocomplete-no-results-hint {
+  color: var(--color-text-tertiary);
 }

@@ -61,7 +61,7 @@ const useSwordData = () => {
         // Use requestIdleCallback or setTimeout to defer this
         const loadFullData = async () => {
           try {
-            const fullResponse = await fetch(`${API_BASE}/swords?limit=20000`);
+            const fullResponse = await fetch(`${API_BASE}/swords?limit=50000`);
 
             if (!fullResponse.ok) {
               console.warn('Background fetch failed, keeping initial data');

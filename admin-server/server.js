@@ -151,6 +151,11 @@ function buildSearchQuery(searchTerms) {
         const quotedConditions = searchFields.map(field => ({
           [field]: { $regex: new RegExp(`\\b${phrase}\\b`, 'i') }
         }));
+        // Also check if the phrase is a number matching Index
+        const indexNum = parseInt(phrase, 10);
+        if (!isNaN(indexNum)) {
+          quotedConditions.push({ Index: indexNum });
+        }
         termConditions.push({ $or: quotedConditions });
       });
     }
@@ -160,6 +165,11 @@ function buildSearchQuery(searchTerms) {
         const unquotedConditions = searchFields.map(field => ({
           [field]: { $regex: new RegExp(word, 'i') }
         }));
+        // Also check if the word is a number matching Index
+        const indexNum = parseInt(word, 10);
+        if (!isNaN(indexNum) && word === String(indexNum)) {
+          unquotedConditions.push({ Index: indexNum });
+        }
         termConditions.push({ $or: unquotedConditions });
       });
     }
@@ -502,7 +512,10 @@ app.get('/api/swords', async (req, res) => {
       page = 1,
       limit = 25,
       school = '',
+      smith = '',
       type = '',
+      authentication = '',
+      province = '',
       hasMedia = ''
     } = req.query;
 
@@ -515,8 +528,8 @@ app.get('/api/swords', async (req, res) => {
     const limitNum = parseInt(limit);
 
     // Check if this is a "get all" request with no filters (most common case)
-    const isFullListRequest = !school && !type && !hasMedia &&
-      searchTerms.length === 0 && limitNum >= 10000;
+    const isFullListRequest = !school && !smith && !type && !authentication && !province && !hasMedia &&
+      searchTerms.length === 0 && limitNum >= 20000;
 
     // Use cache for full list requests
     if (isFullListRequest && swordCache.isValid()) {
@@ -545,9 +558,25 @@ app.get('/api/swords', async (req, res) => {
       query.School = school;
     }
 
+    // Filter by smith
+    if (smith) {
+      query.Smith = smith;
+    }
+
     // Filter by type
     if (type) {
       query.Type = type;
+    }
+
+    // Filter by authentication
+    if (authentication) {
+      // Use regex to match authentication patterns like "Juyo 45", "Tokubetsu Juyo 12", etc.
+      query.Authentication = { $regex: new RegExp(authentication, 'i') };
+    }
+
+    // Filter by province
+    if (province) {
+      query.Province = province;
     }
 
     // Filter by media status
@@ -639,10 +668,16 @@ app.get('/api/filters', async (req, res) => {
   try {
     const schools = await Sword.distinct('School');
     const types = await Sword.distinct('Type');
+    const smiths = await Sword.distinct('Smith');
+    const authentications = await Sword.distinct('Authentication');
+    const provinces = await Sword.distinct('Province');
 
     res.json({
-      schools: schools.filter(Boolean).sort(),
-      types: types.filter(Boolean).sort(),
+      schools: schools.filter(s => s && s !== 'NA').sort(),
+      types: types.filter(t => t && t !== 'NA').sort(),
+      smiths: smiths.filter(s => s && s !== 'NA').sort(),
+      authentications: authentications.filter(a => a && a !== 'NA').sort(),
+      provinces: provinces.filter(p => p && p !== 'NA').sort(),
     });
   } catch (error) {
     console.error('Error fetching filters:', error);
