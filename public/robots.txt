@@ -8,6 +8,10 @@ Allow: /
 Disallow: /admin
 Disallow: /admin/
 
+# Block library (requires authentication)
+Disallow: /library
+Disallow: /library/
+
 # Block API endpoints
 Disallow: /api/
 Disallow: /api
