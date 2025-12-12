@@ -238,14 +238,15 @@ function App() {
           </div>
           <div className="header-actions">
             <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-            <a href="/provinces" className="provinces-link">
+            <span className="header-nav-link active">
+              Sword Database
+            </span>
+            <a href="/provinces" className="header-nav-link">
               Province Map
             </a>
-            {user && (
-              <a href="/library" className="library-link">
-                Digital Library
-              </a>
-            )}
+            <a href="/library" className="header-nav-link">
+              Digital Library
+            </a>
             {user ? (
               <div className="user-menu">
                 <button
@@ -263,6 +264,11 @@ function App() {
                     <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
                     <div className="user-dropdown">
                       <div className="user-dropdown-email">{user.email}</div>
+                      {user.role === 'admin' && (
+                        <a href="/admin" className="user-dropdown-admin">
+                          Admin Panel
+                        </a>
+                      )}
                       <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
                         Logout
                       </button>
