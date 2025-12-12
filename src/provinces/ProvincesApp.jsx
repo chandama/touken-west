@@ -4,8 +4,11 @@ import '../styles/theme.css';
 import '../styles/App.css';
 import AncientJapanMap from '../components/AncientJapanMap.jsx';
 import DarkModeToggle from '../components/DarkModeToggle.jsx';
+import Login from '../components/Login.jsx';
 import ProvinceDetailPanel from './components/ProvinceDetailPanel.jsx';
 import useSwordData from '../hooks/useSwordData.js';
+
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 /**
  * Provinces page - Interactive map of historical Japanese provinces (Gokishichidō)
@@ -17,8 +20,31 @@ function ProvincesApp() {
     return saved ? JSON.parse(saved) : false;
   });
 
+  // Auth state
+  const [user, setUser] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+
   // Load sword data for province statistics
   const { swords, loading: swordsLoading } = useSwordData();
+
+  // Check authentication status
+  useEffect(() => {
+    const checkAuth = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/auth/me`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (error) {
+        // Not logged in
+      }
+    };
+    checkAuth();
+  }, []);
 
   // Normalize accented characters for matching (e.g., "Hōki" -> "Hoki")
   const normalizeProvinceName = (name) => {
@@ -147,6 +173,18 @@ function ProvincesApp() {
     setIsDarkMode(prev => !prev);
   };
 
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      setUser(null);
+    } catch (error) {
+      console.error('Logout failed:', error);
+    }
+  };
+
   const handleProvinceClick = (province) => {
     setSelectedProvince(prev => prev?.id === province.id ? null : province);
   };
@@ -174,11 +212,48 @@ function ProvincesApp() {
           <div className="subpage-header-actions">
             <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
             <a href="/" className="header-nav-link">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-              </svg>
-              Back to Database
+              Sword Database
             </a>
+            <span className="header-nav-link active">
+              Province Map
+            </span>
+            <a href="/library" className="header-nav-link">
+              Digital Library
+            </a>
+            {user ? (
+              <div className="user-menu">
+                <button
+                  className="user-avatar-button"
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  aria-label="User menu"
+                  aria-expanded={showUserDropdown}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="user-avatar-icon">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                </button>
+                {showUserDropdown && (
+                  <>
+                    <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
+                    <div className="user-dropdown">
+                      <div className="user-dropdown-email">{user.email}</div>
+                      {user.role === 'admin' && (
+                        <a href="/admin" className="user-dropdown-admin">
+                          Admin Panel
+                        </a>
+                      )}
+                      <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            ) : (
+              <button onClick={() => setShowLogin(true)} className="login-button">
+                Login
+              </button>
+            )}
           </div>
         </div>
       </header>
@@ -197,6 +272,16 @@ function ProvincesApp() {
         loading={swordsLoading}
         onClose={handleClosePanel}
       />
+
+      {showLogin && (
+        <Login
+          onClose={() => setShowLogin(false)}
+          onLoginSuccess={() => {
+            setShowLogin(false);
+            window.location.reload();
+          }}
+        />
+      )}
     </div>
   );
 }

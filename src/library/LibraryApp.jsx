@@ -302,11 +302,14 @@ function LibraryApp() {
             <div className="subpage-header-actions">
               <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
               <a href="/" className="header-nav-link">
-                <svg viewBox="0 0 24 24" fill="currentColor">
-                  <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-                </svg>
-                Back to Database
+                Sword Database
               </a>
+              <a href="/provinces" className="header-nav-link">
+                Province Map
+              </a>
+              <span className="header-nav-link active">
+                Digital Library
+              </span>
             </div>
           </div>
         </header>
@@ -342,17 +345,15 @@ function LibraryApp() {
           </div>
           <div className="subpage-header-actions">
             <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-            {user.role === 'admin' && (
-              <a href="/admin" className="header-nav-link header-nav-link-highlight">
-                Admin Panel
-              </a>
-            )}
             <a href="/" className="header-nav-link">
-              <svg viewBox="0 0 24 24" fill="currentColor">
-                <path d="M20 11H7.83l5.59-5.59L12 4l-8 8 8 8 1.41-1.41L7.83 13H20v-2z"/>
-              </svg>
-              Back to Database
+              Sword Database
             </a>
+            <a href="/provinces" className="header-nav-link">
+              Province Map
+            </a>
+            <span className="header-nav-link active">
+              Digital Library
+            </span>
             <div className="user-menu">
               <button
                 className="user-avatar-button"
@@ -369,6 +370,11 @@ function LibraryApp() {
                   <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
                   <div className="user-dropdown">
                     <div className="user-dropdown-email">{user.email}</div>
+                    {user.role === 'admin' && (
+                      <a href="/admin" className="user-dropdown-admin">
+                        Admin Panel
+                      </a>
+                    )}
                     <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
                       Logout
                     </button>

@@ -70,9 +70,11 @@ button {
 .App-header {
   background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-primary) 100%);
   color: var(--color-text-inverse);
-  padding: var(--space-2xl);
+  padding: var(--space-md) var(--space-lg);
   box-shadow: var(--shadow-md);
-  position: relative;
+  position: sticky;
+  top: 0;
+  z-index: 100;
 }
 
 .header-content {
@@ -150,6 +152,25 @@ button {
   word-break: break-all;
 }
 
+.user-dropdown-admin {
+  display: block;
+  width: 100%;
+  padding: var(--space-md);
+  background: rgba(255, 200, 50, 0.1);
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  color: var(--accent-primary);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.user-dropdown-admin:hover {
+  background: rgba(255, 200, 50, 0.2);
+}
+
 .user-dropdown-logout {
   width: 100%;
   padding: var(--space-md);
@@ -167,21 +188,19 @@ button {
 }
 
 .login-button {
-  padding: var(--space-sm) var(--space-lg);
-  background: var(--color-primary);
+  padding: var(--space-sm) var(--space-md);
+  background: transparent;
   color: white;
   border: none;
   border-radius: var(--radius-md);
   font-size: var(--font-size-sm);
-  font-weight: var(--font-weight-semibold);
+  font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .login-button:hover {
-  background: var(--color-primary-hover);
-  transform: translateY(-1px);
-  box-shadow: var(--shadow-sm);
+  background: rgba(255, 255, 255, 0.1);
 }
 
 .provinces-link,
@@ -191,39 +210,31 @@ button {
   align-items: center;
   gap: var(--space-xs);
   padding: var(--space-sm) var(--space-md);
-  background: rgba(255, 255, 255, 0.15);
-  border: 1px solid rgba(255, 255, 255, 0.25);
+  background: transparent;
+  border: none;
   border-radius: var(--radius-md);
   color: white;
   text-decoration: none;
   font-size: var(--font-size-sm);
   font-weight: var(--font-weight-medium);
   cursor: pointer;
-  transition: all var(--duration-fast) var(--ease-out);
+  transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .provinces-link:hover,
 .library-link:hover,
 .header-nav-link:hover {
-  background: rgba(255, 255, 255, 0.25);
-  border-color: rgba(255, 255, 255, 0.4);
-  transform: translateY(-1px);
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.header-nav-link.active {
+  opacity: 0.6;
+  cursor: default;
 }
 
 .header-nav-link svg {
   width: 16px;
   height: 16px;
-}
-
-/* Highlighted nav link (for admin, etc) */
-.header-nav-link-highlight {
-  background: rgba(255, 200, 50, 0.2);
-  border-color: rgba(255, 200, 50, 0.4);
-}
-
-.header-nav-link-highlight:hover {
-  background: rgba(255, 200, 50, 0.35);
-  border-color: rgba(255, 200, 50, 0.6);
 }
 
 /* ============================================
@@ -343,6 +354,25 @@ body.dark-mode .subpage-header {
   word-break: break-all;
 }
 
+.subpage-header-actions .user-dropdown-admin {
+  display: block;
+  width: 100%;
+  padding: var(--space-md);
+  background: rgba(255, 200, 50, 0.1);
+  border: none;
+  border-bottom: 1px solid var(--color-border);
+  text-align: left;
+  text-decoration: none;
+  font-size: var(--font-size-sm);
+  color: var(--accent-primary);
+  cursor: pointer;
+  transition: background-color var(--duration-fast) var(--ease-out);
+}
+
+.subpage-header-actions .user-dropdown-admin:hover {
+  background: rgba(255, 200, 50, 0.2);
+}
+
 .subpage-header-actions .user-dropdown-logout {
   width: 100%;
   padding: var(--space-md);
@@ -413,13 +443,13 @@ body.dark-mode .subpage-header {
 .header-text {
   display: flex;
   align-items: center;
-  gap: var(--space-lg);
+  gap: var(--space-md);
   text-align: left;
 }
 
 .header-logo {
-  width: 80px;
-  height: 80px;
+  width: 48px;
+  height: 48px;
   flex-shrink: 0;
   filter: brightness(0) invert(1);
   transition: transform var(--duration-normal) var(--ease-in-out);
@@ -432,12 +462,12 @@ body.dark-mode .subpage-header {
 .header-title-group {
   display: flex;
   flex-direction: column;
-  gap: var(--space-xs);
+  gap: 0;
 }
 
 .App-header h1 {
   margin: 0;
-  font-size: var(--font-size-4xl);
+  font-size: var(--font-size-xl);
   font-weight: var(--font-weight-bold);
   color: var(--color-text-inverse);
   letter-spacing: var(--letter-spacing-tight);
@@ -445,8 +475,8 @@ body.dark-mode .subpage-header {
 
 .App-header p {
   margin: 0;
-  font-size: var(--font-size-lg);
-  opacity: 0.95;
+  font-size: var(--font-size-sm);
+  opacity: 0.85;
   font-weight: var(--font-weight-regular);
   color: var(--color-text-inverse);
 }
@@ -2061,12 +2091,12 @@ body.dark-mode .filter-group-item label {
   }
 
   .header-logo {
-    width: 60px;
-    height: 60px;
+    width: 40px;
+    height: 40px;
   }
 
   .App-header h1 {
-    font-size: var(--font-size-3xl);
+    font-size: var(--font-size-lg);
   }
 
   .main-content {
@@ -2150,15 +2180,15 @@ body.dark-mode .filter-group-item label {
 
 @media (max-width: 640px) {
   .App-header {
-    padding: var(--space-md);
+    padding: var(--space-sm) var(--space-md);
   }
 
   .App-header h1 {
-    font-size: var(--font-size-2xl);
+    font-size: var(--font-size-base);
   }
 
   .App-header p {
-    font-size: var(--font-size-base);
+    font-size: var(--font-size-xs);
   }
 }
 

@@ -2,9 +2,11 @@
 
 .ProvincesApp {
   min-height: 100vh;
+  height: 100vh;
   display: flex;
   flex-direction: column;
   background: #aadaff;
+  overflow: hidden;
 }
 
 .dark-mode .ProvincesApp {
@@ -46,10 +48,24 @@
   padding: var(--space-lg);
   display: flex;
   align-items: stretch;
+  min-height: 0; /* Allow flex item to shrink */
 }
 
 .provinces-map-fullscreen .japan-map-container {
   flex: 1;
+}
+
+/* Mobile: Make map fill entire remaining viewport */
+@media (max-width: 768px) {
+  .provinces-map-fullscreen {
+    padding: 0;
+  }
+
+  .provinces-map-fullscreen .ancient-map-container {
+    min-height: unset;
+    height: 100%;
+    border-radius: 0;
+  }
 }
 
 /* Main Content Layout */

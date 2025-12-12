@@ -15,6 +15,7 @@ function AdminApp() {
     const saved = localStorage.getItem('adminDarkMode');
     return saved ? JSON.parse(saved) : false;
   });
+  const [showActionsDropdown, setShowActionsDropdown] = useState(false);
 
   useEffect(() => {
     localStorage.setItem('adminDarkMode', JSON.stringify(isDarkMode));
@@ -41,10 +42,37 @@ function AdminApp() {
               </Link>
             </h1>
             <nav className="admin-nav">
-              <Link to="/admin" className="nav-link">Swords</Link>
-              <Link to="/admin/bulk-upload" className="nav-link">Bulk Upload</Link>
-              <Link to="/admin/users" className="nav-link">Users</Link>
-              <Link to="/admin/changelog" className="nav-link">Changelog</Link>
+              <div className="admin-actions-dropdown">
+                <button
+                  className="nav-link actions-dropdown-btn"
+                  onClick={() => setShowActionsDropdown(!showActionsDropdown)}
+                  aria-expanded={showActionsDropdown}
+                >
+                  Actions
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="dropdown-arrow">
+                    <path d="M7 10l5 5 5-5z"/>
+                  </svg>
+                </button>
+                {showActionsDropdown && (
+                  <>
+                    <div className="actions-dropdown-backdrop" onClick={() => setShowActionsDropdown(false)} />
+                    <div className="actions-dropdown-menu">
+                      <Link to="/admin" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
+                        Swords
+                      </Link>
+                      <Link to="/admin/bulk-upload" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
+                        Bulk Upload
+                      </Link>
+                      <Link to="/admin/users" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
+                        Users
+                      </Link>
+                      <Link to="/admin/changelog" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
+                        Changelog
+                      </Link>
+                    </div>
+                  </>
+                )}
+              </div>
               <a href="/" target="_blank" rel="noopener noreferrer" className="nav-link">
                 View Site →
               </a>
