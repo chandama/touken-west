@@ -8,6 +8,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const cookieParser = require('cookie-parser');
+const session = require('express-session');
 const lusca = require('lusca');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
@@ -56,17 +57,8 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3002;
 
-// If you want to allow the frontend to fetch the CSRF token via AJAX:
-app.get('/api/csrf-token', (req, res) => {
-  res.json({ csrfToken: req.csrfToken() });
-});
-
 // Connect to MongoDB
 connectDB();
-
-// Cookie parser, body parser, etc. should already be in use above
-// Add CSRF protection middleware
-app.use(lusca.csrf());
 
 // Request logging middleware - log ALL requests
 app.use((req, res, next) => {
@@ -107,6 +99,27 @@ app.use(cors(corsOptions));
 // Body parsing middleware
 app.use(express.json());
 app.use(cookieParser());
+
+// Session middleware (required for lusca CSRF)
+app.use(session({
+  secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'fallback-secret-change-in-production',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    secure: process.env.NODE_ENV === 'production',
+    httpOnly: true,
+    sameSite: 'lax',
+    maxAge: 24 * 60 * 60 * 1000 // 24 hours
+  }
+}));
+
+// CSRF protection middleware
+app.use(lusca.csrf());
+
+// CSRF token endpoint - must be after CSRF middleware
+app.get('/api/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
 
 // JWT Secret
 const JWT_SECRET = process.env.JWT_SECRET;
