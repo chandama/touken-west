@@ -11,6 +11,7 @@ const cookieParser = require('cookie-parser');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const Papa = require('papaparse');
+const _ = require('lodash');
 
 // ==================== IN-MEMORY CACHE ====================
 const swordCache = {
@@ -571,7 +572,8 @@ app.get('/api/swords', async (req, res) => {
     // Filter by authentication
     if (authentication) {
       // Use regex to match authentication patterns like "Juyo 45", "Tokubetsu Juyo 12", etc.
-      query.Authentication = { $regex: new RegExp(authentication, 'i') };
+      const safeAuth = _.escapeRegExp(authentication);
+      query.Authentication = { $regex: new RegExp(safeAuth, 'i') };
     }
 
     // Filter by province
