@@ -554,18 +554,18 @@ app.get('/api/swords', async (req, res) => {
     }
 
     // Filter by school
-    if (school) {
-      query.School = school;
+    if (school && typeof school === 'string') {
+      query.School = { $eq: school };
     }
 
     // Filter by smith
-    if (smith) {
-      query.Smith = smith;
+    if (smith && typeof smith === 'string') {
+      query.Smith = { $eq: smith };
     }
 
     // Filter by type
-    if (type) {
-      query.Type = type;
+    if (type && typeof type === 'string') {
+      query.Type = { $eq: type };
     }
 
     // Filter by authentication
@@ -575,8 +575,8 @@ app.get('/api/swords', async (req, res) => {
     }
 
     // Filter by province
-    if (province) {
-      query.Province = province;
+    if (province && typeof province === 'string') {
+      query.Province = { $eq: province };
     }
 
     // Filter by media status
