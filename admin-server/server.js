@@ -359,6 +359,11 @@ app.get('/api/auth/me', authenticateToken, async (req, res) => {
 const findUserById = async (id) => {
   const mongoose = require('mongoose');
 
+  // Ensure id is a string to prevent NoSQL injection
+  if (typeof id !== "string") {
+    return null;
+  }
+
   // Try MongoDB ObjectId first (must be valid AND 24 chars)
   if (mongoose.Types.ObjectId.isValid(id) && id.length === 24) {
     const user = await User.findById(id);
@@ -366,7 +371,7 @@ const findUserById = async (id) => {
   }
 
   // Fall back to custom id field (for legacy users)
-  return await User.findOne({ id: id });
+  return await User.findOne({ id: { $eq: id } });
 };
 
 // Get all users (Admin only)
