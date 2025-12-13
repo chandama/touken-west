@@ -149,8 +149,9 @@ function buildSearchQuery(searchTerms) {
 
     if (quoted.length > 0) {
       quoted.forEach(phrase => {
+        const safePhrase = _.escapeRegExp(phrase);
         const quotedConditions = searchFields.map(field => ({
-          [field]: { $regex: new RegExp(`\\b${phrase}\\b`, 'i') }
+          [field]: { $regex: new RegExp(`\\b${safePhrase}\\b`, 'i') }
         }));
         // Also check if the phrase is a number matching Index
         const indexNum = parseInt(phrase, 10);
@@ -163,8 +164,9 @@ function buildSearchQuery(searchTerms) {
 
     if (unquoted.length > 0) {
       unquoted.forEach(word => {
+        const safeWord = _.escapeRegExp(word);
         const unquotedConditions = searchFields.map(field => ({
-          [field]: { $regex: new RegExp(word, 'i') }
+          [field]: { $regex: new RegExp(safeWord, 'i') }
         }));
         // Also check if the word is a number matching Index
         const indexNum = parseInt(word, 10);
@@ -251,12 +253,22 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Email, username, and password are required' });
     }
 
-    // Ensure email is a string to prevent NoSQL injection
-    if (typeof email !== 'string') {
+    // Ensure all inputs are strings to prevent NoSQL injection
+    if (typeof email !== 'string' || typeof username !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Invalid input format' });
+    }
+
+    // Sanitize inputs
+    const sanitizedEmail = email.trim().toLowerCase();
+    const sanitizedUsername = username.trim();
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(sanitizedEmail)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    const existingUser = await User.findOne({ email: { $eq: email } });
+    const existingUser = await User.findOne({ email: { $eq: sanitizedEmail } });
     if (existingUser) {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
@@ -264,8 +276,8 @@ app.post('/api/auth/register', async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
-      email,
-      username,
+      email: sanitizedEmail,
+      username: sanitizedUsername,
       password: hashedPassword,
       role: 'user',
     });
@@ -305,12 +317,15 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Ensure email is a string to prevent NoSQL injection
-    if (typeof email !== 'string') {
-      return res.status(400).json({ error: 'Invalid email format' });
+    // Ensure all inputs are strings to prevent NoSQL injection
+    if (typeof email !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Invalid input format' });
     }
 
-    const user = await User.findOne({ email: { $eq: email } });
+    // Sanitize email
+    const sanitizedEmail = email.trim().toLowerCase();
+
+    const user = await User.findOne({ email: { $eq: sanitizedEmail } });
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -411,12 +426,22 @@ app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Email, username, and password are required' });
     }
 
-    // Ensure email is a string to prevent NoSQL injection
-    if (typeof email !== 'string') {
+    // Ensure all inputs are strings to prevent NoSQL injection
+    if (typeof email !== 'string' || typeof username !== 'string' || typeof password !== 'string') {
+      return res.status(400).json({ error: 'Invalid input format' });
+    }
+
+    // Sanitize inputs
+    const sanitizedEmail = email.trim().toLowerCase();
+    const sanitizedUsername = username.trim();
+
+    // Validate email format
+    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    if (!emailRegex.test(sanitizedEmail)) {
       return res.status(400).json({ error: 'Invalid email format' });
     }
 
-    const existingUser = await User.findOne({ email: { $eq: email } });
+    const existingUser = await User.findOne({ email: { $eq: sanitizedEmail } });
     if (existingUser) {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
@@ -424,8 +449,8 @@ app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
     const hashedPassword = await bcrypt.hash(password, 10);
 
     const newUser = new User({
-      email,
-      username,
+      email: sanitizedEmail,
+      username: sanitizedUsername,
       password: hashedPassword,
       role: role === 'admin' ? 'admin' : 'user',
     });
@@ -458,14 +483,25 @@ app.patch('/api/users/:id', authenticateToken, requireAdmin, async (req, res) =>
       if (typeof email !== 'string') {
         return res.status(400).json({ error: 'Invalid email format' });
       }
-      const existingUser = await User.findOne({ email: { $eq: email } });
+      // Sanitize and validate email
+      const sanitizedEmail = email.trim().toLowerCase();
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(sanitizedEmail)) {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+      const existingUser = await User.findOne({ email: { $eq: sanitizedEmail } });
       if (existingUser && existingUser._id.toString() !== id) {
         return res.status(400).json({ error: 'Email already in use by another user' });
       }
-      user.email = email;
+      user.email = sanitizedEmail;
     }
 
-    if (username) user.username = username;
+    if (username) {
+      if (typeof username !== 'string') {
+        return res.status(400).json({ error: 'Invalid username format' });
+      }
+      user.username = username.trim();
+    }
     if (role && ['user', 'admin'].includes(role)) user.role = role;
 
     await user.save();
@@ -715,7 +751,7 @@ app.get('/api/filters', async (req, res) => {
 app.get('/api/swords/:index', async (req, res) => {
   try {
     const { index } = req.params;
-    const sword = await Sword.findOne({ Index: index }).lean();
+    const sword = await Sword.findOne({ Index: { $eq: index } }).lean();
 
     if (!sword) {
       return res.status(404).json({ error: 'Sword not found' });
@@ -760,7 +796,7 @@ app.post('/api/swords/:index/media', authenticateToken, requireAdmin, upload.sin
       caption
     });
 
-    const sword = await Sword.findOne({ Index: index });
+    const sword = await Sword.findOne({ Index: { $eq: index } });
     if (!sword) {
       return res.status(404).json({ error: 'Sword not found' });
     }
@@ -857,7 +893,7 @@ app.delete('/api/swords/:index/media', authenticateToken, requireAdmin, async (r
 
     console.log(`Removing media from sword ${index}:`, filename);
 
-    const sword = await Sword.findOne({ Index: index });
+    const sword = await Sword.findOne({ Index: { $eq: index } });
     if (!sword) {
       return res.status(404).json({ error: 'Sword not found' });
     }
@@ -979,7 +1015,7 @@ app.patch('/api/swords/:index', authenticateToken, requireAdmin, async (req, res
     const { index } = req.params;
     const updates = req.body;
 
-    const sword = await Sword.findOne({ Index: index });
+    const sword = await Sword.findOne({ Index: { $eq: index } });
     if (!sword) {
       return res.status(404).json({ error: 'Sword not found' });
     }
@@ -1031,7 +1067,7 @@ app.delete('/api/swords/:index', authenticateToken, requireAdmin, async (req, re
 
     console.log(`Attempting to delete sword ${index}`);
 
-    const sword = await Sword.findOne({ Index: index });
+    const sword = await Sword.findOne({ Index: { $eq: index } });
     if (!sword) {
       return res.status(404).json({ error: 'Sword not found' });
     }
@@ -1039,7 +1075,7 @@ app.delete('/api/swords/:index', authenticateToken, requireAdmin, async (req, re
     // Note: Files in Spaces are not deleted to prevent accidental data loss
     // Implement S3 DeleteObject if you want to actually delete files
 
-    await Sword.deleteOne({ Index: index });
+    await Sword.deleteOne({ Index: { $eq: index } });
 
     // Invalidate cache since sword list changed
     swordCache.invalidate();
@@ -1140,10 +1176,10 @@ app.post('/api/swords/bulk', authenticateToken, requireAdmin, csvUpload.single('
 
         // Check for duplicates
         const existing = await Sword.findOne({
-          Smith: swordData.Smith,
-          Mei: swordData.Mei,
-          Type: swordData.Type,
-          Nagasa: swordData.Nagasa,
+          Smith: { $eq: swordData.Smith },
+          Mei: { $eq: swordData.Mei },
+          Type: { $eq: swordData.Type },
+          Nagasa: { $eq: swordData.Nagasa },
         });
 
         if (existing) {
@@ -1372,9 +1408,9 @@ app.post('/api/swords/bulk/preview', authenticateToken, requireAdmin, (req, res,
 
       // Find potential matches by Smith (exact), School (exact), and Type (exact) first
       const potentialMatches = await Sword.find({
-        Smith: swordData.Smith,
-        School: swordData.School,
-        Type: swordData.Type
+        Smith: { $eq: swordData.Smith },
+        School: { $eq: swordData.School },
+        Type: { $eq: swordData.Type }
       }).lean();
 
       // Find best match based on fuzzy criteria
