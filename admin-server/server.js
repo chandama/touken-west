@@ -8,6 +8,7 @@ const compression = require('compression');
 const rateLimit = require('express-rate-limit');
 const mongoSanitize = require('express-mongo-sanitize');
 const cookieParser = require('cookie-parser');
+const lusca = require('lusca');
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcryptjs');
 const Papa = require('papaparse');
@@ -55,8 +56,17 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+// If you want to allow the frontend to fetch the CSRF token via AJAX:
+app.get('/api/csrf-token', (req, res) => {
+  res.json({ csrfToken: req.csrfToken() });
+});
+
 // Connect to MongoDB
 connectDB();
+
+// Cookie parser, body parser, etc. should already be in use above
+// Add CSRF protection middleware
+app.use(lusca.csrf());
 
 // Request logging middleware - log ALL requests
 app.use((req, res, next) => {
