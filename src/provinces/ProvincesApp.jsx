@@ -24,6 +24,7 @@ function ProvincesApp() {
   const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Load sword data for province statistics
   const { swords, loading: swordsLoading } = useSwordData();
@@ -211,6 +212,30 @@ function ProvincesApp() {
           </div>
           <div className="subpage-header-actions">
             <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
+            {/* Mobile hamburger menu */}
+            <div className="mobile-menu">
+              <button
+                className="mobile-menu-button"
+                onClick={() => setShowMobileMenu(!showMobileMenu)}
+                aria-label="Navigation menu"
+                aria-expanded={showMobileMenu}
+              >
+                <svg viewBox="0 0 24 24" fill="currentColor" className="mobile-menu-icon">
+                  <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                </svg>
+              </button>
+              {showMobileMenu && (
+                <>
+                  <div className="mobile-menu-backdrop" onClick={() => setShowMobileMenu(false)} />
+                  <div className="mobile-menu-dropdown">
+                    <a href="/" className="mobile-nav-link">Sword Database</a>
+                    <span className="mobile-nav-link active">Province Map</span>
+                    <a href="/library" className="mobile-nav-link">Digital Library</a>
+                  </div>
+                </>
+              )}
+            </div>
+            {/* Desktop nav links */}
             <a href="/" className="header-nav-link">
               Sword Database
             </a>
