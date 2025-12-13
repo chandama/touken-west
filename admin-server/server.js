@@ -251,7 +251,12 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Email, username, and password are required' });
     }
 
-    const existingUser = await User.findOne({ email });
+    // Ensure email is a string to prevent NoSQL injection
+    if (typeof email !== 'string') {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    const existingUser = await User.findOne({ email: { $eq: email } });
     if (existingUser) {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
@@ -300,7 +305,12 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    const user = await User.findOne({ email });
+    // Ensure email is a string to prevent NoSQL injection
+    if (typeof email !== 'string') {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    const user = await User.findOne({ email: { $eq: email } });
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
@@ -401,7 +411,12 @@ app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
       return res.status(400).json({ error: 'Email, username, and password are required' });
     }
 
-    const existingUser = await User.findOne({ email });
+    // Ensure email is a string to prevent NoSQL injection
+    if (typeof email !== 'string') {
+      return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    const existingUser = await User.findOne({ email: { $eq: email } });
     if (existingUser) {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
@@ -439,7 +454,11 @@ app.patch('/api/users/:id', authenticateToken, requireAdmin, async (req, res) =>
     }
 
     if (email && email !== user.email) {
-      const existingUser = await User.findOne({ email });
+      // Ensure email is a string to prevent NoSQL injection
+      if (typeof email !== 'string') {
+        return res.status(400).json({ error: 'Invalid email format' });
+      }
+      const existingUser = await User.findOne({ email: { $eq: email } });
       if (existingUser && existingUser._id.toString() !== id) {
         return res.status(400).json({ error: 'Email already in use by another user' });
       }
