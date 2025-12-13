@@ -113,8 +113,21 @@ app.use(session({
   }
 }));
 
-// CSRF protection middleware
-app.use(lusca.csrf());
+// CSRF protection middleware - exclude auth routes that don't need protection
+// (login/register/logout don't have sessions to protect from CSRF)
+const csrfProtection = lusca.csrf();
+app.use((req, res, next) => {
+  // Skip CSRF for auth routes - they don't have sessions to protect
+  const csrfExemptPaths = [
+    '/api/auth/login',
+    '/api/auth/register',
+    '/api/auth/logout'
+  ];
+  if (csrfExemptPaths.includes(req.path)) {
+    return next();
+  }
+  return csrfProtection(req, res, next);
+});
 
 // CSRF token endpoint - must be after CSRF middleware
 app.get('/api/csrf-token', (req, res) => {
