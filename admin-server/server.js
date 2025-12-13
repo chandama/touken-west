@@ -891,7 +891,7 @@ app.delete('/api/swords/:index/media', authenticateToken, requireAdmin, async (r
     const { index } = req.params;
     const { filename } = req.body;
 
-    console.log(`Removing media from sword ${index}:`, filename);
+    console.log('Removing media from sword %s:', index, filename);
 
     const sword = await Sword.findOne({ Index: { $eq: index } });
     if (!sword) {
