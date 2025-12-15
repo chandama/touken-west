@@ -57,6 +57,12 @@ const {
 const app = express();
 const PORT = process.env.PORT || 3002;
 
+// Trust proxy for production (behind nginx/load balancer)
+// This is required for secure cookies to work properly
+if (process.env.NODE_ENV === 'production') {
+  app.set('trust proxy', 1);
+}
+
 // Connect to MongoDB
 connectDB();
 
@@ -1680,6 +1686,12 @@ app.get('/api/changelog', async (req, res) => {
 app.use((err, req, res, next) => {
   console.error('Global error handler caught:', err.message);
   console.error('Stack:', err.stack);
+
+  // Return 403 for CSRF token errors
+  if (err.message && err.message.toLowerCase().includes('csrf')) {
+    return res.status(403).json({ error: err.message });
+  }
+
   res.status(500).json({ error: err.message || 'Internal server error' });
 });
 

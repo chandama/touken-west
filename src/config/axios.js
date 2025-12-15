@@ -38,13 +38,19 @@ axios.interceptors.request.use(async (config) => {
   return Promise.reject(error);
 });
 
-// Handle CSRF token expiry - refetch on 403 CSRF errors
+// Handle CSRF token expiry - refetch on CSRF errors and retry once
 axios.interceptors.response.use(
   (response) => response,
   async (error) => {
-    if (error.response?.status === 403 &&
-        error.response?.data?.error?.includes('CSRF')) {
-      // Token expired, fetch a new one and retry
+    const errorMessage = error.response?.data?.error || '';
+    const isCsrfError = errorMessage.toLowerCase().includes('csrf');
+
+    // Check if this is a CSRF error and we haven't already retried
+    if (isCsrfError && !error.config._csrfRetry) {
+      console.log('CSRF token mismatch detected, fetching new token and retrying...');
+      // Mark this request as a retry to prevent infinite loops
+      error.config._csrfRetry = true;
+      // Clear and refetch token
       csrfToken = null;
       await fetchCsrfToken();
       if (csrfToken) {
