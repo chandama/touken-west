@@ -1,3 +1,6 @@
+// Configure axios CSRF interceptors before any other imports
+import './config/axios.js';
+
 import React from 'react';
 import ReactDOM from 'react-dom/client';
 import './styles/index.css';

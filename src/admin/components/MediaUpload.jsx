@@ -1,5 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
+import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
@@ -43,15 +44,11 @@ function MediaUpload({ swordIndex, onUploadComplete }) {
     formData.append('tags', tags);
 
     try {
-      const response = await fetch(`${API_BASE}/swords/${swordIndex}/media`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData,
+      const response = await axios.post(`${API_BASE}/swords/${swordIndex}/media`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      const result = await response.json();
-
-      if (result.success) {
+      if (response.data.success) {
         setUploadProgress('Upload successful!');
         setTimeout(() => setUploadProgress(''), 2000);
 
@@ -61,13 +58,13 @@ function MediaUpload({ swordIndex, onUploadComplete }) {
 
         // Notify parent
         if (onUploadComplete) {
-          onUploadComplete(result.sword);
+          onUploadComplete(response.data.sword);
         }
       } else {
-        setUploadProgress('Upload failed: ' + result.error);
+        setUploadProgress('Upload failed: ' + response.data.error);
       }
     } catch (error) {
-      setUploadProgress('Upload error: ' + error.message);
+      setUploadProgress('Upload error: ' + (error.response?.data?.error || error.message));
     } finally {
       setTimeout(() => setUploading(false), 2000);
     }

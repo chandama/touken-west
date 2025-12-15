@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
+import axios from 'axios';
 import MediaUpload from '../components/MediaUpload.jsx';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
@@ -79,26 +80,21 @@ function SwordEdit() {
     }
 
     try {
-      const response = await fetch(`${API_BASE}/swords/${index}/media`, {
-        method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify({ filename }),
+      const response = await axios.delete(`${API_BASE}/swords/${index}/media`, {
+        data: { filename },
       });
 
-      const result = await response.json();
-
-      if (result.success) {
+      if (response.data.success) {
         alert('Media removed successfully');
         // Refresh sword data
         fetch(`${API_BASE}/swords/${index}`)
           .then(res => res.json())
           .then(data => setSword(data));
       } else {
-        alert('Failed to remove media: ' + result.error);
+        alert('Failed to remove media: ' + response.data.error);
       }
     } catch (err) {
-      alert('Error removing media: ' + err.message);
+      alert('Error removing media: ' + (err.response?.data?.error || err.message));
     }
   };
 
@@ -135,16 +131,9 @@ function SwordEdit() {
     setIsSaving(true);
 
     try {
-      const response = await fetch(`${API_BASE}/swords/${index}`, {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        credentials: 'include',
-        body: JSON.stringify(formData),
-      });
+      const response = await axios.patch(`${API_BASE}/swords/${index}`, formData);
 
-      const result = await response.json();
-
-      if (result.success) {
+      if (response.data.success) {
         alert('Sword record updated successfully');
         setShowConfirmModal(false);
         setIsEditing(false);
@@ -178,10 +167,10 @@ function SwordEdit() {
             setOriginalData(updatedFormData);
           });
       } else {
-        alert('Failed to update sword: ' + result.error);
+        alert('Failed to update sword: ' + response.data.error);
       }
     } catch (err) {
-      alert('Error updating sword: ' + err.message);
+      alert('Error updating sword: ' + (err.response?.data?.error || err.message));
     } finally {
       setIsSaving(false);
     }
@@ -204,24 +193,19 @@ function SwordEdit() {
     setIsDeleting(true);
 
     try {
-      const response = await fetch(`${API_BASE}/swords/${index}`, {
-        method: 'DELETE',
-        credentials: 'include',
-      });
+      const response = await axios.delete(`${API_BASE}/swords/${index}`);
 
-      const result = await response.json();
-
-      if (result.success) {
+      if (response.data.success) {
         alert('Sword record deleted successfully');
         // Navigate back to the sword list
         navigate('/admin');
       } else {
-        alert('Failed to delete sword: ' + result.error);
+        alert('Failed to delete sword: ' + response.data.error);
         setIsDeleting(false);
         setShowDeleteModal(false);
       }
     } catch (err) {
-      alert('Error deleting sword: ' + err.message);
+      alert('Error deleting sword: ' + (err.response?.data?.error || err.message));
       setIsDeleting(false);
       setShowDeleteModal(false);
     }

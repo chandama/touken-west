@@ -1,5 +1,6 @@
 import React, { useState, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
@@ -85,18 +86,11 @@ function BulkUpload() {
       formData.append('file', file);
 
       console.log('Uploading to:', `${API_BASE}/swords/bulk/preview`);
-      const response = await fetch(`${API_BASE}/swords/bulk/preview`, {
-        method: 'POST',
-        credentials: 'include',
-        body: formData
+      const response = await axios.post(`${API_BASE}/swords/bulk/preview`, formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
       });
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Failed to parse CSV');
-      }
-
-      const data = await response.json();
+      const data = response.data;
       setPreviewData(data);
       setDuplicates(data.duplicates || []);
       setNonDuplicates(data.nonDuplicates || []);
@@ -109,7 +103,7 @@ function BulkUpload() {
       setDuplicateDecisions(decisions);
 
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Failed to parse CSV');
     } finally {
       setParsing(false);
     }
@@ -173,25 +167,14 @@ function BulkUpload() {
         return;
       }
 
-      const response = await fetch(`${API_BASE}/swords/bulk/import`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        credentials: 'include',
-        body: JSON.stringify({ swords: swordsToImport })
+      const response = await axios.post(`${API_BASE}/swords/bulk/import`, {
+        swords: swordsToImport
       });
 
-      if (!response.ok) {
-        const errData = await response.json();
-        throw new Error(errData.error || 'Import failed');
-      }
-
-      const results = await response.json();
-      setImportResults(results);
+      setImportResults(response.data);
 
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Import failed');
     } finally {
       setImporting(false);
     }

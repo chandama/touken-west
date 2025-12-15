@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
@@ -54,25 +55,12 @@ function SwordCreate() {
     setError(null);
 
     try {
-      const response = await fetch(`${API_BASE}/swords`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        credentials: 'include',
-        body: JSON.stringify(formData),
-      });
-
-      const result = await response.json();
-
-      if (!response.ok) {
-        throw new Error(result.error || 'Failed to create sword');
-      }
+      const response = await axios.post(`${API_BASE}/swords`, formData);
 
       // Navigate to the edit page for the new sword
-      navigate(`/admin/sword/${result.sword.Index}`);
+      navigate(`/admin/sword/${response.data.sword.Index}`);
     } catch (err) {
-      setError(err.message);
+      setError(err.response?.data?.error || err.message || 'Failed to create sword');
       setSaving(false);
     }
   };
