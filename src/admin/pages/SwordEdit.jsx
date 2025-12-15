@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
+import axios from '../../config/axios.js';
 import MediaUpload from '../components/MediaUpload.jsx';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';

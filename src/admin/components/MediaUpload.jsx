@@ -1,6 +1,6 @@
 import React, { useCallback, useState } from 'react';
 import { useDropzone } from 'react-dropzone';
-import axios from 'axios';
+import axios from '../../config/axios.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
