@@ -21,11 +21,16 @@ const upload = multer({
     fileSize: parseInt(process.env.UPLOAD_MAX_SIZE) || 15 * 1024 * 1024
   },
   fileFilter: (req, file, cb) => {
-    const allowedTypes = (process.env.ALLOWED_FILE_TYPES || 'image/jpeg,image/jpg,application/pdf').split(',');
-    if (allowedTypes.includes(file.mimetype)) {
+    const defaultTypes = 'image/jpeg,image/jpg,image/png,image/gif,image/webp,image/svg+xml,application/pdf,text/xml,application/xml';
+    const allowedTypes = (process.env.ALLOWED_FILE_TYPES || defaultTypes).split(',');
+    // Also allow by file extension (browsers can report inconsistent MIME types)
+    const ext = file.originalname.toLowerCase();
+    const allowedExtensions = ['.jpg', '.jpeg', '.png', '.gif', '.webp', '.svg', '.pdf'];
+    const isAllowedByExtension = allowedExtensions.some(e => ext.endsWith(e));
+    if (allowedTypes.includes(file.mimetype) || isAllowedByExtension) {
       cb(null, true);
     } else {
-      cb(new Error('Invalid file type. Only JPG and PDF allowed.'));
+      cb(new Error(`Invalid file type: ${file.mimetype}. Allowed: JPG, PNG, GIF, WebP, SVG, PDF.`));
     }
   },
 });

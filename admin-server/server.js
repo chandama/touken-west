@@ -43,6 +43,7 @@ const connectDB = require('./config/database');
 const Sword = require('./models/Sword');
 const User = require('./models/User');
 const Changelog = require('./models/Changelog');
+const Article = require('./models/Article');
 
 // Spaces configuration
 const {
@@ -268,6 +269,14 @@ function authenticateToken(req, res, next) {
 function requireAdmin(req, res, next) {
   if (req.user.role !== 'admin') {
     return res.status(403).json({ error: 'Access denied. Admin privileges required.' });
+  }
+  next();
+}
+
+// Middleware to require editor OR admin role (for content management)
+function requireEditor(req, res, next) {
+  if (!['editor', 'admin'].includes(req.user.role)) {
+    return res.status(403).json({ error: 'Access denied. Editor privileges required.' });
   }
   next();
 }
@@ -1677,6 +1686,516 @@ app.get('/api/changelog', async (req, res) => {
     });
   } catch (error) {
     console.error('Error fetching changelog:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== ARTICLE ROUTES ====================
+
+// Configure multer for PDF uploads (larger file size limit)
+const pdfUpload = require('multer')({
+  storage: require('multer').memoryStorage(),
+  limits: { fileSize: 50 * 1024 * 1024 }, // 50MB for PDFs
+  fileFilter: (req, file, cb) => {
+    if (file.mimetype === 'application/pdf') {
+      cb(null, true);
+    } else {
+      cb(new Error('Only PDF files allowed'));
+    }
+  }
+});
+
+// Public: Get published articles with pagination
+app.get('/api/articles', async (req, res) => {
+  try {
+    const { page = 1, limit = 10, category = '', search = '' } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    const query = { status: 'published' };
+
+    if (category) {
+      query.category = category;
+    }
+
+    if (search) {
+      query.$text = { $search: search };
+    }
+
+    const articles = await Article.find(query)
+      .select('-htmlContent -images') // Exclude heavy content for list
+      .sort({ publishedAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .lean();
+
+    const total = await Article.countDocuments(query);
+
+    res.json({
+      articles,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum)
+    });
+  } catch (error) {
+    console.error('Error fetching articles:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Public: Get article categories with counts
+app.get('/api/articles/categories', async (req, res) => {
+  try {
+    const categories = await Article.aggregate([
+      { $match: { status: 'published' } },
+      { $group: { _id: '$category', count: { $sum: 1 } } },
+      { $sort: { count: -1 } }
+    ]);
+
+    res.json(categories.map(c => ({ category: c._id, count: c.count })));
+  } catch (error) {
+    console.error('Error fetching article categories:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Public: Get single published article by slug
+app.get('/api/articles/:slug', async (req, res) => {
+  try {
+    const article = await Article.findOne({
+      slug: req.params.slug,
+      status: 'published'
+    }).lean();
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    // Parse images JSON
+    if (article.images) {
+      try {
+        article.imagesArray = JSON.parse(article.images);
+      } catch {
+        article.imagesArray = [];
+      }
+    }
+
+    res.json(article);
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Get all articles (including drafts)
+app.get('/api/admin/articles', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const { page = 1, limit = 20, status = '', category = '' } = req.query;
+    const pageNum = parseInt(page);
+    const limitNum = parseInt(limit);
+
+    const query = {};
+    if (status) query.status = status;
+    if (category) query.category = category;
+
+    const articles = await Article.find(query)
+      .select('-htmlContent -images')
+      .sort({ updatedAt: -1 })
+      .skip((pageNum - 1) * limitNum)
+      .limit(limitNum)
+      .lean();
+
+    const total = await Article.countDocuments(query);
+
+    res.json({
+      articles,
+      total,
+      page: pageNum,
+      limit: limitNum,
+      pages: Math.ceil(total / limitNum)
+    });
+  } catch (error) {
+    console.error('Error fetching admin articles:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Get single article by slug (including drafts)
+app.get('/api/admin/articles/:slug', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const article = await Article.findOne({ slug: req.params.slug }).lean();
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    // Parse images JSON
+    if (article.images) {
+      try {
+        article.imagesArray = JSON.parse(article.images);
+      } catch {
+        article.imagesArray = [];
+      }
+    }
+
+    res.json(article);
+  } catch (error) {
+    console.error('Error fetching article:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Create article
+app.post('/api/admin/articles', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const { title, contentType, category, summary, author, tags } = req.body;
+
+    if (!title || !contentType) {
+      return res.status(400).json({ error: 'Title and content type are required' });
+    }
+
+    if (!['html', 'pdf'].includes(contentType)) {
+      return res.status(400).json({ error: 'Content type must be html or pdf' });
+    }
+
+    // Generate slug from title
+    let slug = title.toLowerCase()
+      .replace(/[^a-z0-9]+/g, '-')
+      .replace(/(^-|-$)/g, '');
+
+    // Ensure unique slug
+    let counter = 1;
+    let uniqueSlug = slug;
+    while (await Article.findOne({ slug: uniqueSlug })) {
+      uniqueSlug = `${slug}-${counter}`;
+      counter++;
+    }
+
+    const article = new Article({
+      slug: uniqueSlug,
+      title,
+      contentType,
+      category: category || 'General',
+      summary: summary || '',
+      author: author || '',
+      tags: tags || [],
+      createdBy: req.user.id,
+      lastEditedBy: req.user.id
+    });
+
+    await article.save();
+
+    console.log(`Article created: ${uniqueSlug} by user ${req.user.id}`);
+
+    res.json({ success: true, article });
+  } catch (error) {
+    console.error('Error creating article:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Update article
+app.patch('/api/admin/articles/:slug', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const article = await Article.findOne({ slug: req.params.slug });
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    const { title, summary, author, category, tags, htmlContent } = req.body;
+
+    if (title !== undefined) article.title = title;
+    if (summary !== undefined) article.summary = summary;
+    if (author !== undefined) article.author = author;
+    if (category !== undefined) article.category = category;
+    if (tags !== undefined) article.tags = tags;
+    if (htmlContent !== undefined && article.contentType === 'html') {
+      article.htmlContent = htmlContent;
+    }
+
+    article.lastEditedBy = req.user.id;
+
+    await article.save();
+
+    console.log(`Article updated: ${req.params.slug} by user ${req.user.id}`);
+
+    res.json({ success: true, article });
+  } catch (error) {
+    console.error('Error updating article:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Delete article
+app.delete('/api/admin/articles/:slug', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const article = await Article.findOneAndDelete({ slug: req.params.slug });
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    console.log(`Article deleted: ${req.params.slug} by user ${req.user.id}`);
+
+    res.json({ success: true, message: 'Article deleted' });
+  } catch (error) {
+    console.error('Error deleting article:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Upload PDF for article
+app.post('/api/admin/articles/:slug/pdf', authenticateToken, requireEditor, pdfUpload.single('file'), async (req, res) => {
+  try {
+    const article = await Article.findOne({ slug: req.params.slug });
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    if (article.contentType !== 'pdf') {
+      return res.status(400).json({ error: 'Article is not PDF type' });
+    }
+
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const md5 = calculateMD5(file.buffer);
+    const filename = generateFilename(file.originalname);
+    const fileKey = `articles/pdfs/${filename}`;
+
+    const fileUrl = await uploadToSpaces(file.buffer, fileKey, 'application/pdf');
+
+    article.pdfFile = {
+      url: fileUrl,
+      filename,
+      originalFilename: file.originalname,
+      fileSize: file.size,
+      uploadedAt: new Date(),
+      md5
+    };
+
+    article.lastEditedBy = req.user.id;
+    await article.save();
+
+    console.log(`PDF uploaded for article: ${req.params.slug}`);
+
+    res.json({ success: true, article });
+  } catch (error) {
+    console.error('Error uploading PDF:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Upload image for HTML article
+app.post('/api/admin/articles/:slug/images', authenticateToken, requireEditor, upload.single('file'), async (req, res) => {
+  try {
+    const article = await Article.findOne({ slug: req.params.slug });
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    if (article.contentType !== 'html') {
+      return res.status(400).json({ error: 'Article is not HTML type' });
+    }
+
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    // Parse existing images
+    let images = [];
+    try {
+      images = JSON.parse(article.images || '[]');
+    } catch {
+      images = [];
+    }
+
+    const md5 = calculateMD5(file.buffer);
+
+    // Check for duplicate
+    if (images.find(img => img.md5 === md5)) {
+      return res.status(409).json({ error: 'Duplicate image' });
+    }
+
+    const filename = generateFilename(file.originalname);
+    const fileKey = `articles/images/${filename}`;
+    const fileUrl = await uploadToSpaces(file.buffer, fileKey, file.mimetype);
+
+    // Generate thumbnail (skip for SVG - they're already scalable and Sharp doesn't handle them)
+    let thumbnailUrl = null;
+    if (file.mimetype.startsWith('image/') && file.mimetype !== 'image/svg+xml') {
+      const thumbBuffer = await generateThumbnail(file.buffer);
+      const thumbKey = `articles/images/thumb-${filename}`;
+      thumbnailUrl = await uploadToSpaces(thumbBuffer, thumbKey, 'image/jpeg');
+    } else if (file.mimetype === 'image/svg+xml') {
+      // For SVG, use the original as thumbnail (it scales perfectly)
+      thumbnailUrl = fileUrl;
+    }
+
+    const newImage = {
+      url: fileUrl,
+      thumbnailUrl,
+      filename,
+      originalFilename: file.originalname,
+      caption: req.body.caption || '',
+      uploadedAt: new Date().toISOString(),
+      md5
+    };
+
+    images.push(newImage);
+    article.images = JSON.stringify(images);
+    article.lastEditedBy = req.user.id;
+    await article.save();
+
+    console.log(`Image uploaded for article: ${req.params.slug}`);
+
+    res.json({ success: true, image: newImage, article });
+  } catch (error) {
+    console.error('Error uploading image:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Delete image from article
+app.delete('/api/admin/articles/:slug/images/:filename', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const article = await Article.findOne({ slug: req.params.slug });
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    // Parse existing images
+    let images = [];
+    try {
+      images = JSON.parse(article.images || '[]');
+    } catch {
+      images = [];
+    }
+
+    const imageIndex = images.findIndex(img => img.filename === req.params.filename);
+    if (imageIndex === -1) {
+      return res.status(404).json({ error: 'Image not found' });
+    }
+
+    images.splice(imageIndex, 1);
+    article.images = JSON.stringify(images);
+    article.lastEditedBy = req.user.id;
+    await article.save();
+
+    console.log(`Image deleted from article: ${req.params.slug}`);
+
+    res.json({ success: true, article });
+  } catch (error) {
+    console.error('Error deleting image:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Upload cover image
+app.post('/api/admin/articles/:slug/cover', authenticateToken, requireEditor, upload.single('file'), async (req, res) => {
+  try {
+    const article = await Article.findOne({ slug: req.params.slug });
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ error: 'No file uploaded' });
+    }
+
+    const filename = generateFilename(file.originalname);
+    const fileKey = `articles/covers/${filename}`;
+    const fileUrl = await uploadToSpaces(file.buffer, fileKey, file.mimetype);
+
+    // Generate thumbnail (skip for SVG - they're already scalable and Sharp doesn't handle them)
+    let thumbnailUrl = null;
+    if (file.mimetype.startsWith('image/') && file.mimetype !== 'image/svg+xml') {
+      const thumbBuffer = await generateThumbnail(file.buffer);
+      const thumbKey = `articles/covers/thumb-${filename}`;
+      thumbnailUrl = await uploadToSpaces(thumbBuffer, thumbKey, 'image/jpeg');
+    } else if (file.mimetype === 'image/svg+xml') {
+      // For SVG, use the original as thumbnail (it scales perfectly)
+      thumbnailUrl = fileUrl;
+    }
+
+    article.coverImage = {
+      url: fileUrl,
+      thumbnailUrl,
+      filename
+    };
+
+    article.lastEditedBy = req.user.id;
+    await article.save();
+
+    console.log(`Cover image uploaded for article: ${req.params.slug}`);
+
+    res.json({ success: true, article });
+  } catch (error) {
+    console.error('Error uploading cover image:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Publish article
+app.post('/api/admin/articles/:slug/publish', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const article = await Article.findOne({ slug: req.params.slug });
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    // Validate article has content
+    if (article.contentType === 'pdf' && !article.pdfFile?.url) {
+      return res.status(400).json({ error: 'PDF article must have a PDF file uploaded before publishing' });
+    }
+
+    if (article.contentType === 'html' && !article.htmlContent?.trim()) {
+      return res.status(400).json({ error: 'HTML article must have content before publishing' });
+    }
+
+    article.status = 'published';
+    article.publishedAt = new Date();
+    article.lastEditedBy = req.user.id;
+    await article.save();
+
+    console.log(`Article published: ${req.params.slug}`);
+
+    res.json({ success: true, article });
+  } catch (error) {
+    console.error('Error publishing article:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Admin: Unpublish article
+app.post('/api/admin/articles/:slug/unpublish', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const article = await Article.findOne({ slug: req.params.slug });
+
+    if (!article) {
+      return res.status(404).json({ error: 'Article not found' });
+    }
+
+    article.status = 'draft';
+    article.lastEditedBy = req.user.id;
+    await article.save();
+
+    console.log(`Article unpublished: ${req.params.slug}`);
+
+    res.json({ success: true, article });
+  } catch (error) {
+    console.error('Error unpublishing article:', error);
     res.status(500).json({ error: error.message });
   }
 });

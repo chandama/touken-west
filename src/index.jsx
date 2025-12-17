@@ -8,17 +8,20 @@ import App from './App.jsx';
 import AdminApp from './admin/AdminApp.jsx';
 import LibraryApp from './library/LibraryApp.jsx';
 import ProvincesApp from './provinces/ProvincesApp.jsx';
+import ArticlesApp from './articles/ArticlesApp.jsx';
 
 // Check which route we're on
 const isAdminRoute = window.location.pathname.startsWith('/admin');
 const isLibraryRoute = window.location.pathname.startsWith('/library');
 const isProvincesRoute = window.location.pathname.startsWith('/provinces');
+const isArticlesRoute = window.location.pathname.startsWith('/articles');
 
 // Determine which app to render
 const getAppComponent = () => {
   if (isAdminRoute) return <AdminApp />;
   if (isLibraryRoute) return <LibraryApp />;
   if (isProvincesRoute) return <ProvincesApp />;
+  if (isArticlesRoute) return <ArticlesApp />;
   return <App />;
 };
 
