@@ -1982,8 +1982,12 @@ app.get('/api/admin/articles', authenticateToken, requireEditor, async (req, res
     const limitNum = parseInt(limit);
 
     const query = {};
-    if (status) query.status = status;
-    if (category) query.category = category;
+    if (typeof status === 'string' && status.trim() !== '') {
+      query.status = { $eq: status };
+    }
+    if (typeof category === 'string' && category.trim() !== '') {
+      query.category = { $eq: category };
+    }
 
     const articles = await Article.find(query)
       .select('-htmlContent -images')
