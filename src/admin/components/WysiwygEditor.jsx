@@ -369,10 +369,24 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
   const handleImageUpdate = ({ url, size, caption }) => {
     if (!editingImageElement) return;
 
-    // Create new figure HTML
+    // Utility to escape HTML special characters to prevent XSS
+    function escapeHtml(str) {
+      return String(str)
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;")
+        .replace(/'/g, "&#39;")
+        .replace(/`/g, "&#96;");
+    }
+
+    // Create new figure HTML (with attribute escaping)
+    const escapedUrl = escapeHtml(url);
+    const escapedSize = escapeHtml(size);
+    const escapedCaption = escapeHtml(caption);
     const newFigureHtml = caption
-      ? `<figure class="article-figure figure-${size}" data-size="${size}"><img src="${url}" alt="${caption}" class="article-image" data-size="${size}" data-caption="${caption}" /><figcaption>${caption}</figcaption></figure>`
-      : `<figure class="article-figure figure-${size}" data-size="${size}"><img src="${url}" alt="" class="article-image" data-size="${size}" data-caption="" /></figure>`;
+      ? `<figure class="article-figure figure-${escapedSize}" data-size="${escapedSize}"><img src="${escapedUrl}" alt="${escapedCaption}" class="article-image" data-size="${escapedSize}" data-caption="${escapedCaption}" /><figcaption>${escapedCaption}</figcaption></figure>`
+      : `<figure class="article-figure figure-${escapedSize}" data-size="${escapedSize}"><img src="${escapedUrl}" alt="" class="article-image" data-size="${escapedSize}" data-caption="" /></figure>`;
 
     // Find and replace the old figure/image in the editor
     const currentHtml = editor.getHTML();
