@@ -231,6 +231,7 @@ function ProvincesApp() {
                     <a href="/" className="mobile-nav-link">Sword Database</a>
                     <span className="mobile-nav-link active">Province Map</span>
                     <a href="/library" className="mobile-nav-link">Digital Library</a>
+                    <a href="/articles" className="mobile-nav-link">Articles</a>
                   </div>
                 </>
               )}
@@ -244,6 +245,9 @@ function ProvincesApp() {
             </span>
             <a href="/library" className="header-nav-link">
               Digital Library
+            </a>
+            <a href="/articles" className="header-nav-link">
+              Articles
             </a>
             {user ? (
               <div className="user-menu">

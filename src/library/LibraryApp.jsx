@@ -321,6 +321,7 @@ function LibraryApp() {
                       <a href="/" className="mobile-nav-link">Sword Database</a>
                       <a href="/provinces" className="mobile-nav-link">Province Map</a>
                       <span className="mobile-nav-link active">Digital Library</span>
+                      <a href="/articles" className="mobile-nav-link">Articles</a>
                     </div>
                   </>
                 )}
@@ -335,6 +336,9 @@ function LibraryApp() {
               <span className="header-nav-link active">
                 Digital Library
               </span>
+              <a href="/articles" className="header-nav-link">
+                Articles
+              </a>
             </div>
           </div>
         </header>
@@ -389,6 +393,7 @@ function LibraryApp() {
                     <a href="/" className="mobile-nav-link">Sword Database</a>
                     <a href="/provinces" className="mobile-nav-link">Province Map</a>
                     <span className="mobile-nav-link active">Digital Library</span>
+                    <a href="/articles" className="mobile-nav-link">Articles</a>
                   </div>
                 </>
               )}
@@ -403,6 +408,9 @@ function LibraryApp() {
             <span className="header-nav-link active">
               Digital Library
             </span>
+            <a href="/articles" className="header-nav-link">
+              Articles
+            </a>
             <div className="user-menu">
               <button
                 className="user-avatar-button"

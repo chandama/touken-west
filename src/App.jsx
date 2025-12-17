@@ -258,6 +258,7 @@ function App() {
                     <span className="mobile-nav-link active">Sword Database</span>
                     <a href="/provinces" className="mobile-nav-link">Province Map</a>
                     <a href="/library" className="mobile-nav-link">Digital Library</a>
+                    <a href="/articles" className="mobile-nav-link">Articles</a>
                   </div>
                 </>
               )}
@@ -271,6 +272,9 @@ function App() {
             </a>
             <a href="/library" className="header-nav-link">
               Digital Library
+            </a>
+            <a href="/articles" className="header-nav-link">
+              Articles
             </a>
             {user ? (
               <div className="user-menu">
