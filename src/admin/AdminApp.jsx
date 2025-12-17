@@ -6,6 +6,9 @@ import SwordCreate from './pages/SwordCreate.jsx';
 import BulkUpload from './pages/BulkUpload.jsx';
 import Changelog from './pages/Changelog.jsx';
 import UserManagement from './pages/UserManagement.jsx';
+import ArticleList from './pages/ArticleList.jsx';
+import ArticleCreate from './pages/ArticleCreate.jsx';
+import ArticleEdit from './pages/ArticleEdit.jsx';
 import ProtectedRoute from '../components/ProtectedRoute.jsx';
 import DarkModeToggle from '../components/DarkModeToggle.jsx';
 import './styles/admin.css';
@@ -32,7 +35,7 @@ function AdminApp() {
 
   return (
     <BrowserRouter>
-      <ProtectedRoute requireAdmin={true}>
+      <ProtectedRoute requireAdmin={true} allowEditor={true}>
         <div className={`admin-container ${isDarkMode ? 'dark-mode' : ''}`}>
         <header className="admin-header">
           <div className="admin-header-content">
@@ -59,6 +62,9 @@ function AdminApp() {
                     <div className="actions-dropdown-menu">
                       <Link to="/admin" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
                         Swords
+                      </Link>
+                      <Link to="/admin/articles" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
+                        Articles
                       </Link>
                       <Link to="/admin/bulk-upload" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
                         Bulk Upload
@@ -87,6 +93,9 @@ function AdminApp() {
             <Route path="/admin/create" element={<SwordCreate />} />
             <Route path="/admin/bulk-upload" element={<BulkUpload />} />
             <Route path="/admin/sword/:index" element={<SwordEdit />} />
+            <Route path="/admin/articles" element={<ArticleList />} />
+            <Route path="/admin/articles/create" element={<ArticleCreate />} />
+            <Route path="/admin/articles/:slug" element={<ArticleEdit />} />
             <Route path="/admin/users" element={<UserManagement />} />
             <Route path="/admin/changelog" element={<Changelog />} />
           </Routes>

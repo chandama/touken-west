@@ -3,7 +3,7 @@ import '../styles/Login.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
-const ProtectedRoute = ({ children, requireAdmin = false }) => {
+const ProtectedRoute = ({ children, requireAdmin = false, allowEditor = false }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showLogin, setShowLogin] = useState(false);
@@ -11,6 +11,14 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+
+  // Check if user has required role
+  const hasRequiredRole = (userRole) => {
+    if (!requireAdmin) return true; // No admin required, any authenticated user is fine
+    if (userRole === 'admin') return true; // Admin always has access
+    if (allowEditor && userRole === 'editor') return true; // Editor allowed if allowEditor is true
+    return false;
+  };
 
   useEffect(() => {
     checkAuth();
@@ -25,8 +33,8 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
         const data = await response.json();
         setUser(data.user);
 
-        // If admin is required but user is not admin, show access denied
-        if (requireAdmin && data.user.role !== 'admin') {
+        // If required role not met, deny access
+        if (!hasRequiredRole(data.user.role)) {
           setUser(null);
         }
       }
@@ -53,9 +61,10 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       const data = await response.json();
 
       if (response.ok) {
-        // Check if user is admin if required
-        if (requireAdmin && data.user.role !== 'admin') {
-          setError('Admin access required');
+        // Check if user has required role
+        if (!hasRequiredRole(data.user.role)) {
+          const requiredRole = allowEditor ? 'Editor or Admin' : 'Admin';
+          setError(`${requiredRole} access required`);
           setIsLoggingIn(false);
           return;
         }
@@ -92,7 +101,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
       <div className="login-overlay">
         <div className="login-modal">
           <div className="login-header">
-            <h2>{requireAdmin ? 'Admin Login Required' : 'Login Required'}</h2>
+            <h2>{requireAdmin ? (allowEditor ? 'Editor Login Required' : 'Admin Login Required') : 'Login Required'}</h2>
           </div>
 
           <form onSubmit={handleLogin} className="login-form">
@@ -128,7 +137,7 @@ const ProtectedRoute = ({ children, requireAdmin = false }) => {
             {requireAdmin && (
               <div className="form-footer" style={{ marginTop: '1rem' }}>
                 <small style={{ color: '#666' }}>
-                  Admin credentials required to access this area
+                  {allowEditor ? 'Editor or Admin' : 'Admin'} credentials required to access this area
                 </small>
               </div>
             )}

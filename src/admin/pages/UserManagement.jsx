@@ -19,10 +19,34 @@ const UserManagement = () => {
   const [createError, setCreateError] = useState('');
   const [editError, setEditError] = useState('');
   const [successMessage, setSuccessMessage] = useState('');
+  const [currentUser, setCurrentUser] = useState(null);
+  const [authChecked, setAuthChecked] = useState(false);
+
+  // Check if current user is admin
+  useEffect(() => {
+    const checkAdmin = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}/auth/me`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setCurrentUser(data.user);
+        }
+      } catch (err) {
+        console.error('Error checking auth:', err);
+      } finally {
+        setAuthChecked(true);
+      }
+    };
+    checkAdmin();
+  }, []);
 
   useEffect(() => {
-    fetchUsers();
-  }, []);
+    if (authChecked && currentUser?.role === 'admin') {
+      fetchUsers();
+    }
+  }, [authChecked, currentUser]);
 
   const fetchUsers = async () => {
     try {
@@ -144,6 +168,29 @@ const UserManagement = () => {
     setEditingUser({ ...editingUser, newPassword: password });
   };
 
+  // Show loading while checking auth
+  if (!authChecked) {
+    return <div className="loading">Loading...</div>;
+  }
+
+  // Access denied for non-admin users
+  if (currentUser?.role !== 'admin') {
+    return (
+      <div className="admin-page">
+        <div style={{
+          textAlign: 'center',
+          padding: '3rem',
+          background: '#fef2f2',
+          borderRadius: '8px',
+          margin: '2rem'
+        }}>
+          <h2 style={{ color: '#dc2626', marginBottom: '1rem' }}>Access Denied</h2>
+          <p style={{ color: '#7f1d1d' }}>Only administrators can manage users.</p>
+        </div>
+      </div>
+    );
+  }
+
   if (loading) {
     return <div className="loading">Loading users...</div>;
   }
@@ -168,6 +215,10 @@ const UserManagement = () => {
         <div className="stat-card">
           <div className="stat-value">{users.filter(u => u.role === 'admin').length}</div>
           <div className="stat-label">Admins</div>
+        </div>
+        <div className="stat-card">
+          <div className="stat-value">{users.filter(u => u.role === 'editor').length}</div>
+          <div className="stat-label">Editors</div>
         </div>
         <div className="stat-card">
           <div className="stat-value">{users.filter(u => u.role === 'user').length}</div>
@@ -287,6 +338,7 @@ const UserManagement = () => {
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                 >
                   <option value="user">User</option>
+                  <option value="editor">Editor</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
@@ -365,6 +417,7 @@ const UserManagement = () => {
                   onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
                 >
                   <option value="user">User</option>
+                  <option value="editor">Editor</option>
                   <option value="admin">Admin</option>
                 </select>
               </div>
