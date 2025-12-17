@@ -44,6 +44,10 @@ const CustomImage = Image.extend({
 
 // Image Insert/Edit Modal Component
 function ImageInsertModal({ isOpen, onClose, onInsert, onUpdate, imageUrl: initialUrl, initialSize, initialCaption, isEditMode }) {
+  // Only allow http, https, or data:image/ urls for image src
+  function isSafeImageUrl(url) {
+    return /^(https?:\/\/|data:image\/)/i.test(url.trim());
+  }
   const [url, setUrl] = useState(initialUrl || '');
   const [size, setSize] = useState(initialSize || 'medium');
   const [caption, setCaption] = useState(initialCaption || '');
@@ -111,7 +115,7 @@ function ImageInsertModal({ isOpen, onClose, onInsert, onUpdate, imageUrl: initi
           </small>
         </div>
 
-        {url && (
+        {url && isSafeImageUrl(url) && (
           <div className="image-preview">
             <img
               src={url}
@@ -119,6 +123,13 @@ function ImageInsertModal({ isOpen, onClose, onInsert, onUpdate, imageUrl: initi
               onError={(e) => e.target.style.display = 'none'}
               onLoad={(e) => e.target.style.display = 'block'}
             />
+          </div>
+        )}
+        {url && !isSafeImageUrl(url) && (
+          <div className="image-preview">
+            <small style={{ color: '#dc2626' }}>
+              Please enter a valid image URL (http, https, or data:image/).
+            </small>
           </div>
         )}
 
