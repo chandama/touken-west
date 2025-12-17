@@ -164,6 +164,13 @@ const limiter = rateLimit({
 });
 app.use('/api/', limiter);
 
+// Separate rate limiter for article slug OG-crawler route
+const ogArticleLimiter = rateLimit({
+  windowMs: 15 * 60 * 1000, // 15 minutes
+  max: process.env.NODE_ENV === 'development' ? 300 : 30,
+  message: 'Too many requests for articles, please try again later.',
+});
+
 // ==================== SOCIAL CRAWLER OG ROUTES ====================
 // These routes serve HTML with Open Graph tags for social media crawlers
 // Must be before static file serving in production
@@ -171,7 +178,7 @@ app.use('/api/', limiter);
 const SITE_URL = process.env.SITE_URL || 'https://nihonto-db.com';
 
 // Article pages - serve OG tags for crawlers
-app.get('/articles/:slug', async (req, res, next) => {
+app.get('/articles/:slug', ogArticleLimiter, async (req, res, next) => {
   // Only handle crawler requests
   if (!isSocialCrawler(req.get('User-Agent'))) {
     return next();
