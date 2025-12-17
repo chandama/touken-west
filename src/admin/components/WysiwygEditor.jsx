@@ -43,27 +43,78 @@ const CustomImage = Image.extend({
 });
 
 // Image Insert Modal Component
-function ImageInsertModal({ isOpen, onClose, onInsert, imageUrl }) {
+function ImageInsertModal({ isOpen, onClose, onInsert, imageUrl: initialUrl }) {
+  const [url, setUrl] = useState(initialUrl || '');
   const [size, setSize] = useState('medium');
   const [caption, setCaption] = useState('');
+  const [urlError, setUrlError] = useState(false);
+
+  // Update URL when prop changes (e.g., from gallery insert or upload)
+  useEffect(() => {
+    if (initialUrl) {
+      setUrl(initialUrl);
+      setUrlError(false);
+    }
+  }, [initialUrl]);
 
   if (!isOpen) return null;
 
   const handleInsert = () => {
-    onInsert({ url: imageUrl, size, caption });
+    if (!url.trim()) {
+      setUrlError(true);
+      return;
+    }
+    onInsert({ url: url.trim(), size, caption });
+    setUrl('');
     setSize('medium');
     setCaption('');
+    setUrlError(false);
+    onClose();
+  };
+
+  const handleClose = () => {
+    setUrl('');
+    setSize('medium');
+    setCaption('');
+    setUrlError(false);
     onClose();
   };
 
   return (
-    <div className="image-modal-overlay" onClick={onClose}>
+    <div className="image-modal-overlay" onClick={handleClose}>
       <div className="image-modal" onClick={e => e.stopPropagation()}>
         <h3>Insert Image</h3>
 
-        <div className="image-preview">
-          <img src={imageUrl} alt="Preview" />
+        <div className="image-modal-field">
+          <label>Image URL</label>
+          <input
+            type="text"
+            value={url}
+            onChange={(e) => {
+              setUrl(e.target.value);
+              setUrlError(false);
+            }}
+            placeholder="https://... or paste existing image URL"
+            style={urlError ? { borderColor: '#dc2626' } : {}}
+          />
+          {urlError && (
+            <small style={{ color: '#dc2626' }}>Please enter an image URL</small>
+          )}
+          <small style={{ color: '#6b7280', display: 'block', marginTop: '0.25rem' }}>
+            Paste a URL to reuse an existing image, or upload a new one from the toolbar
+          </small>
         </div>
+
+        {url && (
+          <div className="image-preview">
+            <img
+              src={url}
+              alt="Preview"
+              onError={(e) => e.target.style.display = 'none'}
+              onLoad={(e) => e.target.style.display = 'block'}
+            />
+          </div>
+        )}
 
         <div className="image-modal-field">
           <label>Size</label>
@@ -126,10 +177,10 @@ function ImageInsertModal({ isOpen, onClose, onInsert, imageUrl }) {
         </div>
 
         <div className="image-modal-actions">
-          <button type="button" onClick={onClose} className="btn-secondary">
+          <button type="button" onClick={handleClose} className="btn-secondary">
             Cancel
           </button>
-          <button type="button" onClick={handleInsert} className="btn-primary">
+          <button type="button" onClick={handleInsert} className="btn-primary" disabled={!url.trim()}>
             Insert Image
           </button>
         </div>
@@ -266,17 +317,13 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
   }
 
   const addImage = async () => {
-    let url;
+    let url = null;
     if (onImageUpload) {
       url = await onImageUpload();
-    } else {
-      url = prompt('Enter image URL:');
     }
-
-    if (url) {
-      setPendingImageUrl(url);
-      setShowImageModal(true);
-    }
+    // Always open modal - user can paste URL if they cancelled upload or want to reuse existing
+    setPendingImageUrl(url || '');
+    setShowImageModal(true);
   };
 
   const handleImageInsert = ({ url, size, caption }) => {
