@@ -42,29 +42,35 @@ const CustomImage = Image.extend({
   },
 });
 
-// Image Insert Modal Component
-function ImageInsertModal({ isOpen, onClose, onInsert, imageUrl: initialUrl }) {
+// Image Insert/Edit Modal Component
+function ImageInsertModal({ isOpen, onClose, onInsert, onUpdate, imageUrl: initialUrl, initialSize, initialCaption, isEditMode }) {
   const [url, setUrl] = useState(initialUrl || '');
-  const [size, setSize] = useState('medium');
-  const [caption, setCaption] = useState('');
+  const [size, setSize] = useState(initialSize || 'medium');
+  const [caption, setCaption] = useState(initialCaption || '');
   const [urlError, setUrlError] = useState(false);
 
-  // Update URL when prop changes (e.g., from gallery insert or upload)
+  // Update fields when props change (e.g., opening modal for edit)
   useEffect(() => {
-    if (initialUrl) {
-      setUrl(initialUrl);
+    if (isOpen) {
+      setUrl(initialUrl || '');
+      setSize(initialSize || 'medium');
+      setCaption(initialCaption || '');
       setUrlError(false);
     }
-  }, [initialUrl]);
+  }, [isOpen, initialUrl, initialSize, initialCaption]);
 
   if (!isOpen) return null;
 
-  const handleInsert = () => {
+  const handleSubmit = () => {
     if (!url.trim()) {
       setUrlError(true);
       return;
     }
-    onInsert({ url: url.trim(), size, caption });
+    if (isEditMode) {
+      onUpdate({ url: url.trim(), size, caption });
+    } else {
+      onInsert({ url: url.trim(), size, caption });
+    }
     setUrl('');
     setSize('medium');
     setCaption('');
@@ -83,7 +89,7 @@ function ImageInsertModal({ isOpen, onClose, onInsert, imageUrl: initialUrl }) {
   return (
     <div className="image-modal-overlay" onClick={handleClose}>
       <div className="image-modal" onClick={e => e.stopPropagation()}>
-        <h3>Insert Image</h3>
+        <h3>{isEditMode ? 'Edit Image' : 'Insert Image'}</h3>
 
         <div className="image-modal-field">
           <label>Image URL</label>
@@ -180,8 +186,8 @@ function ImageInsertModal({ isOpen, onClose, onInsert, imageUrl: initialUrl }) {
           <button type="button" onClick={handleClose} className="btn-secondary">
             Cancel
           </button>
-          <button type="button" onClick={handleInsert} className="btn-primary" disabled={!url.trim()}>
-            Insert Image
+          <button type="button" onClick={handleSubmit} className="btn-primary" disabled={!url.trim()}>
+            {isEditMode ? 'Update Image' : 'Insert Image'}
           </button>
         </div>
       </div>
@@ -202,6 +208,10 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
     selectedWords: 0,
     totalWords: 0,
   });
+  // Image editing state
+  const [isEditMode, setIsEditMode] = useState(false);
+  const [editingImageData, setEditingImageData] = useState({ url: '', size: 'medium', caption: '' });
+  const [editingImageElement, setEditingImageElement] = useState(null);
 
   // Calculate editor statistics
   const updateEditorStats = (editor) => {
@@ -312,11 +322,108 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
     }
   }, [content, editor]);
 
+  // Add click handler for images to enable editing
+  useEffect(() => {
+    if (!editor) return;
+
+    const editorElement = editor.view.dom;
+
+    const handleImageClick = (e) => {
+      // Check if clicked on an image or figure
+      const img = e.target.closest('img.article-image');
+      const figure = e.target.closest('figure.article-figure');
+
+      if (img || figure) {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const targetImg = img || figure?.querySelector('img');
+        const targetFigure = figure || img?.closest('figure');
+
+        if (targetImg) {
+          // Extract current image data
+          const url = targetImg.getAttribute('src') || '';
+          const size = targetImg.getAttribute('data-size') || targetFigure?.getAttribute('data-size') || 'medium';
+          const caption = targetImg.getAttribute('data-caption') || targetFigure?.querySelector('figcaption')?.textContent || '';
+
+          setEditingImageData({ url, size, caption });
+          setEditingImageElement(targetFigure || targetImg);
+          setIsEditMode(true);
+          setShowImageModal(true);
+        }
+      }
+    };
+
+    editorElement.addEventListener('click', handleImageClick);
+
+    return () => {
+      editorElement.removeEventListener('click', handleImageClick);
+    };
+  }, [editor]);
+
   if (!editor) {
     return <div className="editor-loading">Loading editor...</div>;
   }
 
+  // Handle updating an existing image
+  const handleImageUpdate = ({ url, size, caption }) => {
+    if (!editingImageElement) return;
+
+    // Create new figure HTML
+    const newFigureHtml = caption
+      ? `<figure class="article-figure figure-${size}" data-size="${size}"><img src="${url}" alt="${caption}" class="article-image" data-size="${size}" data-caption="${caption}" /><figcaption>${caption}</figcaption></figure>`
+      : `<figure class="article-figure figure-${size}" data-size="${size}"><img src="${url}" alt="" class="article-image" data-size="${size}" data-caption="" /></figure>`;
+
+    // Find and replace the old figure/image in the editor
+    const currentHtml = editor.getHTML();
+    const tempDiv = document.createElement('div');
+    tempDiv.innerHTML = currentHtml;
+
+    // Find all figures and images in the content
+    const figures = tempDiv.querySelectorAll('figure.article-figure');
+    const standaloneImages = tempDiv.querySelectorAll('img.article-image:not(figure img)');
+
+    // Try to match by the original URL
+    const originalUrl = editingImageData.url;
+    let replaced = false;
+
+    figures.forEach(fig => {
+      const img = fig.querySelector('img');
+      if (img && img.getAttribute('src') === originalUrl && !replaced) {
+        const newFig = document.createElement('div');
+        newFig.innerHTML = newFigureHtml;
+        fig.replaceWith(newFig.firstChild);
+        replaced = true;
+      }
+    });
+
+    if (!replaced) {
+      standaloneImages.forEach(img => {
+        if (img.getAttribute('src') === originalUrl && !replaced) {
+          const newFig = document.createElement('div');
+          newFig.innerHTML = newFigureHtml;
+          img.replaceWith(newFig.firstChild);
+          replaced = true;
+        }
+      });
+    }
+
+    if (replaced) {
+      editor.commands.setContent(tempDiv.innerHTML);
+    }
+
+    // Reset edit state
+    setEditingImageElement(null);
+    setEditingImageData({ url: '', size: 'medium', caption: '' });
+    setIsEditMode(false);
+  };
+
   const addImage = async () => {
+    // Reset edit mode when adding a new image
+    setIsEditMode(false);
+    setEditingImageData({ url: '', size: 'medium', caption: '' });
+    setEditingImageElement(null);
+
     let url = null;
     if (onImageUpload) {
       url = await onImageUpload();
@@ -564,9 +671,16 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
         onClose={() => {
           setShowImageModal(false);
           setPendingImageUrl(null);
+          setIsEditMode(false);
+          setEditingImageData({ url: '', size: 'medium', caption: '' });
+          setEditingImageElement(null);
         }}
         onInsert={handleImageInsert}
-        imageUrl={pendingImageUrl}
+        onUpdate={handleImageUpdate}
+        imageUrl={isEditMode ? editingImageData.url : pendingImageUrl}
+        initialSize={isEditMode ? editingImageData.size : 'medium'}
+        initialCaption={isEditMode ? editingImageData.caption : ''}
+        isEditMode={isEditMode}
       />
     </div>
   );

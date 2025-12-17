@@ -188,14 +188,9 @@ function ArticleList() {
                   )}
 
                   {article.tags && article.tags.length > 0 && (
-                    <div style={{ marginTop: '0.5rem', display: 'flex', gap: '0.25rem', flexWrap: 'wrap' }}>
+                    <div className="article-tags">
                       {article.tags.map((tag, i) => (
-                        <span key={i} style={{
-                          background: '#e5e7eb',
-                          padding: '0.125rem 0.5rem',
-                          borderRadius: '4px',
-                          fontSize: '0.75rem'
-                        }}>
+                        <span key={i} className="article-tag">
                           {tag}
                         </span>
                       ))}
@@ -203,7 +198,7 @@ function ArticleList() {
                   )}
                 </div>
 
-                <div className="sword-card-footer" style={{ display: 'flex', gap: '0.5rem' }}>
+                <div className="sword-card-footer" style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
                   <Link to={`/admin/articles/${article.slug}`} className="btn-primary">
                     Edit
                   </Link>
@@ -267,6 +262,23 @@ function ArticleList() {
         .status-badge.published {
           background: #d1fae5;
           color: #065f46;
+        }
+        .article-tags {
+          margin-top: 0.5rem;
+          display: flex;
+          gap: 0.25rem;
+          flex-wrap: wrap;
+        }
+        .article-tag {
+          background: #e5e7eb;
+          color: #374151;
+          padding: 0.125rem 0.5rem;
+          border-radius: 4px;
+          font-size: 0.75rem;
+        }
+        body.dark-mode .article-tag {
+          background: #374151;
+          color: #e5e7eb;
         }
       `}</style>
     </div>

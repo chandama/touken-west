@@ -67,6 +67,74 @@ if (process.env.NODE_ENV === 'production') {
 // Connect to MongoDB
 connectDB();
 
+// ==================== SOCIAL MEDIA CRAWLER DETECTION ====================
+// User agents for social media crawlers that fetch link previews
+const CRAWLER_USER_AGENTS = [
+  'facebookexternalhit',
+  'Facebot',
+  'Twitterbot',
+  'LinkedInBot',
+  'Pinterest',
+  'Slackbot',
+  'TelegramBot',
+  'WhatsApp',
+  'Discordbot',
+  'Googlebot',
+  'bingbot',
+  'iMessageLinkPreview',
+  'Applebot',
+];
+
+function isSocialCrawler(userAgent) {
+  if (!userAgent) return false;
+  const ua = userAgent.toLowerCase();
+  return CRAWLER_USER_AGENTS.some(crawler => ua.includes(crawler.toLowerCase()));
+}
+
+// Generate HTML page with Open Graph meta tags for crawlers
+function generateOgHtml({ title, description, image, url, type = 'article', siteName = 'Nihonto DB' }) {
+  const safeTitle = (title || siteName).replace(/"/g, '&quot;');
+  const safeDesc = (description || '').replace(/"/g, '&quot;');
+  const safeImage = image || 'https://nihonto-db.com/og-image.png';
+  const safeUrl = url || 'https://nihonto-db.com';
+
+  return `<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>${safeTitle}</title>
+  <meta name="description" content="${safeDesc}" />
+
+  <!-- Open Graph / Facebook -->
+  <meta property="og:type" content="${type}" />
+  <meta property="og:url" content="${safeUrl}" />
+  <meta property="og:title" content="${safeTitle}" />
+  <meta property="og:description" content="${safeDesc}" />
+  <meta property="og:image" content="${safeImage}" />
+  <meta property="og:site_name" content="${siteName}" />
+
+  <!-- Twitter -->
+  <meta name="twitter:card" content="summary_large_image" />
+  <meta name="twitter:url" content="${safeUrl}" />
+  <meta name="twitter:title" content="${safeTitle}" />
+  <meta name="twitter:description" content="${safeDesc}" />
+  <meta name="twitter:image" content="${safeImage}" />
+
+  <!-- iMessage -->
+  <meta property="og:image:width" content="1200" />
+  <meta property="og:image:height" content="630" />
+
+  <link rel="canonical" href="${safeUrl}" />
+</head>
+<body>
+  <h1>${safeTitle}</h1>
+  <p>${safeDesc}</p>
+  <script>window.location.href = "${safeUrl}";</script>
+</body>
+</html>`;
+}
+
 // Request logging middleware - log ALL requests
 app.use((req, res, next) => {
   console.log(`[${new Date().toISOString()}] ${req.method} ${req.url}`);
@@ -95,6 +163,117 @@ const limiter = rateLimit({
   message: 'Too many requests from this IP, please try again later.',
 });
 app.use('/api/', limiter);
+
+// ==================== SOCIAL CRAWLER OG ROUTES ====================
+// These routes serve HTML with Open Graph tags for social media crawlers
+// Must be before static file serving in production
+
+const SITE_URL = process.env.SITE_URL || 'https://nihonto-db.com';
+
+// Article pages - serve OG tags for crawlers
+app.get('/articles/:slug', async (req, res, next) => {
+  // Only handle crawler requests
+  if (!isSocialCrawler(req.get('User-Agent'))) {
+    return next();
+  }
+
+  try {
+    const article = await Article.findOne({
+      slug: req.params.slug,
+      status: 'published'
+    });
+
+    if (!article) {
+      return next(); // Let the SPA handle 404
+    }
+
+    const html = generateOgHtml({
+      title: `${article.title} - Nihonto DB`,
+      description: article.summary || article.title,
+      image: article.coverImage?.url || `${SITE_URL}/og-image.png`,
+      url: `${SITE_URL}/articles/${article.slug}`,
+      type: 'article'
+    });
+
+    res.setHeader('Content-Type', 'text/html');
+    return res.send(html);
+  } catch (error) {
+    console.error('Error generating OG tags for article:', error);
+    return next();
+  }
+});
+
+// Articles list page
+app.get('/articles', (req, res, next) => {
+  if (!isSocialCrawler(req.get('User-Agent'))) {
+    return next();
+  }
+
+  const html = generateOgHtml({
+    title: 'Articles - Nihonto DB',
+    description: 'Research articles, historical studies, and educational content about Japanese swords, smiths, and traditions.',
+    image: `${SITE_URL}/og-image.png`,
+    url: `${SITE_URL}/articles`,
+    type: 'website'
+  });
+
+  res.setHeader('Content-Type', 'text/html');
+  return res.send(html);
+});
+
+// Province map page
+app.get('/provinces', (req, res, next) => {
+  if (!isSocialCrawler(req.get('User-Agent'))) {
+    return next();
+  }
+
+  const html = generateOgHtml({
+    title: 'Ancient Provinces - Nihonto DB',
+    description: 'Interactive map of historical Japanese provinces (Gokishichidō). Explore sword-making traditions by region.',
+    image: `${SITE_URL}/og-image.png`,
+    url: `${SITE_URL}/provinces`,
+    type: 'website'
+  });
+
+  res.setHeader('Content-Type', 'text/html');
+  return res.send(html);
+});
+
+// Digital library page
+app.get('/library', (req, res, next) => {
+  if (!isSocialCrawler(req.get('User-Agent'))) {
+    return next();
+  }
+
+  const html = generateOgHtml({
+    title: 'Digital Library - Nihonto DB',
+    description: 'Japanese sword image archive. Browse high-quality photographs of authenticated nihonto.',
+    image: `${SITE_URL}/og-image.png`,
+    url: `${SITE_URL}/library`,
+    type: 'website'
+  });
+
+  res.setHeader('Content-Type', 'text/html');
+  return res.send(html);
+});
+
+// Home page
+app.get('/', (req, res, next) => {
+  if (!isSocialCrawler(req.get('User-Agent'))) {
+    return next();
+  }
+
+  const html = generateOgHtml({
+    title: 'Nihonto DB - Japanese Sword Database',
+    description: 'Searchable database of historical Japanese swords. Browse Juyo, Tokubetsu Juyo, and other authenticated nihonto with detailed records of smiths, schools, and provenance.',
+    image: `${SITE_URL}/og-image.png`,
+    url: SITE_URL,
+    type: 'website'
+  });
+
+  res.setHeader('Content-Type', 'text/html');
+  return res.send(html);
+});
 
 // CORS configuration
 const corsOptions = {
