@@ -193,10 +193,26 @@
   margin: 1rem 0;
 }
 
-/* Article images - centered, no hover animation in editor */
+/* Article images - centered, clickable for editing */
 .editor-content .tiptap img.article-image {
   display: block;
   margin: 1.5rem auto 0 auto;
+  cursor: pointer;
+  transition: outline 0.15s ease, box-shadow 0.15s ease;
+}
+
+.editor-content .tiptap img.article-image:hover {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
+}
+
+.editor-content .tiptap figure.article-figure {
+  cursor: pointer;
+}
+
+.editor-content .tiptap figure.article-figure:hover img {
+  outline: 2px solid #3b82f6;
+  outline-offset: 2px;
 }
 
 /* Image captions - paragraphs immediately following images */

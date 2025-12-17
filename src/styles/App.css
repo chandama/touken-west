@@ -156,19 +156,29 @@ button {
   display: block;
   width: 100%;
   padding: var(--space-md);
-  background: rgba(255, 200, 50, 0.1);
+  background: rgba(255, 200, 50, 0.15);
   border: none;
   border-bottom: 1px solid var(--color-border);
   text-align: left;
   text-decoration: none;
   font-size: var(--font-size-sm);
-  color: var(--accent-primary);
+  color: #92400e;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .user-dropdown-admin:hover {
+  background: rgba(255, 200, 50, 0.25);
+}
+
+body.dark-mode .user-dropdown-admin {
   background: rgba(255, 200, 50, 0.2);
+  color: #fbbf24;
+}
+
+body.dark-mode .user-dropdown-admin:hover {
+  background: rgba(255, 200, 50, 0.3);
 }
 
 .user-dropdown-logout {
@@ -471,19 +481,29 @@ body.dark-mode .subpage-header {
   display: block;
   width: 100%;
   padding: var(--space-md);
-  background: rgba(255, 200, 50, 0.1);
+  background: rgba(255, 200, 50, 0.15);
   border: none;
   border-bottom: 1px solid var(--color-border);
   text-align: left;
   text-decoration: none;
   font-size: var(--font-size-sm);
-  color: var(--accent-primary);
+  color: #92400e;
+  font-weight: 600;
   cursor: pointer;
   transition: background-color var(--duration-fast) var(--ease-out);
 }
 
 .subpage-header-actions .user-dropdown-admin:hover {
+  background: rgba(255, 200, 50, 0.25);
+}
+
+body.dark-mode .subpage-header-actions .user-dropdown-admin {
   background: rgba(255, 200, 50, 0.2);
+  color: #fbbf24;
+}
+
+body.dark-mode .subpage-header-actions .user-dropdown-admin:hover {
+  background: rgba(255, 200, 50, 0.3);
 }
 
 .subpage-header-actions .user-dropdown-logout {
