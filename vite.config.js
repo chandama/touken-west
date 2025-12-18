@@ -14,7 +14,7 @@ export default defineConfig({
   // Build configuration
   build: {
     outDir: 'dist',
-    sourcemap: true,
+    sourcemap: false,
     // Optimize chunk size
     rollupOptions: {
       output: {

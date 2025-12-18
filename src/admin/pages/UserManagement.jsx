@@ -79,23 +79,6 @@ const UserManagement = () => {
     }
   };
 
-  const handleToggleRole = async (user) => {
-    const newRole = user.role === 'admin' ? 'user' : 'admin';
-
-    if (!window.confirm(`Change ${user.email} role to ${newRole}?`)) {
-      return;
-    }
-
-    try {
-      await axios.patch(`${API_BASE_URL}/users/${user.id}`, { role: newRole });
-      setSuccessMessage(`User role updated to ${newRole}`);
-      fetchUsers();
-      setTimeout(() => setSuccessMessage(''), 3000);
-    } catch (err) {
-      alert('Failed to update role: ' + (err.response?.data?.error || err.message));
-    }
-  };
-
   const handleDeleteUser = async (user) => {
     if (!window.confirm(`Are you sure you want to delete ${user.email}? This cannot be undone.`)) {
       return;
@@ -255,13 +238,6 @@ const UserManagement = () => {
                     title="Edit user"
                   >
                     ✏️ Edit
-                  </button>
-                  <button
-                    onClick={() => handleToggleRole(user)}
-                    className="action-button toggle-role"
-                    title={`Change to ${user.role === 'admin' ? 'user' : 'admin'}`}
-                  >
-                    {user.role === 'admin' ? '👤 Make User' : '⭐ Make Admin'}
                   </button>
                   <button
                     onClick={() => handleDeleteUser(user)}

@@ -206,7 +206,7 @@ function ProvincesApp() {
           <div className="subpage-header-text">
             <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
             <div className="subpage-header-title">
-              <h1>Ancient Provinces</h1>
+              <h1>Touken West - Nihontō Database</h1>
               <p>Gokishichidō - Five Provinces and Seven Circuits</p>
             </div>
           </div>
