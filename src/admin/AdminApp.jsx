@@ -13,12 +13,46 @@ import ProtectedRoute from '../components/ProtectedRoute.jsx';
 import DarkModeToggle from '../components/DarkModeToggle.jsx';
 import './styles/admin.css';
 
+const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+
 function AdminApp() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('adminDarkMode');
     return saved ? JSON.parse(saved) : false;
   });
   const [showActionsDropdown, setShowActionsDropdown] = useState(false);
+  const [showUserDropdown, setShowUserDropdown] = useState(false);
+  const [user, setUser] = useState(null);
+
+  // Fetch current user info
+  useEffect(() => {
+    const fetchUser = async () => {
+      try {
+        const response = await fetch(`${API_BASE}/auth/me`, {
+          credentials: 'include'
+        });
+        if (response.ok) {
+          const data = await response.json();
+          setUser(data.user);
+        }
+      } catch (error) {
+        console.error('Error fetching user:', error);
+      }
+    };
+    fetchUser();
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        credentials: 'include'
+      });
+      window.location.href = '/';
+    } catch (error) {
+      console.error('Error logging out:', error);
+    }
+  };
 
   useEffect(() => {
     localStorage.setItem('adminDarkMode', JSON.stringify(isDarkMode));
@@ -45,6 +79,7 @@ function AdminApp() {
               </Link>
             </h1>
             <nav className="admin-nav">
+              <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
               <div className="admin-actions-dropdown">
                 <button
                   className="nav-link actions-dropdown-btn"
@@ -82,7 +117,32 @@ function AdminApp() {
               <a href="/" target="_blank" rel="noopener noreferrer" className="nav-link">
                 View Site →
               </a>
-              <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
+              {user && (
+                <div className="user-menu">
+                  <button
+                    className="user-avatar-button"
+                    onClick={() => setShowUserDropdown(!showUserDropdown)}
+                    aria-label="User menu"
+                    aria-expanded={showUserDropdown}
+                  >
+                    <svg viewBox="0 0 24 24" fill="currentColor" className="user-avatar-icon">
+                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                    </svg>
+                  </button>
+                  {showUserDropdown && (
+                    <>
+                      <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
+                      <div className="user-dropdown">
+                        <div className="user-dropdown-email">{user.email}</div>
+                        <div className="user-dropdown-role">{user.role}</div>
+                        <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
+                          Logout
+                        </button>
+                      </div>
+                    </>
+                  )}
+                </div>
+              )}
             </nav>
           </div>
         </header>

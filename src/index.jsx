@@ -1,14 +1,30 @@
 // Configure axios CSRF interceptors before any other imports
 import './config/axios.js';
 
-import React from 'react';
+import React, { Suspense, lazy } from 'react';
 import ReactDOM from 'react-dom/client';
 import './styles/index.css';
-import App from './App.jsx';
-import AdminApp from './admin/AdminApp.jsx';
-import LibraryApp from './library/LibraryApp.jsx';
-import ProvincesApp from './provinces/ProvincesApp.jsx';
-import ArticlesApp from './articles/ArticlesApp.jsx';
+
+// Lazy load all app bundles - each becomes a separate chunk
+const App = lazy(() => import('./App.jsx'));
+const AdminApp = lazy(() => import('./admin/AdminApp.jsx'));
+const LibraryApp = lazy(() => import('./library/LibraryApp.jsx'));
+const ProvincesApp = lazy(() => import('./provinces/ProvincesApp.jsx'));
+const ArticlesApp = lazy(() => import('./articles/ArticlesApp.jsx'));
+
+// Simple loading spinner
+const LoadingFallback = () => (
+  <div style={{
+    display: 'flex',
+    justifyContent: 'center',
+    alignItems: 'center',
+    height: '100vh',
+    fontSize: '1.2rem',
+    color: '#666'
+  }}>
+    Loading...
+  </div>
+);
 
 // Check which route we're on
 const isAdminRoute = window.location.pathname.startsWith('/admin');
@@ -28,6 +44,8 @@ const getAppComponent = () => {
 const root = ReactDOM.createRoot(document.getElementById('root'));
 root.render(
   <React.StrictMode>
-    {getAppComponent()}
+    <Suspense fallback={<LoadingFallback />}>
+      {getAppComponent()}
+    </Suspense>
   </React.StrictMode>
 );

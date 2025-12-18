@@ -689,7 +689,7 @@ app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
       email: sanitizedEmail,
       username: sanitizedUsername,
       password: hashedPassword,
-      role: role === 'admin' ? 'admin' : 'user',
+      role: ['admin', 'editor', 'user'].includes(role) ? role : 'user',
     });
 
     await newUser.save();
@@ -739,7 +739,7 @@ app.patch('/api/users/:id', authenticateToken, requireAdmin, async (req, res) =>
       }
       user.username = username.trim();
     }
-    if (role && ['user', 'admin'].includes(role)) user.role = role;
+    if (role && ['user', 'editor', 'admin'].includes(role)) user.role = role;
 
     await user.save();
 
@@ -2387,6 +2387,67 @@ app.post('/api/admin/articles/:slug/unpublish', authenticateToken, requireEditor
   } catch (error) {
     console.error('Error unpublishing article:', error);
     res.status(500).json({ error: error.message });
+  }
+});
+
+// ==================== DYNAMIC SITEMAP ====================
+
+app.get('/sitemap.xml', async (req, res) => {
+  try {
+    const baseUrl = 'https://nihonto-db.com';
+    const today = new Date().toISOString().split('T')[0];
+
+    // Get all published articles
+    const articles = await Article.find({ status: 'published' })
+      .select('slug updatedAt publishedAt')
+      .lean();
+
+    let xml = `<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <!-- Homepage / Sword Database -->
+  <url>
+    <loc>${baseUrl}/</loc>
+    <changefreq>monthly</changefreq>
+    <priority>1.0</priority>
+  </url>
+
+  <!-- Provinces Map (static content) -->
+  <url>
+    <loc>${baseUrl}/provinces</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
+  <!-- Articles Index (new content hub) -->
+  <url>
+    <loc>${baseUrl}/articles</loc>
+    <lastmod>${today}</lastmod>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+`;
+
+    // Add each published article
+    for (const article of articles) {
+      const lastmod = (article.updatedAt || article.publishedAt || new Date()).toISOString().split('T')[0];
+      xml += `
+  <!-- Article: ${article.slug} -->
+  <url>
+    <loc>${baseUrl}/articles/${article.slug}</loc>
+    <lastmod>${lastmod}</lastmod>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+`;
+    }
+
+    xml += `</urlset>`;
+
+    res.set('Content-Type', 'application/xml');
+    res.send(xml);
+  } catch (error) {
+    console.error('Error generating sitemap:', error);
+    res.status(500).send('Error generating sitemap');
   }
 });
 

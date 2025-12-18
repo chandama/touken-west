@@ -233,7 +233,7 @@ function App() {
           <div className="header-text">
             <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="header-logo" />
             <div className="header-title-group">
-              <h1>Touken West</h1>
+              <h1>Touken West - Nihontō Database</h1>
               <p>Japanese Sword Database - {(totalCount || swords.length).toLocaleString()} Historical Blades</p>
             </div>
           </div>

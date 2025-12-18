@@ -74,7 +74,7 @@ function ArticlesApp() {
                 <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
               </a>
               <div className="subpage-header-title">
-                <h1>Articles</h1>
+                <h1>Touken West - Nihontō Database</h1>
                 <p>Research & Educational Resources</p>
               </div>
             </div>

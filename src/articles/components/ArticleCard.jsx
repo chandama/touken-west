@@ -13,11 +13,12 @@ function ArticleCard({ article }) {
 
   return (
     <Link to={`/articles/${article.slug}`} className="article-card">
-      {article.coverImage?.thumbnailUrl || article.coverImage?.url ? (
+      {article.coverImage?.url ? (
         <div className="article-card-image">
           <img
-            src={article.coverImage.thumbnailUrl || article.coverImage.url}
+            src={article.coverImage.url}
             alt={article.title}
+            loading="lazy"
           />
         </div>
       ) : (

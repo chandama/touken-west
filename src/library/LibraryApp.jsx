@@ -296,8 +296,8 @@ function LibraryApp() {
             <div className="subpage-header-text">
               <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
               <div className="subpage-header-title">
-                <h1>Digital Library</h1>
-                <p>Japanese Sword Image Archive</p>
+                <h1>Touken West - Nihontō Database</h1>
+                <p>Nihontō Media Library</p>
               </div>
             </div>
             <div className="subpage-header-actions">
@@ -368,8 +368,8 @@ function LibraryApp() {
           <div className="subpage-header-text">
             <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
             <div className="subpage-header-title">
-              <h1>Digital Library</h1>
-              <p>Japanese Sword Image Archive - {swordsWithMedia.length.toLocaleString()} Swords with Media</p>
+              <h1>Touken West - Nihontō Database</h1>
+              <p>Nihontō Media Library - {swordsWithMedia.length.toLocaleString()} Catalogued Items</p>
             </div>
           </div>
           <div className="subpage-header-actions">

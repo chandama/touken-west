@@ -12,9 +12,12 @@ Disallow: /admin/
 Disallow: /library
 Disallow: /library/
 
-# Block API endpoints
-Disallow: /api/
-Disallow: /api
+# Block most API endpoints but allow public content APIs for rendering
+Disallow: /api/admin
+Disallow: /api/users
+Disallow: /api/auth
+Allow: /api/articles
+Allow: /api/swords
 
 # Sitemap location
 Sitemap: https://nihonto-db.com/sitemap.xml
