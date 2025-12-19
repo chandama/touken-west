@@ -240,16 +240,25 @@
   max-width: 100%;
 }
 
-/* Image captions */
+/* Image captions - styled paragraph after images */
 .editor-content .tiptap p.image-caption {
+  text-align: center !important;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+  margin: 0.25rem auto 1.5rem auto;
+  padding: 0.25rem 0;
+  max-width: 80ch;
+}
+
+/* Also style any paragraph immediately after an article-image */
+.editor-content .tiptap img.article-image + p {
   text-align: center;
   font-size: 0.875rem;
   color: #6b7280;
   font-style: italic;
-  margin: 0 auto 1.5rem auto;
-  padding: 0.5rem 1rem;
-  border-bottom: 1px solid #e5e7eb;
-  max-width: fit-content;
+  margin: 0.25rem auto 1.5rem auto;
+  max-width: 80ch;
 }
 
 .editor-content .tiptap hr {
@@ -361,6 +370,18 @@ body.dark-mode .editor-content .tiptap code {
 }
 
 body.dark-mode .editor-content .tiptap img.article-image + p {
+  color: #9ca3af;
+}
+
+body.dark-mode .editor-content .tiptap p.image-caption {
+  color: #9ca3af;
+}
+
+body.dark-mode .editor-content .tiptap figure.article-figure + p {
+  color: #9ca3af;
+}
+
+body.dark-mode .editor-content .tiptap figcaption {
   color: #9ca3af;
 }
 
@@ -517,6 +538,17 @@ body.dark-mode .editor-content .tiptap img.article-image + p {
   color: #6b7280;
   font-style: italic;
   text-align: center;
+}
+
+/* Style paragraphs immediately after figures as captions
+   (TipTap sometimes converts figcaption to paragraph) */
+.editor-content .tiptap figure.article-figure + p {
+  text-align: center;
+  font-size: 0.875rem;
+  color: #6b7280;
+  font-style: italic;
+  margin-top: 0.25rem;
+  margin-bottom: 1.5rem;
 }
 
 /* Dark mode for modal */

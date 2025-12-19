@@ -355,7 +355,31 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
           // Extract current image data
           const url = targetImg.getAttribute('src') || '';
           const size = targetImg.getAttribute('data-size') || targetFigure?.getAttribute('data-size') || 'medium';
-          const caption = targetImg.getAttribute('data-caption') || targetFigure?.querySelector('figcaption')?.textContent || '';
+
+          // Try to find caption from multiple sources:
+          // 1. data-caption attribute on image
+          // 2. figcaption inside figure (old format)
+          // 3. Following paragraph with image-caption class
+          // 4. Following paragraph (might be caption)
+          let caption = targetImg.getAttribute('data-caption') || '';
+
+          if (!caption && targetFigure) {
+            const figcaption = targetFigure.querySelector('figcaption');
+            if (figcaption) {
+              caption = figcaption.textContent || '';
+            }
+          }
+
+          // Check for caption paragraph after image/figure
+          if (!caption) {
+            const elementToCheck = targetFigure || targetImg;
+            const nextSibling = elementToCheck.nextElementSibling;
+            if (nextSibling && nextSibling.tagName === 'P') {
+              if (nextSibling.classList.contains('image-caption')) {
+                caption = nextSibling.textContent || '';
+              }
+            }
+          }
 
           setEditingImageData({ url, size, caption });
           setEditingImageElement(targetFigure || targetImg);
@@ -391,43 +415,87 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
         .replace(/`/g, "&#96;");
     }
 
-    // Create new figure HTML (with attribute escaping)
     const escapedUrl = escapeHtml(url);
     const escapedSize = escapeHtml(size);
     const escapedCaption = escapeHtml(caption);
-    const newFigureHtml = caption
-      ? `<figure class="article-figure figure-${escapedSize}" data-size="${escapedSize}"><img src="${escapedUrl}" alt="${escapedCaption}" class="article-image" data-size="${escapedSize}" data-caption="${escapedCaption}" /><figcaption>${escapedCaption}</figcaption></figure>`
-      : `<figure class="article-figure figure-${escapedSize}" data-size="${escapedSize}"><img src="${escapedUrl}" alt="" class="article-image" data-size="${escapedSize}" data-caption="" /></figure>`;
+
+    // Create new image HTML (simple structure TipTap handles well)
+    const newImageHtml = `<img src="${escapedUrl}" alt="${escapedCaption}" class="article-image" data-size="${escapedSize}" data-caption="${escapedCaption}" />`;
+    const newCaptionHtml = caption ? `<p class="image-caption">${escapedCaption}</p>` : '';
 
     // Find and replace the old figure/image in the editor
     const currentHtml = editor.getHTML();
     const tempDiv = document.createElement('div');
     tempDiv.innerHTML = currentHtml;
 
-    // Find all figures and images in the content
-    const figures = tempDiv.querySelectorAll('figure.article-figure');
-    const standaloneImages = tempDiv.querySelectorAll('img.article-image:not(figure img)');
-
-    // Try to match by the original URL
     const originalUrl = editingImageData.url;
+    const originalCaption = editingImageData.caption;
     let replaced = false;
 
+    // Helper function to remove caption-like paragraphs after an element
+    const removeFollowingCaptions = (element) => {
+      let nextSibling = element.nextElementSibling;
+      // Remove any paragraphs that look like captions (matching old caption, has image-caption class, or follows figure)
+      while (nextSibling && nextSibling.tagName === 'P') {
+        const paragraphText = nextSibling.textContent.trim();
+        const hasImageCaptionClass = nextSibling.classList.contains('image-caption');
+        const matchesOldCaption = paragraphText === originalCaption;
+
+        if (hasImageCaptionClass || matchesOldCaption) {
+          const toRemove = nextSibling;
+          nextSibling = nextSibling.nextElementSibling;
+          toRemove.remove();
+        } else {
+          break;
+        }
+      }
+    };
+
+    // First, handle old figure-based images (convert to new format)
+    const figures = tempDiv.querySelectorAll('figure.article-figure');
     figures.forEach(fig => {
       const img = fig.querySelector('img');
       if (img && img.getAttribute('src') === originalUrl && !replaced) {
-        const newFig = document.createElement('div');
-        newFig.innerHTML = newFigureHtml;
-        fig.replaceWith(newFig.firstChild);
+        // Remove any duplicate caption paragraphs after the figure
+        removeFollowingCaptions(fig);
+
+        // Create replacement content
+        const wrapper = document.createElement('div');
+        wrapper.innerHTML = newImageHtml + newCaptionHtml;
+
+        // Replace figure with new image (and caption if present)
+        const newImg = wrapper.querySelector('img');
+        const newCaption = wrapper.querySelector('p');
+
+        fig.replaceWith(newImg);
+        if (newCaption) {
+          newImg.insertAdjacentElement('afterend', newCaption);
+        }
         replaced = true;
       }
     });
 
+    // Then handle standalone images
     if (!replaced) {
+      const standaloneImages = tempDiv.querySelectorAll('img.article-image');
       standaloneImages.forEach(img => {
         if (img.getAttribute('src') === originalUrl && !replaced) {
-          const newFig = document.createElement('div');
-          newFig.innerHTML = newFigureHtml;
-          img.replaceWith(newFig.firstChild);
+          // Remove any caption paragraphs after the image
+          removeFollowingCaptions(img);
+
+          // Update image attributes
+          img.setAttribute('src', escapedUrl);
+          img.setAttribute('alt', escapedCaption);
+          img.setAttribute('data-size', escapedSize);
+          img.setAttribute('data-caption', escapedCaption);
+
+          // Add new caption if needed
+          if (caption) {
+            const captionP = document.createElement('p');
+            captionP.className = 'image-caption';
+            captionP.textContent = caption;
+            img.insertAdjacentElement('afterend', captionP);
+          }
           replaced = true;
         }
       });
@@ -459,13 +527,12 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
   };
 
   const handleImageInsert = ({ url, size, caption }) => {
-    // Use figure/figcaption for proper semantic structure and width matching
-    // No whitespace between tags to avoid extra paragraph nodes
-    const figureHtml = caption
-      ? `<figure class="article-figure figure-${size}" data-size="${size}"><img src="${url}" alt="${caption}" class="article-image" data-size="${size}" data-caption="${caption}" /><figcaption>${caption}</figcaption></figure>`
-      : `<figure class="article-figure figure-${size}" data-size="${size}"><img src="${url}" alt="" class="article-image" data-size="${size}" data-caption="" /></figure>`;
+    // Use image with data attributes, followed by a caption paragraph if needed
+    // TipTap doesn't support figure/figcaption natively, so we use a simpler structure
+    const imageHtml = `<img src="${url}" alt="${caption || ''}" class="article-image" data-size="${size}" data-caption="${caption || ''}" />`;
+    const captionHtml = caption ? `<p class="image-caption">${caption}</p>` : '';
 
-    editor.chain().focus().insertContent(figureHtml).run();
+    editor.chain().focus().insertContent(imageHtml + captionHtml).run();
   };
 
   const addLink = () => {
