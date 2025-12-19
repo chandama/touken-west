@@ -9,6 +9,7 @@ import UserManagement from './pages/UserManagement.jsx';
 import ArticleList from './pages/ArticleList.jsx';
 import ArticleCreate from './pages/ArticleCreate.jsx';
 import ArticleEdit from './pages/ArticleEdit.jsx';
+import ArticlePreview from './pages/ArticlePreview.jsx';
 import ProtectedRoute from '../components/ProtectedRoute.jsx';
 import DarkModeToggle from '../components/DarkModeToggle.jsx';
 import './styles/admin.css';
@@ -156,6 +157,7 @@ function AdminApp() {
             <Route path="/admin/articles" element={<ArticleList />} />
             <Route path="/admin/articles/create" element={<ArticleCreate />} />
             <Route path="/admin/articles/:slug" element={<ArticleEdit />} />
+            <Route path="/admin/articles/:slug/preview" element={<ArticlePreview />} />
             <Route path="/admin/users" element={<UserManagement />} />
             <Route path="/admin/changelog" element={<Changelog />} />
           </Routes>

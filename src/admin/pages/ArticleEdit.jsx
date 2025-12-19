@@ -579,6 +579,16 @@ function ArticleEdit() {
           </button>
         )}
 
+        <a
+          href={`/admin/articles/${article?.slug}/preview`}
+          target="_blank"
+          rel="noopener noreferrer"
+          className="btn-secondary"
+          style={{ padding: '0.75rem 1.5rem' }}
+        >
+          Preview
+        </a>
+
         {article?.status === 'published' && (
           <a
             href={`/articles/${article.slug}`}

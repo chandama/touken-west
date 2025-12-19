@@ -202,6 +202,9 @@ function ArticleList() {
                   <Link to={`/admin/articles/${article.slug}`} className="btn-primary">
                     Edit
                   </Link>
+                  <Link to={`/admin/articles/${article.slug}/preview`} className="btn-secondary">
+                    Preview
+                  </Link>
                   <button
                     onClick={() => handlePublishToggle(article)}
                     className="btn-secondary"
