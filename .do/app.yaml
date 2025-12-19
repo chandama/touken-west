@@ -37,6 +37,11 @@ services:
     routes:
       - path: /api
         preserve_path_prefix: true
+      - path: /sitemap.xml
+      - path: /articles
+        preserve_path_prefix: true
+      - path: /provinces
+      - path: /library
     envs:
       - key: NODE_ENV
         value: production

@@ -1,6 +1,7 @@
 // Load .env from local directory first, then fall back to parent
-require('dotenv').config({ path: require('path').join(__dirname, '.env') });
-require('dotenv').config({ path: require('path').join(__dirname, '..', '.env') });
+const path = require('path');
+require('dotenv').config({ path: path.join(__dirname, '.env') });
+require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
@@ -2450,6 +2451,25 @@ app.get('/sitemap.xml', async (req, res) => {
     res.status(500).send('Error generating sitemap');
   }
 });
+
+// ==================== STATIC FILE SERVING (Production) ====================
+// Serve the React SPA for non-API, non-crawler requests
+// This enables SEO routes to work while still serving the SPA to regular users
+
+if (process.env.NODE_ENV === 'production') {
+  // Serve static files from the build directory
+  const buildPath = path.join(__dirname, '..', 'build');
+  app.use(express.static(buildPath, {
+    // Don't serve index.html for root - let the SPA fallback handle it
+    index: false
+  }));
+
+  // SPA fallback - serve index.html for any unmatched routes
+  // This runs after all API routes and crawler-specific routes
+  app.get('*', (req, res) => {
+    res.sendFile(path.join(buildPath, 'index.html'));
+  });
+}
 
 // ==================== GLOBAL ERROR HANDLER ====================
 
