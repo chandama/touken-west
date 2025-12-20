@@ -2627,7 +2627,7 @@ app.post('/api/admin/articles/:slug/unpublish', authenticateToken, requireEditor
 
 // ==================== DYNAMIC SITEMAP ====================
 
-app.get('/sitemap.xml', async (req, res) => {
+app.get('/api/sitemap.xml', async (req, res) => {
   try {
     const baseUrl = 'https://nihonto-db.com';
     const today = new Date().toISOString().split('T')[0];
