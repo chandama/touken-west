@@ -3,26 +3,83 @@ import '../styles/Login.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
-const ProtectedRoute = ({ children, requireAdmin = false, allowEditor = false }) => {
+// Role hierarchy from lowest to highest privilege
+const ROLE_HIERARCHY = ['user', 'subscriber', 'editor', 'admin'];
+
+/**
+ * ProtectedRoute component with role-based access control
+ *
+ * Props:
+ * - requiredRole: Minimum role required (e.g., 'subscriber', 'editor', 'admin')
+ * - requireAdmin: Legacy prop - requires 'admin' role
+ * - allowEditor: Legacy prop - if requireAdmin, also allows 'editor'
+ * - showUpgradePrompt: Show upgrade message instead of login for insufficient role
+ */
+const ProtectedRoute = ({
+  children,
+  requiredRole = null,
+  requireAdmin = false,
+  allowEditor = false,
+  showUpgradePrompt = false
+}) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [showLogin, setShowLogin] = useState(false);
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
   const [isLoggingIn, setIsLoggingIn] = useState(false);
+  const [authConfig, setAuthConfig] = useState(null);
+  const [insufficientRole, setInsufficientRole] = useState(false);
 
-  // Check if user has required role
+  // Determine the effective required role
+  const getEffectiveRequiredRole = () => {
+    if (requiredRole) return requiredRole;
+    if (requireAdmin && allowEditor) return 'editor';
+    if (requireAdmin) return 'admin';
+    return null; // Any authenticated user
+  };
+
+  // Check if user has required role using hierarchy
   const hasRequiredRole = (userRole) => {
-    if (!requireAdmin) return true; // No admin required, any authenticated user is fine
-    if (userRole === 'admin') return true; // Admin always has access
-    if (allowEditor && userRole === 'editor') return true; // Editor allowed if allowEditor is true
-    return false;
+    const effectiveRole = getEffectiveRequiredRole();
+    if (!effectiveRole) return true; // No specific role required
+
+    const userLevel = ROLE_HIERARCHY.indexOf(userRole);
+    const requiredLevel = ROLE_HIERARCHY.indexOf(effectiveRole);
+
+    if (userLevel === -1 || requiredLevel === -1) return false;
+    return userLevel >= requiredLevel;
+  };
+
+  // Get display name for a role
+  const getRoleDisplayName = (role) => {
+    const names = {
+      user: 'User',
+      subscriber: 'Subscriber',
+      editor: 'Editor',
+      admin: 'Administrator'
+    };
+    return names[role] || role;
   };
 
   useEffect(() => {
     checkAuth();
+    fetchAuthConfig();
   }, []);
+
+  const fetchAuthConfig = async () => {
+    try {
+      const response = await fetch(`${API_BASE}/auth/config`, {
+        credentials: 'include'
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setAuthConfig(data);
+      }
+    } catch (err) {
+      console.error('Failed to fetch auth config:', err);
+    }
+  };
 
   const checkAuth = async () => {
     try {
@@ -33,9 +90,9 @@ const ProtectedRoute = ({ children, requireAdmin = false, allowEditor = false })
         const data = await response.json();
         setUser(data.user);
 
-        // If required role not met, deny access
+        // Check if user has required role
         if (!hasRequiredRole(data.user.role)) {
-          setUser(null);
+          setInsufficientRole(true);
         }
       }
     } catch (error) {
@@ -61,24 +118,35 @@ const ProtectedRoute = ({ children, requireAdmin = false, allowEditor = false })
       const data = await response.json();
 
       if (response.ok) {
+        setUser(data.user);
+
         // Check if user has required role
         if (!hasRequiredRole(data.user.role)) {
-          const requiredRole = allowEditor ? 'Editor or Admin' : 'Admin';
-          setError(`${requiredRole} access required`);
-          setIsLoggingIn(false);
-          return;
+          setInsufficientRole(true);
+        } else {
+          setInsufficientRole(false);
         }
-
-        setUser(data.user);
-        setShowLogin(false);
       } else {
-        setError(data.error || 'Login failed');
+        // Handle OAuth-only account
+        if (data.code === 'OAUTH_ONLY_ACCOUNT') {
+          setError(data.error);
+        } else {
+          setError(data.error || 'Login failed');
+        }
       }
     } catch (err) {
       setError('Network error. Please try again.');
     } finally {
       setIsLoggingIn(false);
     }
+  };
+
+  const handleGoogleLogin = () => {
+    window.location.href = `${API_BASE}/auth/google`;
+  };
+
+  const handleFacebookLogin = () => {
+    window.location.href = `${API_BASE}/auth/facebook`;
   };
 
   if (loading) {
@@ -96,52 +164,145 @@ const ProtectedRoute = ({ children, requireAdmin = false, allowEditor = false })
     );
   }
 
-  if (!user) {
+  // User is logged in but doesn't have required role
+  if (user && insufficientRole) {
+    const effectiveRole = getEffectiveRequiredRole();
     return (
       <div className="login-overlay">
         <div className="login-modal">
           <div className="login-header">
-            <h2>{requireAdmin ? (allowEditor ? 'Editor Login Required' : 'Admin Login Required') : 'Login Required'}</h2>
+            <h2>Access Restricted</h2>
           </div>
 
-          <form onSubmit={handleLogin} className="login-form">
+          <div className="login-form" style={{ textAlign: 'center' }}>
+            <p style={{ marginBottom: '1.5rem', color: '#666' }}>
+              This content requires <strong>{getRoleDisplayName(effectiveRole)}</strong> access.
+            </p>
+
+            <p style={{ marginBottom: '1.5rem', color: '#666' }}>
+              You are currently logged in as <strong>{user.email}</strong> with <strong>{getRoleDisplayName(user.role)}</strong> access.
+            </p>
+
+            {effectiveRole === 'subscriber' && (
+              <p style={{ marginBottom: '1.5rem' }}>
+                <a
+                  href="/account/subscription"
+                  style={{
+                    color: 'var(--primary-color, #007bff)',
+                    textDecoration: 'underline'
+                  }}
+                >
+                  Upgrade your account
+                </a>
+                {' '}to access this content.
+              </p>
+            )}
+
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+              <a
+                href="/"
+                className="submit-button"
+                style={{ textDecoration: 'none', display: 'inline-block' }}
+              >
+                Return to Home
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  // User is not logged in
+  if (!user) {
+    const effectiveRole = getEffectiveRequiredRole();
+    const hasGoogleAuth = authConfig?.providers?.includes('google');
+    const hasFacebookAuth = authConfig?.providers?.includes('facebook');
+    const hasAnyOAuth = hasGoogleAuth || hasFacebookAuth;
+
+    return (
+      <div className="login-overlay">
+        <div className="login-modal">
+          <div className="login-header">
+            <h2>
+              {effectiveRole
+                ? `${getRoleDisplayName(effectiveRole)} Login Required`
+                : 'Login Required'}
+            </h2>
+          </div>
+
+          <div className="login-form">
             {error && <div className="error-message">{error}</div>}
 
-            <div className="form-group">
-              <label htmlFor="admin-email">Email</label>
-              <input
-                id="admin-email"
-                type="email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                autoFocus
-              />
-            </div>
+            {/* OAuth Buttons */}
+            {hasAnyOAuth && (
+              <div className="oauth-buttons">
+                {hasGoogleAuth && (
+                  <button
+                    type="button"
+                    className="oauth-button google"
+                    onClick={handleGoogleLogin}
+                    disabled={isLoggingIn}
+                  >
+                    Continue with Google
+                  </button>
+                )}
+                {hasFacebookAuth && (
+                  <button
+                    type="button"
+                    className="oauth-button facebook"
+                    onClick={handleFacebookLogin}
+                    disabled={isLoggingIn}
+                  >
+                    Continue with Facebook
+                  </button>
+                )}
+              </div>
+            )}
 
-            <div className="form-group">
-              <label htmlFor="admin-password">Password</label>
-              <input
-                id="admin-password"
-                type="password"
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                required
-              />
-            </div>
+            {hasAnyOAuth && (
+              <div className="auth-divider">
+                <span>or</span>
+              </div>
+            )}
 
-            <button type="submit" className="submit-button" disabled={isLoggingIn}>
-              {isLoggingIn ? 'Logging in...' : 'Log In'}
-            </button>
+            <form onSubmit={handleLogin}>
+              <div className="form-group">
+                <label htmlFor="protected-email">Email</label>
+                <input
+                  id="protected-email"
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  required
+                  autoFocus={!hasAnyOAuth}
+                />
+              </div>
 
-            {requireAdmin && (
+              <div className="form-group">
+                <label htmlFor="protected-password">Password</label>
+                <input
+                  id="protected-password"
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  required
+                />
+              </div>
+
+              <button type="submit" className="submit-button" disabled={isLoggingIn}>
+                {isLoggingIn ? 'Logging in...' : 'Log In'}
+              </button>
+            </form>
+
+            {effectiveRole && (
               <div className="form-footer" style={{ marginTop: '1rem' }}>
                 <small style={{ color: '#666' }}>
-                  {allowEditor ? 'Editor or Admin' : 'Admin'} credentials required to access this area
+                  {getRoleDisplayName(effectiveRole)} access required for this area
                 </small>
               </div>
             )}
-          </form>
+          </div>
         </div>
       </div>
     );

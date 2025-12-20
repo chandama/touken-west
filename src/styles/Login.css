@@ -4,7 +4,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background-color: rgba(0, 0, 0, 0.7);
+  background-color: #1a1a2e;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -113,6 +113,21 @@
   font-size: 0.9rem;
 }
 
+.success-message {
+  padding: 0.75rem;
+  background: #e8f5e9;
+  border: 1px solid #a5d6a7;
+  border-radius: 6px;
+  color: #2e7d32;
+  font-size: 0.9rem;
+}
+
+.dark-mode .success-message {
+  background: rgba(76, 175, 80, 0.1);
+  border-color: rgba(76, 175, 80, 0.3);
+  color: #81c784;
+}
+
 .dark-mode .error-message {
   background: rgba(255, 100, 100, 0.1);
   border-color: rgba(255, 100, 100, 0.3);
@@ -162,6 +177,112 @@
 
 .link-button:hover {
   color: var(--primary-hover, #0056b3);
+}
+
+/* OAuth Buttons */
+.oauth-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.oauth-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border-color, #ddd);
+  border-radius: 6px;
+  font-size: 0.95rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  background: var(--surface-color, white);
+  color: var(--text-color, #333);
+}
+
+.oauth-button:hover:not(:disabled) {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  transform: translateY(-1px);
+}
+
+.oauth-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.oauth-button.google {
+  background: white;
+  border-color: #ddd;
+  color: #333;
+}
+
+.oauth-button.google:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #4285f4;
+}
+
+.oauth-button.facebook {
+  background: #1877f2;
+  border-color: #1877f2;
+  color: white;
+}
+
+.oauth-button.facebook:hover:not(:disabled) {
+  background: #166fe5;
+  border-color: #166fe5;
+}
+
+.dark-mode .oauth-button {
+  background: var(--surface-color);
+  border-color: var(--border-color);
+  color: var(--text-color);
+}
+
+.dark-mode .oauth-button.google {
+  background: var(--surface-color);
+}
+
+.dark-mode .oauth-button.google:hover:not(:disabled) {
+  background: var(--hover-bg);
+}
+
+/* Auth Divider */
+.auth-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  margin: 0.5rem 0;
+}
+
+.auth-divider::before,
+.auth-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid var(--border-color, #ddd);
+}
+
+.auth-divider span {
+  padding: 0 1rem;
+  color: var(--text-secondary, #666);
+  font-size: 0.85rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Password hint and notices */
+.password-hint {
+  display: block;
+  margin-top: 0.25rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary, #666);
+}
+
+.recaptcha-notice {
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--text-secondary, #666);
+  margin: 0.5rem 0 0 0;
 }
 
 @keyframes fadeIn {

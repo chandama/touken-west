@@ -56,6 +56,23 @@ const {
   generateFilename,
 } = require('./config/spaces');
 
+// OAuth configuration
+const { initializePassport, getConfiguredProviders } = require('./config/passport');
+
+// Routes
+const oauthRoutes = require('./routes/oauth');
+const accountRoutes = require('./routes/account');
+
+// Middleware
+const { requireSubscriber, requireEditor: requireEditorRole, requireAdmin: requireAdminRole, canAccessMedia, filterMediaForRole, getAllRoles } = require('./middleware/permissions');
+const { verifyCaptcha, isRecaptchaConfigured } = require('./middleware/captcha');
+
+// Validation utilities
+const { sanitizeInput, validateEmail, normalizeEmail, validateUsername, validatePassword, generateToken } = require('./utils/validation');
+
+// Email service
+const { isEmailConfigured, sendVerificationEmail } = require('./services/emailService');
+
 const app = express();
 const PORT = process.env.PORT || 3002;
 
@@ -294,7 +311,7 @@ app.use(cors(corsOptions));
 app.use(express.json());
 app.use(cookieParser());
 
-// Session middleware (required for lusca CSRF)
+// Session middleware (required for lusca CSRF and Passport OAuth)
 app.use(session({
   secret: process.env.SESSION_SECRET || process.env.JWT_SECRET || 'fallback-secret-change-in-production',
   resave: false,
@@ -307,15 +324,27 @@ app.use(session({
   }
 }));
 
+// Initialize Passport for OAuth authentication
+initializePassport(app);
+
 // CSRF protection middleware - exclude auth routes that don't need protection
 // (login/register/logout don't have sessions to protect from CSRF)
+// OAuth callbacks are also exempt as they come from external providers
 const csrfProtection = lusca.csrf();
 app.use((req, res, next) => {
   // Skip CSRF for auth routes - they don't have sessions to protect
   const csrfExemptPaths = [
     '/api/auth/login',
     '/api/auth/register',
-    '/api/auth/logout'
+    '/api/auth/logout',
+    '/api/auth/config',
+    '/api/auth/providers',
+    '/api/auth/google',
+    '/api/auth/google/callback',
+    '/api/auth/facebook',
+    '/api/auth/facebook/callback',
+    '/api/auth/verify-email',
+    '/api/auth/resend-verification'
   ];
   if (csrfExemptPaths.includes(req.path)) {
     return next();
@@ -482,8 +511,23 @@ app.get('/api/health', (req, res) => {
 
 // ==================== AUTHENTICATION ROUTES ====================
 
-// Register
-app.post('/api/auth/register', async (req, res) => {
+// Mount OAuth routes
+app.use('/api/auth', oauthRoutes);
+
+// Mount account routes (requires authentication)
+app.use('/api/account', authenticateToken, accountRoutes);
+
+// Get available auth providers (for frontend)
+app.get('/api/auth/config', (req, res) => {
+  res.json({
+    providers: getConfiguredProviders(),
+    captchaEnabled: isRecaptchaConfigured(),
+    captchaSiteKey: process.env.RECAPTCHA_SITE_KEY || null
+  });
+});
+
+// Register (with CAPTCHA verification for spam prevention)
+app.post('/api/auth/register', verifyCaptcha, async (req, res) => {
   try {
     const { email, password, username } = req.body;
 
@@ -491,19 +535,26 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'Email, username, and password are required' });
     }
 
-    // Ensure all inputs are strings to prevent NoSQL injection
-    if (typeof email !== 'string' || typeof username !== 'string' || typeof password !== 'string') {
-      return res.status(400).json({ error: 'Invalid input format' });
-    }
-
-    // Sanitize inputs
-    const sanitizedEmail = email.trim().toLowerCase();
-    const sanitizedUsername = username.trim();
+    // Use validation utilities for sanitization and validation
+    const sanitizedEmail = normalizeEmail(email);
+    const sanitizedUsername = sanitizeInput(username);
 
     // Validate email format
-    const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-    if (!emailRegex.test(sanitizedEmail)) {
+    if (!validateEmail(sanitizedEmail)) {
       return res.status(400).json({ error: 'Invalid email format' });
+    }
+
+    // Validate username format
+    if (!validateUsername(sanitizedUsername)) {
+      return res.status(400).json({
+        error: 'Invalid username. Must be 3-30 characters, alphanumeric, underscores, or hyphens only.'
+      });
+    }
+
+    // Validate password strength
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      return res.status(400).json({ error: passwordValidation.message });
     }
 
     const existingUser = await User.findOne({ email: { $eq: sanitizedEmail } });
@@ -511,34 +562,54 @@ app.post('/api/auth/register', async (req, res) => {
       return res.status(400).json({ error: 'User with this email already exists' });
     }
 
+    // Check username uniqueness
+    const existingUsername = await User.findOne({ username: { $eq: sanitizedUsername } });
+    if (existingUsername) {
+      return res.status(400).json({ error: 'Username already taken' });
+    }
+
     const hashedPassword = await bcrypt.hash(password, 10);
+
+    // Generate verification token
+    const verificationToken = generateToken();
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000); // 24 hours
 
     const newUser = new User({
       email: sanitizedEmail,
       username: sanitizedUsername,
       password: hashedPassword,
       role: 'user',
+      authMethod: 'local',
+      emailVerified: false,
+      verificationToken,
+      verificationTokenExpiry
     });
 
     await newUser.save();
 
-    const token = jwt.sign(
-      { id: newUser._id, email: newUser.email, role: newUser.role },
-      JWT_SECRET,
-      { expiresIn: '7d' }
-    );
+    // Send verification email
+    try {
+      await sendVerificationEmail(sanitizedEmail, verificationToken, sanitizedUsername);
+      console.log(`[Auth] Verification email sent to ${sanitizedEmail}`);
+    } catch (emailErr) {
+      console.error('[Auth] Failed to send verification email:', emailErr);
+      // Don't fail registration if email fails - user can resend
+    }
 
-    res.cookie('token', token, {
-      httpOnly: true,
-      maxAge: 7 * 24 * 60 * 60 * 1000,
-      sameSite: 'lax',
-      secure: process.env.NODE_ENV === 'production',
-    });
-
+    // Don't log user in until email is verified
+    // Return success but indicate verification is needed
     res.json({
       success: true,
-      user: { id: newUser._id, email: newUser.email, username: newUser.username, role: newUser.role },
-      token,
+      requiresVerification: true,
+      message: 'Account created! Please check your email to verify your account.',
+      user: {
+        id: newUser._id,
+        email: newUser.email,
+        username: newUser.username,
+        role: newUser.role,
+        authMethod: newUser.authMethod,
+        emailVerified: false
+      }
     });
   } catch (error) {
     console.error('Error registering user:', error);
@@ -555,22 +626,40 @@ app.post('/api/auth/login', async (req, res) => {
       return res.status(400).json({ error: 'Email and password are required' });
     }
 
-    // Ensure all inputs are strings to prevent NoSQL injection
-    if (typeof email !== 'string' || typeof password !== 'string') {
-      return res.status(400).json({ error: 'Invalid input format' });
+    // Use validation utilities
+    const sanitizedEmail = normalizeEmail(email);
+    if (!validateEmail(sanitizedEmail)) {
+      return res.status(400).json({ error: 'Invalid email format' });
     }
-
-    // Sanitize email
-    const sanitizedEmail = email.trim().toLowerCase();
 
     const user = await User.findOne({ email: { $eq: sanitizedEmail } });
     if (!user) {
       return res.status(401).json({ error: 'Invalid email or password' });
     }
 
+    // Check if user has a password (OAuth-only users may not)
+    if (!user.password) {
+      // Determine which OAuth provider the user used
+      const provider = user.googleId ? 'Google' : user.facebookId ? 'Facebook' : 'OAuth';
+      return res.status(401).json({
+        error: `This account uses ${provider} login. Please use the "${provider}" button to sign in.`,
+        code: 'OAUTH_ONLY_ACCOUNT',
+        authMethod: user.authMethod
+      });
+    }
+
     const isValidPassword = await bcrypt.compare(password, user.password);
     if (!isValidPassword) {
       return res.status(401).json({ error: 'Invalid email or password' });
+    }
+
+    // Check if email is verified (for local auth only)
+    if (user.authMethod === 'local' && !user.emailVerified) {
+      return res.status(403).json({
+        error: 'Please verify your email address before logging in. Check your inbox for a verification link.',
+        code: 'EMAIL_NOT_VERIFIED',
+        email: user.email
+      });
     }
 
     const token = jwt.sign(
@@ -588,7 +677,13 @@ app.post('/api/auth/login', async (req, res) => {
 
     res.json({
       success: true,
-      user: { id: user._id, email: user.email, username: user.username, role: user.role },
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        authMethod: user.authMethod || 'local'
+      },
       token,
     });
   } catch (error) {
@@ -603,14 +698,153 @@ app.post('/api/auth/logout', (req, res) => {
   res.json({ success: true, message: 'Logged out successfully' });
 });
 
+// Verify email
+app.post('/api/auth/verify-email', async (req, res) => {
+  try {
+    const { token } = req.body;
+
+    if (!token) {
+      return res.status(400).json({ error: 'Verification token is required' });
+    }
+
+    // Find user with this token that hasn't expired
+    const user = await User.findOne({
+      verificationToken: token,
+      verificationTokenExpiry: { $gt: new Date() }
+    });
+
+    if (!user) {
+      return res.status(400).json({
+        error: 'Invalid or expired verification link. Please request a new one.',
+        code: 'INVALID_TOKEN'
+      });
+    }
+
+    // Mark email as verified and clear token
+    user.emailVerified = true;
+    user.verificationToken = undefined;
+    user.verificationTokenExpiry = undefined;
+    await user.save();
+
+    // Log user in after verification
+    const jwtToken = jwt.sign(
+      { id: user._id, email: user.email, role: user.role },
+      JWT_SECRET,
+      { expiresIn: '7d' }
+    );
+
+    res.cookie('token', jwtToken, {
+      httpOnly: true,
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+      sameSite: 'lax',
+      secure: process.env.NODE_ENV === 'production',
+    });
+
+    res.json({
+      success: true,
+      message: 'Email verified successfully! You are now logged in.',
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        role: user.role,
+        emailVerified: true
+      }
+    });
+  } catch (error) {
+    console.error('Error verifying email:', error);
+    res.status(500).json({ error: 'Failed to verify email' });
+  }
+});
+
+// Resend verification email
+app.post('/api/auth/resend-verification', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email) {
+      return res.status(400).json({ error: 'Email is required' });
+    }
+
+    const sanitizedEmail = normalizeEmail(email);
+    const user = await User.findOne({ email: sanitizedEmail });
+
+    if (!user) {
+      // Don't reveal if email exists
+      return res.json({
+        success: true,
+        message: 'If an account exists with this email, a verification link has been sent.'
+      });
+    }
+
+    if (user.emailVerified) {
+      return res.status(400).json({
+        error: 'Email is already verified. You can log in now.',
+        code: 'ALREADY_VERIFIED'
+      });
+    }
+
+    // Generate new token
+    const verificationToken = generateToken();
+    const verificationTokenExpiry = new Date(Date.now() + 24 * 60 * 60 * 1000);
+
+    user.verificationToken = verificationToken;
+    user.verificationTokenExpiry = verificationTokenExpiry;
+    await user.save();
+
+    // Send verification email
+    try {
+      await sendVerificationEmail(sanitizedEmail, verificationToken, user.username);
+      console.log(`[Auth] Verification email resent to ${sanitizedEmail}`);
+    } catch (emailErr) {
+      console.error('[Auth] Failed to resend verification email:', emailErr);
+      return res.status(500).json({ error: 'Failed to send verification email' });
+    }
+
+    res.json({
+      success: true,
+      message: 'Verification email sent! Please check your inbox.'
+    });
+  } catch (error) {
+    console.error('Error resending verification:', error);
+    res.status(500).json({ error: 'Failed to resend verification email' });
+  }
+});
+
 // Get current user
 app.get('/api/auth/me', authenticateToken, async (req, res) => {
   try {
-    const user = await User.findById(req.user.id).select('-password');
+    // Query with password to check hasPassword, but don't return it
+    const user = await User.findById(req.user.id).select('-verificationToken -resetToken');
     if (!user) {
       return res.status(404).json({ error: 'User not found' });
     }
-    res.json({ user });
+
+    // Check if user has password before sending response (password not included in response)
+    const hasPassword = !!user.password;
+
+    // Include computed fields for frontend
+    res.json({
+      user: {
+        id: user._id,
+        email: user.email,
+        username: user.username,
+        displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
+        role: user.role,
+        authMethod: user.authMethod || 'local',
+        emailVerified: user.emailVerified,
+        hasPassword,
+        linkedAccounts: {
+          google: !!user.googleId,
+          facebook: !!user.facebookId
+        },
+        createdAt: user.createdAt,
+        // Include permission helpers
+        canAccessLibrary: canAccessMedia(user),
+        canAccessAdmin: ['editor', 'admin'].includes(user.role)
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
@@ -690,7 +924,7 @@ app.post('/api/users', authenticateToken, requireAdmin, async (req, res) => {
       email: sanitizedEmail,
       username: sanitizedUsername,
       password: hashedPassword,
-      role: ['admin', 'editor', 'user'].includes(role) ? role : 'user',
+      role: ['admin', 'editor', 'subscriber', 'user'].includes(role) ? role : 'user',
     });
 
     await newUser.save();
@@ -740,7 +974,7 @@ app.patch('/api/users/:id', authenticateToken, requireAdmin, async (req, res) =>
       }
       user.username = username.trim();
     }
-    if (role && ['user', 'editor', 'admin'].includes(role)) user.role = role;
+    if (role && ['user', 'subscriber', 'editor', 'admin'].includes(role)) user.role = role;
 
     await user.save();
 

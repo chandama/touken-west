@@ -12,47 +12,21 @@ import ArticleEdit from './pages/ArticleEdit.jsx';
 import ArticlePreview from './pages/ArticlePreview.jsx';
 import ProtectedRoute from '../components/ProtectedRoute.jsx';
 import DarkModeToggle from '../components/DarkModeToggle.jsx';
+import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
 import './styles/admin.css';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
-
-function AdminApp() {
+function AdminAppContent() {
+  const { user, logout, isAdmin } = useAuth();
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('adminDarkMode');
     return saved ? JSON.parse(saved) : false;
   });
   const [showActionsDropdown, setShowActionsDropdown] = useState(false);
   const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [user, setUser] = useState(null);
-
-  // Fetch current user info
-  useEffect(() => {
-    const fetchUser = async () => {
-      try {
-        const response = await fetch(`${API_BASE}/auth/me`, {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-        }
-      } catch (error) {
-        console.error('Error fetching user:', error);
-      }
-    };
-    fetchUser();
-  }, []);
 
   const handleLogout = async () => {
-    try {
-      await fetch(`${API_BASE}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      window.location.href = '/';
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
+    await logout();
+    window.location.href = '/';
   };
 
   useEffect(() => {
@@ -105,9 +79,11 @@ function AdminApp() {
                       <Link to="/admin/bulk-upload" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
                         Bulk Upload
                       </Link>
-                      <Link to="/admin/users" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
-                        Users
-                      </Link>
+                      {isAdmin() && (
+                        <Link to="/admin/users" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
+                          Users
+                        </Link>
+                      )}
                       <Link to="/admin/changelog" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
                         Changelog
                       </Link>
@@ -136,6 +112,9 @@ function AdminApp() {
                       <div className="user-dropdown">
                         <div className="user-dropdown-email">{user.email}</div>
                         <div className="user-dropdown-role">{user.role}</div>
+                        <a href="/account" className="user-dropdown-item">
+                          My Account
+                        </a>
                         <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
                           Logout
                         </button>
@@ -158,13 +137,30 @@ function AdminApp() {
             <Route path="/admin/articles/create" element={<ArticleCreate />} />
             <Route path="/admin/articles/:slug" element={<ArticleEdit />} />
             <Route path="/admin/articles/:slug/preview" element={<ArticlePreview />} />
-            <Route path="/admin/users" element={<UserManagement />} />
+            <Route path="/admin/users" element={
+              isAdmin() ? <UserManagement /> : (
+                <div className="admin-access-denied">
+                  <h2>Access Denied</h2>
+                  <p>User management is restricted to administrators only.</p>
+                  <Link to="/admin" className="admin-back-link">Return to Dashboard</Link>
+                </div>
+              )
+            } />
             <Route path="/admin/changelog" element={<Changelog />} />
           </Routes>
         </main>
       </div>
       </ProtectedRoute>
     </BrowserRouter>
+  );
+}
+
+// Wrap with AuthProvider
+function AdminApp() {
+  return (
+    <AuthProvider>
+      <AdminAppContent />
+    </AuthProvider>
   );
 }
 

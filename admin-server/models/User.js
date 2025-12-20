@@ -21,13 +21,60 @@ const userSchema = new mongoose.Schema({
   },
   password: {
     type: String,
-    required: true
+    required: false // Optional for OAuth users
   },
   role: {
     type: String,
-    enum: ['user', 'admin', 'editor'],
+    enum: ['user', 'subscriber', 'editor', 'admin'],
     default: 'user'
   },
+
+  // OAuth fields
+  googleId: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+  facebookId: {
+    type: String,
+    sparse: true,
+    index: true
+  },
+  authMethod: {
+    type: String,
+    enum: ['local', 'google', 'facebook'],
+    default: 'local'
+  },
+
+  // Email verification
+  emailVerified: {
+    type: Boolean,
+    default: false
+  },
+  verificationToken: {
+    type: String
+  },
+  verificationTokenExpiry: {
+    type: Date
+  },
+
+  // Password reset
+  resetToken: {
+    type: String
+  },
+  resetTokenExpiry: {
+    type: Date
+  },
+
+  // Profile fields
+  displayName: {
+    type: String,
+    trim: true
+  },
+  avatarUrl: {
+    type: String
+  },
+
   createdAt: {
     type: Date,
     default: Date.now

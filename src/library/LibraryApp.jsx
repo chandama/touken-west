@@ -13,15 +13,13 @@ import useSwordData from '../hooks/useSwordData.js';
 import { hasValidMedia } from '../utils/mediaUtils.js';
 import { parseSearchInput, matchesSearchTerms } from '../utils/searchParser.js';
 import { matchesPeriodFilter } from '../utils/periodUtils.js';
+import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
 
-const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
-
-function LibraryApp() {
+function LibraryAppContent() {
   const { swords, loading, error } = useSwordData();
+  const { user, loading: authLoading, logout, canAccessLibrary, isEditor } = useAuth();
 
-  // Auth state
-  const [user, setUser] = useState(null);
-  const [authLoading, setAuthLoading] = useState(true);
+  // Show login modal state
   const [showLogin, setShowLogin] = useState(false);
 
   // Filter state (same as App.jsx but with hasMedia forced to 'true')
@@ -52,29 +50,12 @@ function LibraryApp() {
     return saved ? JSON.parse(saved) : false;
   });
 
-  // Check authentication
+  // Show login modal if not authenticated
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const response = await fetch(`${API_BASE}/auth/me`, {
-          credentials: 'include'
-        });
-        if (response.ok) {
-          const data = await response.json();
-          setUser(data.user);
-        } else {
-          // Not logged in - show login modal
-          setShowLogin(true);
-        }
-      } catch (error) {
-        // Not logged in - show login modal
-        setShowLogin(true);
-      } finally {
-        setAuthLoading(false);
-      }
-    };
-    checkAuth();
-  }, []);
+    if (!authLoading && !user) {
+      setShowLogin(true);
+    }
+  }, [authLoading, user]);
 
   // Dark mode effect
   useEffect(() => {
@@ -246,33 +227,14 @@ function LibraryApp() {
     }
   };
 
-  const handleLoginSuccess = async () => {
-    // Re-check auth after login
-    try {
-      const response = await fetch(`${API_BASE}/auth/me`, {
-        credentials: 'include'
-      });
-      if (response.ok) {
-        const data = await response.json();
-        setUser(data.user);
-        setShowLogin(false);
-      }
-    } catch (error) {
-      console.error('Error checking auth after login:', error);
-    }
+  const handleLoginSuccess = () => {
+    setShowLogin(false);
+    // AuthContext will automatically update user state
   };
 
   const handleLogout = async () => {
-    try {
-      await fetch(`${API_BASE}/auth/logout`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      setUser(null);
-      setShowLogin(true);
-    } catch (error) {
-      console.error('Error logging out:', error);
-    }
+    await logout();
+    setShowLogin(true);
   };
 
   // Loading state
@@ -361,6 +323,134 @@ function LibraryApp() {
     );
   }
 
+  // User logged in but doesn't have subscriber access
+  if (!canAccessLibrary()) {
+    return (
+      <div className="LibraryApp">
+        <header className="subpage-header">
+          <div className="subpage-header-content">
+            <div className="subpage-header-text">
+              <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
+              <div className="subpage-header-title">
+                <h1>Touken West - Nihontō Database</h1>
+                <p>Nihontō Media Library</p>
+              </div>
+            </div>
+            <div className="subpage-header-actions">
+              <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
+              {/* Mobile hamburger menu */}
+              <div className="mobile-menu">
+                <button
+                  className="mobile-menu-button"
+                  onClick={() => setShowMobileMenu(!showMobileMenu)}
+                  aria-label="Navigation menu"
+                  aria-expanded={showMobileMenu}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="mobile-menu-icon">
+                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
+                  </svg>
+                </button>
+                {showMobileMenu && (
+                  <>
+                    <div className="mobile-menu-backdrop" onClick={() => setShowMobileMenu(false)} />
+                    <div className="mobile-menu-dropdown">
+                      <a href="/" className="mobile-nav-link">Sword Database</a>
+                      <a href="/provinces" className="mobile-nav-link">Province Map</a>
+                      <span className="mobile-nav-link active">Digital Library</span>
+                      <a href="/articles" className="mobile-nav-link">Articles</a>
+                      <hr className="mobile-menu-divider" />
+                      <a href="/account" className="mobile-nav-link">My Account</a>
+                    </div>
+                  </>
+                )}
+              </div>
+              {/* Desktop nav links */}
+              <a href="/" className="header-nav-link">
+                Sword Database
+              </a>
+              <a href="/provinces" className="header-nav-link">
+                Province Map
+              </a>
+              <span className="header-nav-link active">
+                Digital Library
+              </span>
+              <a href="/articles" className="header-nav-link">
+                Articles
+              </a>
+              <div className="user-menu">
+                <button
+                  className="user-avatar-button"
+                  onClick={() => setShowUserDropdown(!showUserDropdown)}
+                  aria-label="User menu"
+                  aria-expanded={showUserDropdown}
+                >
+                  <svg viewBox="0 0 24 24" fill="currentColor" className="user-avatar-icon">
+                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+                  </svg>
+                </button>
+                {showUserDropdown && (
+                  <>
+                    <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
+                    <div className="user-dropdown">
+                      <div className="user-dropdown-email">{user.email}</div>
+                      <a href="/account" className="user-dropdown-item">
+                        My Account
+                      </a>
+                      {isEditor() && (
+                        <a href="/admin" className="user-dropdown-admin">
+                          Admin Panel
+                        </a>
+                      )}
+                      <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
+                        Logout
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+        </header>
+
+        <div className="library-auth-required">
+          <h2>Subscriber Access Required</h2>
+          <p>The Digital Library is available to subscribers only.</p>
+          <p style={{ marginTop: '1rem', color: 'var(--text-secondary, #666)' }}>
+            You are currently logged in as <strong>{user.email}</strong>.
+          </p>
+          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <a
+              href="/account/subscription"
+              style={{
+                padding: '0.75rem 1.5rem',
+                background: 'var(--primary-color, #007bff)',
+                color: 'white',
+                borderRadius: '6px',
+                textDecoration: 'none',
+                fontWeight: '600'
+              }}
+            >
+              View Subscription Options
+            </a>
+            <a
+              href="/"
+              style={{
+                padding: '0.75rem 1.5rem',
+                background: 'transparent',
+                color: 'var(--text-color, #333)',
+                border: '1px solid var(--border-color, #ddd)',
+                borderRadius: '6px',
+                textDecoration: 'none'
+              }}
+            >
+              Return to Sword Database
+            </a>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="LibraryApp">
       <header className="subpage-header">
@@ -394,6 +484,11 @@ function LibraryApp() {
                     <a href="/provinces" className="mobile-nav-link">Province Map</a>
                     <span className="mobile-nav-link active">Digital Library</span>
                     <a href="/articles" className="mobile-nav-link">Articles</a>
+                    <hr className="mobile-menu-divider" />
+                    <a href="/account" className="mobile-nav-link">My Account</a>
+                    {isEditor() && (
+                      <a href="/admin" className="mobile-nav-link">Admin Panel</a>
+                    )}
                   </div>
                 </>
               )}
@@ -427,7 +522,10 @@ function LibraryApp() {
                   <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
                   <div className="user-dropdown">
                     <div className="user-dropdown-email">{user.email}</div>
-                    {user.role === 'admin' && (
+                    <a href="/account" className="user-dropdown-item">
+                      My Account
+                    </a>
+                    {isEditor() && (
                       <a href="/admin" className="user-dropdown-admin">
                         Admin Panel
                       </a>
@@ -500,6 +598,15 @@ function LibraryApp() {
         </div>
       )}
     </div>
+  );
+}
+
+// Wrap with AuthProvider
+function LibraryApp() {
+  return (
+    <AuthProvider>
+      <LibraryAppContent />
+    </AuthProvider>
   );
 }
 
