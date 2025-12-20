@@ -347,12 +347,12 @@ router.post('/verify-email', async (req, res) => {
   try {
     const { token } = req.body;
 
-    if (!token) {
+    if (!token || typeof token !== 'string') {
       return res.status(400).json({ error: 'Verification token required' });
     }
 
     const user = await User.findOne({
-      verificationToken: token,
+      verificationToken: { $eq: token },
       verificationTokenExpiry: { $gt: new Date() }
     });
 

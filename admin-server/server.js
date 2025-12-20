@@ -703,13 +703,13 @@ app.post('/api/auth/verify-email', async (req, res) => {
   try {
     const { token } = req.body;
 
-    if (!token) {
+    if (!token || typeof token !== 'string') {
       return res.status(400).json({ error: 'Verification token is required' });
     }
 
     // Find user with this token that hasn't expired
     const user = await User.findOne({
-      verificationToken: token,
+      verificationToken: { $eq: token },
       verificationTokenExpiry: { $gt: new Date() }
     });
 
