@@ -204,8 +204,12 @@ const UserManagement = () => {
           <div className="stat-label">Editors</div>
         </div>
         <div className="stat-card">
+          <div className="stat-value">{users.filter(u => u.role === 'subscriber').length}</div>
+          <div className="stat-label">Subscribers</div>
+        </div>
+        <div className="stat-card">
           <div className="stat-value">{users.filter(u => u.role === 'user').length}</div>
-          <div className="stat-label">Regular Users</div>
+          <div className="stat-label">Free Users</div>
         </div>
       </div>
 
@@ -313,7 +317,8 @@ const UserManagement = () => {
                   value={newUser.role}
                   onChange={(e) => setNewUser({ ...newUser, role: e.target.value })}
                 >
-                  <option value="user">User</option>
+                  <option value="user">User (Free)</option>
+                  <option value="subscriber">Subscriber</option>
                   <option value="editor">Editor</option>
                   <option value="admin">Admin</option>
                 </select>
@@ -392,7 +397,8 @@ const UserManagement = () => {
                   value={editingUser.role}
                   onChange={(e) => setEditingUser({ ...editingUser, role: e.target.value })}
                 >
-                  <option value="user">User</option>
+                  <option value="user">User (Free)</option>
+                  <option value="subscriber">Subscriber</option>
                   <option value="editor">Editor</option>
                   <option value="admin">Admin</option>
                 </select>

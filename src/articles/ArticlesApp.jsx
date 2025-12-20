@@ -101,6 +101,15 @@ function ArticlesApp() {
                       <a href="/provinces" className="mobile-nav-link">Province Map</a>
                       <a href="/library" className="mobile-nav-link">Digital Library</a>
                       <span className="mobile-nav-link active">Articles</span>
+                      {user && (
+                        <>
+                          <hr className="mobile-menu-divider" />
+                          <a href="/account" className="mobile-nav-link">My Account</a>
+                          {(user.role === 'admin' || user.role === 'editor') && (
+                            <a href="/admin" className="mobile-nav-link">Admin Panel</a>
+                          )}
+                        </>
+                      )}
                     </div>
                   </>
                 )}
@@ -130,12 +139,15 @@ function ArticlesApp() {
                       <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
                       <div className="user-dropdown">
                         <div className="user-dropdown-email">{user.email}</div>
+                        <a href="/account" className="user-dropdown-item">
+                          My Account
+                        </a>
                         {(user.role === 'admin' || user.role === 'editor') && (
                           <a href="/admin/articles" className="user-dropdown-admin">
                             Manage Articles
                           </a>
                         )}
-                        {user.role === 'admin' && (
+                        {(user.role === 'admin' || user.role === 'editor') && (
                           <a href="/admin" className="user-dropdown-admin">
                             Admin Panel
                           </a>

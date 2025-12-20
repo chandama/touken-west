@@ -11,6 +11,9 @@ const AdminApp = lazy(() => import('./admin/AdminApp.jsx'));
 const LibraryApp = lazy(() => import('./library/LibraryApp.jsx'));
 const ProvincesApp = lazy(() => import('./provinces/ProvincesApp.jsx'));
 const ArticlesApp = lazy(() => import('./articles/ArticlesApp.jsx'));
+const AccountApp = lazy(() => import('./account/AccountApp.jsx'));
+const OAuthCallback = lazy(() => import('./components/OAuthCallback.jsx'));
+const VerifyEmail = lazy(() => import('./components/VerifyEmail.jsx'));
 
 // Simple loading spinner
 const LoadingFallback = () => (
@@ -31,9 +34,15 @@ const isAdminRoute = window.location.pathname.startsWith('/admin');
 const isLibraryRoute = window.location.pathname.startsWith('/library');
 const isProvincesRoute = window.location.pathname.startsWith('/provinces');
 const isArticlesRoute = window.location.pathname.startsWith('/articles');
+const isAccountRoute = window.location.pathname.startsWith('/account');
+const isOAuthCallback = window.location.pathname.startsWith('/auth/callback');
+const isVerifyEmail = window.location.pathname.startsWith('/verify-email');
 
 // Determine which app to render
 const getAppComponent = () => {
+  if (isOAuthCallback) return <OAuthCallback />;
+  if (isVerifyEmail) return <VerifyEmail />;
+  if (isAccountRoute) return <AccountApp />;
   if (isAdminRoute) return <AdminApp />;
   if (isLibraryRoute) return <LibraryApp />;
   if (isProvincesRoute) return <ProvincesApp />;

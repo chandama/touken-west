@@ -232,6 +232,15 @@ function ProvincesApp() {
                     <span className="mobile-nav-link active">Province Map</span>
                     <a href="/library" className="mobile-nav-link">Digital Library</a>
                     <a href="/articles" className="mobile-nav-link">Articles</a>
+                    {user && (
+                      <>
+                        <hr className="mobile-menu-divider" />
+                        <a href="/account" className="mobile-nav-link">My Account</a>
+                        {(user.role === 'admin' || user.role === 'editor') && (
+                          <a href="/admin" className="mobile-nav-link">Admin Panel</a>
+                        )}
+                      </>
+                    )}
                   </div>
                 </>
               )}
@@ -266,7 +275,10 @@ function ProvincesApp() {
                     <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
                     <div className="user-dropdown">
                       <div className="user-dropdown-email">{user.email}</div>
-                      {user.role === 'admin' && (
+                      <a href="/account" className="user-dropdown-item">
+                        My Account
+                      </a>
+                      {(user.role === 'admin' || user.role === 'editor') && (
                         <a href="/admin" className="user-dropdown-admin">
                           Admin Panel
                         </a>

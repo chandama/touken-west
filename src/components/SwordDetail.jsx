@@ -21,6 +21,10 @@ const SwordDetail = ({ sword, onClose, user }) => {
   // Check if user is logged in
   const isLoggedIn = !!user;
 
+  // Check if user can access media (subscriber, editor, or admin)
+  const ROLE_HIERARCHY = ['user', 'subscriber', 'editor', 'admin'];
+  const canAccessMedia = user && ROLE_HIERARCHY.indexOf(user.role) >= ROLE_HIERARCHY.indexOf('subscriber');
+
   const DetailRow = ({ label, value }) => {
     if (!value || value === 'NA' || value === '') return null;
 
@@ -95,86 +99,91 @@ const SwordDetail = ({ sword, onClose, user }) => {
           {sword.MediaAttachments && sword.MediaAttachments !== '' && sword.MediaAttachments !== 'NA' && (
             <div className="detail-section">
               <h3>Media Attachments</h3>
-              <div className="media-attachments">
-                {(() => {
-                  try {
-                    const parsed = JSON.parse(sword.MediaAttachments);
+              {!canAccessMedia ? (
+                <div className="media-restricted-notice">
+                  <p>Media attachments are available to subscribers only.</p>
+                  {isLoggedIn ? (
+                    <a href="/account/subscription" className="upgrade-link">
+                      Upgrade to Subscriber
+                    </a>
+                  ) : (
+                    <button onClick={() => {}} className="login-prompt-link">
+                      Log in or subscribe to view media
+                    </button>
+                  )}
+                </div>
+              ) : (
+                <div className="media-attachments">
+                  {(() => {
+                    try {
+                      const parsed = JSON.parse(sword.MediaAttachments);
 
-                    // Filter out restricted media for non-logged-in users
-                    const filteredMedia = parsed.filter((item) => {
-                      const tags = typeof item === 'object' ? item.tags : null;
-                      const isRestricted = isRestrictedMedia(tags);
+                      if (parsed.length === 0) {
+                        return null;
+                      }
 
-                      // Show all media if logged in, otherwise filter out restricted ones
-                      return isLoggedIn || !isRestricted;
-                    });
+                      return parsed.map((item, index) => {
+                        // Handle both old format (string) and new format (object)
+                        const filePath = typeof item === 'string' ? item : item.url;
+                        const thumbnailPath = typeof item === 'object' ? item.thumbnailUrl : null;
+                        const caption = typeof item === 'object' ? item.caption : null;
+                        const category = typeof item === 'object' ? item.category : null;
+                        const tags = typeof item === 'object' ? item.tags : null;
 
-                    // If no media to display after filtering, don't render anything
-                    if (filteredMedia.length === 0) {
-                      return null;
-                    }
+                        const lowerPath = filePath.toLowerCase();
+                        const isImage = lowerPath.endsWith('.jpg') || lowerPath.endsWith('.jpeg') || lowerPath.endsWith('.png');
+                        const isPdf = lowerPath.endsWith('.pdf');
+                        const fileName = filePath.split('/').pop();
 
-                    return filteredMedia.map((item, index) => {
-                      // Handle both old format (string) and new format (object)
-                      const filePath = typeof item === 'string' ? item : item.url;
-                      const thumbnailPath = typeof item === 'object' ? item.thumbnailUrl : null;
-                      const caption = typeof item === 'object' ? item.caption : null;
-                      const category = typeof item === 'object' ? item.category : null;
-                      const tags = typeof item === 'object' ? item.tags : null;
-
-                      const lowerPath = filePath.toLowerCase();
-                      const isImage = lowerPath.endsWith('.jpg') || lowerPath.endsWith('.jpeg') || lowerPath.endsWith('.png');
-                      const isPdf = lowerPath.endsWith('.pdf');
-                      const fileName = filePath.split('/').pop();
-
-                      return (
-                        <div key={index} className="media-item">
-                          {category && <div className="media-category">{category}</div>}
-                          <div className="media-label">{caption || fileName}</div>
-                          {isImage && (
-                            <img
-                              src={thumbnailPath || filePath}
-                              alt={caption || fileName}
-                              className="media-image"
-                              loading="lazy"
-                              onClick={() => setLightboxImage(filePath)}
-                              style={{ cursor: 'pointer' }}
-                              title="Click to view full size"
-                            />
-                          )}
-                          {isPdf && (
-                            <div className="media-pdf-container">
-                              <iframe
-                                src={`${filePath}#toolbar=0&navpanes=0&scrollbar=0`}
-                                type="application/pdf"
-                                className="media-pdf"
-                                title={caption || fileName}
+                        return (
+                          <div key={index} className="media-item">
+                            {category && <div className="media-category">{category}</div>}
+                            <div className="media-label">{caption || fileName}</div>
+                            {isImage && (
+                              <img
+                                src={thumbnailPath || filePath}
+                                alt={caption || fileName}
+                                className="media-image"
+                                loading="lazy"
+                                onClick={() => setLightboxImage(filePath)}
+                                style={{ cursor: 'pointer' }}
+                                title="Click to view full size"
                               />
-                              <div
-                                className="pdf-click-overlay"
-                                onClick={() => window.open(filePath, '_blank')}
-                                title="Click to open PDF in new tab"
-                              >
-                                <span>Click to open PDF in new tab</span>
+                            )}
+                            {isPdf && (
+                              <div className="media-pdf-container">
+                                <iframe
+                                  src={`${filePath}#toolbar=0&navpanes=0&scrollbar=0`}
+                                  type="application/pdf"
+                                  className="media-pdf"
+                                  title={caption || fileName}
+                                />
+                                <div
+                                  className="pdf-click-overlay"
+                                  onClick={() => window.open(filePath, '_blank')}
+                                  title="Click to open PDF in new tab"
+                                >
+                                  <span>Click to open PDF in new tab</span>
+                                </div>
                               </div>
-                            </div>
-                          )}
-                          {tags && tags.length > 0 && (
-                            <div className="media-tags">
-                              {tags.map((tag, i) => (
-                                <span key={i} className="media-tag">{tag}</span>
-                              ))}
-                            </div>
-                          )}
-                        </div>
-                      );
-                    });
-                  } catch (error) {
-                    console.error('Error parsing MediaAttachments:', error, sword.MediaAttachments);
-                    return <div className="error-text">Error loading media attachments</div>;
-                  }
-                })()}
-              </div>
+                            )}
+                            {tags && tags.length > 0 && (
+                              <div className="media-tags">
+                                {tags.map((tag, i) => (
+                                  <span key={i} className="media-tag">{tag}</span>
+                                ))}
+                              </div>
+                            )}
+                          </div>
+                        );
+                      });
+                    } catch (error) {
+                      console.error('Error parsing MediaAttachments:', error, sword.MediaAttachments);
+                      return <div className="error-text">Error loading media attachments</div>;
+                    }
+                  })()}
+                </div>
+              )}
             </div>
           )}
 
