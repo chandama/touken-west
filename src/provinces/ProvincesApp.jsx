@@ -10,6 +10,9 @@ import useSwordData from '../hooks/useSwordData.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
+// Role hierarchy for permission checks
+const ROLE_HIERARCHY = ['user', 'subscriber', 'editor', 'admin'];
+
 /**
  * Provinces page - Interactive map of historical Japanese provinces (Gokishichidō)
  */
@@ -186,6 +189,14 @@ function ProvincesApp() {
     }
   };
 
+  // Check if user can access the Digital Library (subscriber or higher)
+  const canAccessLibrary = () => {
+    if (!user) return false;
+    const userLevel = ROLE_HIERARCHY.indexOf(user.role);
+    const requiredLevel = ROLE_HIERARCHY.indexOf('subscriber');
+    return userLevel >= requiredLevel;
+  };
+
   const handleProvinceClick = (province) => {
     setSelectedProvince(prev => prev?.id === province.id ? null : province);
   };
@@ -230,7 +241,9 @@ function ProvincesApp() {
                   <div className="mobile-menu-dropdown">
                     <a href="/" className="mobile-nav-link">Sword Database</a>
                     <span className="mobile-nav-link active">Province Map</span>
-                    <a href="/library" className="mobile-nav-link">Digital Library</a>
+                    {canAccessLibrary() && (
+                      <a href="/library" className="mobile-nav-link">Digital Library</a>
+                    )}
                     <a href="/articles" className="mobile-nav-link">Articles</a>
                     {user && (
                       <>
@@ -252,9 +265,11 @@ function ProvincesApp() {
             <span className="header-nav-link active">
               Province Map
             </span>
-            <a href="/library" className="header-nav-link">
-              Digital Library
-            </a>
+            {canAccessLibrary() && (
+              <a href="/library" className="header-nav-link">
+                Digital Library
+              </a>
+            )}
             <a href="/articles" className="header-nav-link">
               Articles
             </a>

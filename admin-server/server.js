@@ -2660,6 +2660,27 @@ app.get('/api/sitemap.xml', async (req, res) => {
     <changefreq>weekly</changefreq>
     <priority>0.9</priority>
   </url>
+
+  <!-- Privacy Policy -->
+  <url>
+    <loc>${baseUrl}/privacy</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Data Deletion -->
+  <url>
+    <loc>${baseUrl}/data-deletion</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
+
+  <!-- Acknowledgements -->
+  <url>
+    <loc>${baseUrl}/acknowledgements</loc>
+    <changefreq>yearly</changefreq>
+    <priority>0.3</priority>
+  </url>
 `;
 
     // Add each published article

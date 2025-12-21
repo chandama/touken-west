@@ -15,6 +15,11 @@ const AccountApp = lazy(() => import('./account/AccountApp.jsx'));
 const OAuthCallback = lazy(() => import('./components/OAuthCallback.jsx'));
 const VerifyEmail = lazy(() => import('./components/VerifyEmail.jsx'));
 
+// Static pages
+const Privacy = lazy(() => import('./pages/Privacy.jsx'));
+const DataDeletion = lazy(() => import('./pages/DataDeletion.jsx'));
+const Acknowledgements = lazy(() => import('./pages/Acknowledgements.jsx'));
+
 // Simple loading spinner
 const LoadingFallback = () => (
   <div style={{
@@ -37,11 +42,17 @@ const isArticlesRoute = window.location.pathname.startsWith('/articles');
 const isAccountRoute = window.location.pathname.startsWith('/account');
 const isOAuthCallback = window.location.pathname.startsWith('/auth/callback');
 const isVerifyEmail = window.location.pathname.startsWith('/verify-email');
+const isPrivacy = window.location.pathname === '/privacy';
+const isDataDeletion = window.location.pathname === '/data-deletion';
+const isAcknowledgements = window.location.pathname === '/acknowledgements';
 
 // Determine which app to render
 const getAppComponent = () => {
   if (isOAuthCallback) return <OAuthCallback />;
   if (isVerifyEmail) return <VerifyEmail />;
+  if (isPrivacy) return <Privacy />;
+  if (isDataDeletion) return <DataDeletion />;
+  if (isAcknowledgements) return <Acknowledgements />;
   if (isAccountRoute) return <AccountApp />;
   if (isAdminRoute) return <AdminApp />;
   if (isLibraryRoute) return <LibraryApp />;

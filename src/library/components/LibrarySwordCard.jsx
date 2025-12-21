@@ -2,11 +2,26 @@ import React from 'react';
 import { getPriorityThumbnail, getThumbnailUrl, isPdfFile, isImageFile } from '../../utils/mediaUtils.js';
 
 /**
+ * Get the count of media attachments for a sword
+ */
+const getMediaCount = (sword) => {
+  try {
+    const media = sword.MediaAttachments;
+    if (!media || media === 'NA' || media === '[]') return 0;
+    const parsed = JSON.parse(media);
+    return Array.isArray(parsed) ? parsed.length : 0;
+  } catch {
+    return 0;
+  }
+};
+
+/**
  * Gallery card component for displaying a sword with its thumbnail
  */
 const LibrarySwordCard = ({ sword, onClick }) => {
   const thumbnail = getPriorityThumbnail(sword);
   const thumbnailUrl = getThumbnailUrl(thumbnail);
+  const mediaCount = getMediaCount(sword);
 
   // Check if the thumbnail is actually an image (not a PDF)
   const isImage = thumbnail && isImageFile(thumbnail);
@@ -50,8 +65,13 @@ const LibrarySwordCard = ({ sword, onClick }) => {
         )}
       </div>
       <div className="card-info">
-        <div className="card-smith" title={sword.Smith}>
-          {sword.Smith || 'Unknown Smith'}
+        <div className="card-info-header">
+          <div className="card-smith" title={sword.Smith}>
+            {sword.Smith || 'Unknown Smith'}
+          </div>
+          {mediaCount > 0 && (
+            <span className="card-media-badge">{mediaCount}</span>
+          )}
         </div>
         <div className="card-type">
           {sword.Type || 'Unknown Type'}

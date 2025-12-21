@@ -9,6 +9,7 @@ import SwordDetail from './components/SwordDetail.jsx';
 import DarkModeToggle from './components/DarkModeToggle.jsx';
 import Login from './components/Login.jsx';
 import Register from './components/Register.jsx';
+import Footer from './components/Footer.jsx';
 import useSwordData from './hooks/useSwordData.js';
 import useDocumentMeta from './hooks/useDocumentMeta.js';
 import { parseSearchInput, matchesSearchTerms } from './utils/searchParser.js';
@@ -18,6 +19,9 @@ import { parseUrlFilters, updateUrlWithFilters } from './utils/urlFilters.js';
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 const SITE_URL = 'https://nihonto-db.com';
+
+// Role hierarchy for permission checks
+const ROLE_HIERARCHY = ['user', 'subscriber', 'editor', 'admin'];
 
 function App() {
   const { swords, totalCount, loading, isFullyLoaded, error } = useSwordData();
@@ -112,6 +116,14 @@ function App() {
     } catch (error) {
       console.error('Logout failed:', error);
     }
+  };
+
+  // Check if user can access the Digital Library (subscriber or higher)
+  const canAccessLibrary = () => {
+    if (!user) return false;
+    const userLevel = ROLE_HIERARCHY.indexOf(user.role);
+    const requiredLevel = ROLE_HIERARCHY.indexOf('subscriber');
+    return userLevel >= requiredLevel;
   };
 
   // Helper function to check if authentication matches
@@ -258,7 +270,9 @@ function App() {
                   <div className="mobile-menu-dropdown">
                     <span className="mobile-nav-link active">Sword Database</span>
                     <a href="/provinces" className="mobile-nav-link">Province Map</a>
-                    <a href="/library" className="mobile-nav-link">Digital Library</a>
+                    {canAccessLibrary() && (
+                      <a href="/library" className="mobile-nav-link">Digital Library</a>
+                    )}
                     <a href="/articles" className="mobile-nav-link">Articles</a>
                     {user && (
                       <>
@@ -280,9 +294,11 @@ function App() {
             <a href="/provinces" className="header-nav-link">
               Province Map
             </a>
-            <a href="/library" className="header-nav-link">
-              Digital Library
-            </a>
+            {canAccessLibrary() && (
+              <a href="/library" className="header-nav-link">
+                Digital Library
+              </a>
+            )}
             <a href="/articles" className="header-nav-link">
               Articles
             </a>
@@ -399,6 +415,8 @@ function App() {
           }}
         />
       )}
+
+      <Footer />
     </div>
   );
 }
