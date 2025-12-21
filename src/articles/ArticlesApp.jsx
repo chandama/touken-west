@@ -6,8 +6,12 @@ import '../styles/App.css';
 import DarkModeToggle from '../components/DarkModeToggle.jsx';
 import ArticleListPage from './pages/ArticleListPage.jsx';
 import ArticleViewPage from './pages/ArticleViewPage.jsx';
+import Footer from '../components/Footer.jsx';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+
+// Role hierarchy for permission checks
+const ROLE_HIERARCHY = ['user', 'subscriber', 'editor', 'admin'];
 
 function ArticlesApp() {
   const [user, setUser] = useState(null);
@@ -64,6 +68,14 @@ function ArticlesApp() {
     }
   };
 
+  // Check if user can access the Digital Library (subscriber or higher)
+  const canAccessLibrary = () => {
+    if (!user) return false;
+    const userLevel = ROLE_HIERARCHY.indexOf(user.role);
+    const requiredLevel = ROLE_HIERARCHY.indexOf('subscriber');
+    return userLevel >= requiredLevel;
+  };
+
   return (
     <BrowserRouter>
       <div className="ArticlesApp">
@@ -99,7 +111,9 @@ function ArticlesApp() {
                     <div className="mobile-menu-dropdown">
                       <a href="/" className="mobile-nav-link">Sword Database</a>
                       <a href="/provinces" className="mobile-nav-link">Province Map</a>
-                      <a href="/library" className="mobile-nav-link">Digital Library</a>
+                      {canAccessLibrary() && (
+                        <a href="/library" className="mobile-nav-link">Digital Library</a>
+                      )}
                       <span className="mobile-nav-link active">Articles</span>
                       {user && (
                         <>
@@ -118,7 +132,9 @@ function ArticlesApp() {
               {/* Desktop nav links */}
               <a href="/" className="header-nav-link">Sword Database</a>
               <a href="/provinces" className="header-nav-link">Province Map</a>
-              <a href="/library" className="header-nav-link">Digital Library</a>
+              {canAccessLibrary() && (
+                <a href="/library" className="header-nav-link">Digital Library</a>
+              )}
               <span className="header-nav-link active">Articles</span>
 
               {/* User menu */}
@@ -170,6 +186,8 @@ function ArticlesApp() {
             <Route path="/articles/:slug" element={<ArticleViewPage />} />
           </Routes>
         </main>
+
+        <Footer />
       </div>
     </BrowserRouter>
   );

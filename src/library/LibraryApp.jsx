@@ -14,6 +14,7 @@ import { hasValidMedia } from '../utils/mediaUtils.js';
 import { parseSearchInput, matchesSearchTerms } from '../utils/searchParser.js';
 import { matchesPeriodFilter } from '../utils/periodUtils.js';
 import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
+import Footer from '../components/Footer.jsx';
 
 function LibraryAppContent() {
   const { swords, loading, error } = useSwordData();
@@ -413,39 +414,23 @@ function LibraryAppContent() {
         </header>
 
         <div className="library-auth-required">
-          <h2>Subscriber Access Required</h2>
-          <p>The Digital Library is available to subscribers only.</p>
-          <p style={{ marginTop: '1rem', color: 'var(--text-secondary, #666)' }}>
-            You are currently logged in as <strong>{user.email}</strong>.
-          </p>
-          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'center' }}>
-            <a
-              href="/account/subscription"
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: 'var(--primary-color, #007bff)',
-                color: 'white',
-                borderRadius: '6px',
-                textDecoration: 'none',
-                fontWeight: '600'
-              }}
-            >
-              View Subscription Options
-            </a>
-            <a
-              href="/"
-              style={{
-                padding: '0.75rem 1.5rem',
-                background: 'transparent',
-                color: 'var(--text-color, #333)',
-                border: '1px solid var(--border-color, #ddd)',
-                borderRadius: '6px',
-                textDecoration: 'none'
-              }}
-            >
-              Return to Sword Database
-            </a>
-          </div>
+          <h2>Access Restricted</h2>
+          <p>You don't have access to this page, please reach out to <a href="mailto:support@nihonto-db.com">support@nihonto-db.com</a> if you have any questions.</p>
+          <a
+            href="/"
+            style={{
+              display: 'inline-block',
+              marginTop: '1.5rem',
+              padding: '0.75rem 1.5rem',
+              background: 'var(--primary-color, #007bff)',
+              color: 'white',
+              borderRadius: '6px',
+              textDecoration: 'none',
+              fontWeight: '600'
+            }}
+          >
+            Return Home
+          </a>
         </div>
       </div>
     );
@@ -597,6 +582,8 @@ function LibraryAppContent() {
           )}
         </div>
       )}
+
+      <Footer />
     </div>
   );
 }
