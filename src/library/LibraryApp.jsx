@@ -10,11 +10,14 @@ import Login from '../components/Login.jsx';
 import LibraryGallery from './components/LibraryGallery.jsx';
 import LibraryLightbox from './components/LibraryLightbox.jsx';
 import useSwordData from '../hooks/useSwordData.js';
+import useDocumentMeta from '../hooks/useDocumentMeta.js';
 import { hasValidMedia } from '../utils/mediaUtils.js';
 import { parseSearchInput, matchesSearchTerms } from '../utils/searchParser.js';
 import { matchesPeriodFilter } from '../utils/periodUtils.js';
 import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
 import Footer from '../components/Footer.jsx';
+
+const SITE_URL = 'https://nihonto-db.com';
 
 function LibraryAppContent() {
   const { swords, loading, error } = useSwordData();
@@ -49,6 +52,14 @@ function LibraryAppContent() {
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
+  });
+
+  // Set meta tags for SEO
+  useDocumentMeta({
+    title: 'Digital Library - Nihonto DB',
+    description: 'Browse high-quality images of authenticated Japanese swords. Explore photographs of Juyo, Tokubetsu Juyo, and other certified nihonto.',
+    canonicalUrl: `${SITE_URL}/library`,
+    ogType: 'website'
   });
 
   // Show login modal if not authenticated
