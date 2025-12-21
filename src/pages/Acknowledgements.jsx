@@ -1,7 +1,10 @@
 import React from 'react';
 import Footer from '../components/Footer';
 import DarkModeToggle from '../components/DarkModeToggle';
+import useDocumentMeta from '../hooks/useDocumentMeta.js';
 import '../styles/StaticPage.css';
+
+const SITE_URL = 'https://nihonto-db.com';
 
 const Acknowledgements = () => {
   const [isDarkMode, setIsDarkMode] = React.useState(() => {
@@ -17,6 +20,14 @@ const Acknowledgements = () => {
       document.body.classList.remove('dark-mode');
     }
   }, [isDarkMode]);
+
+  // Set meta tags for SEO
+  useDocumentMeta({
+    title: 'Acknowledgements - Nihonto DB',
+    description: 'Acknowledgements for Nihonto DB. Thanks to the organizations and individuals who contributed to this Japanese sword database.',
+    canonicalUrl: `${SITE_URL}/acknowledgements`,
+    ogType: 'website'
+  });
 
   return (
     <div className="static-page">

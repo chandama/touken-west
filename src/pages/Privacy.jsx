@@ -1,7 +1,10 @@
 import React from 'react';
 import Footer from '../components/Footer';
 import DarkModeToggle from '../components/DarkModeToggle';
+import useDocumentMeta from '../hooks/useDocumentMeta.js';
 import '../styles/StaticPage.css';
+
+const SITE_URL = 'https://nihonto-db.com';
 
 const Privacy = () => {
   const [isDarkMode, setIsDarkMode] = React.useState(() => {
@@ -17,6 +20,14 @@ const Privacy = () => {
       document.body.classList.remove('dark-mode');
     }
   }, [isDarkMode]);
+
+  // Set meta tags for SEO
+  useDocumentMeta({
+    title: 'Privacy Policy - Nihonto DB',
+    description: 'Privacy policy for Nihonto DB. Learn how we collect, use, and protect your personal information.',
+    canonicalUrl: `${SITE_URL}/privacy`,
+    ogType: 'website'
+  });
 
   return (
     <div className="static-page">

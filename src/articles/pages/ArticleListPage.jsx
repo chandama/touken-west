@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import ArticleCard from '../components/ArticleCard.jsx';
+import useDocumentMeta from '../../hooks/useDocumentMeta.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+const SITE_URL = 'https://nihonto-db.com';
 
 function ArticleListPage() {
   const [articles, setArticles] = useState([]);
@@ -15,6 +17,14 @@ function ArticleListPage() {
   const [searchQuery, setSearchQuery] = useState('');
   const [categories, setCategories] = useState([]);
   const limit = 12;
+
+  // Set meta tags for SEO
+  useDocumentMeta({
+    title: 'Articles - Nihonto DB',
+    description: 'Read articles about Japanese swords, historical smiths, sword-making traditions, and authentication. Educational resources for nihonto enthusiasts.',
+    canonicalUrl: `${SITE_URL}/articles`,
+    ogType: 'website'
+  });
 
   useEffect(() => {
     fetchCategories();

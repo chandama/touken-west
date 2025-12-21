@@ -1,7 +1,10 @@
 import React from 'react';
 import Footer from '../components/Footer';
 import DarkModeToggle from '../components/DarkModeToggle';
+import useDocumentMeta from '../hooks/useDocumentMeta.js';
 import '../styles/StaticPage.css';
+
+const SITE_URL = 'https://nihonto-db.com';
 
 const DataDeletion = () => {
   const [isDarkMode, setIsDarkMode] = React.useState(() => {
@@ -17,6 +20,14 @@ const DataDeletion = () => {
       document.body.classList.remove('dark-mode');
     }
   }, [isDarkMode]);
+
+  // Set meta tags for SEO
+  useDocumentMeta({
+    title: 'Data Deletion - Nihonto DB',
+    description: 'Request deletion of your personal data from Nihonto DB. Instructions for removing your account and associated information.',
+    canonicalUrl: `${SITE_URL}/data-deletion`,
+    ogType: 'website'
+  });
 
   return (
     <div className="static-page">

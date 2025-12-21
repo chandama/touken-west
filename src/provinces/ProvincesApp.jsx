@@ -7,8 +7,10 @@ import DarkModeToggle from '../components/DarkModeToggle.jsx';
 import Login from '../components/Login.jsx';
 import ProvinceDetailPanel from './components/ProvinceDetailPanel.jsx';
 import useSwordData from '../hooks/useSwordData.js';
+import useDocumentMeta from '../hooks/useDocumentMeta.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+const SITE_URL = 'https://nihonto-db.com';
 
 // Role hierarchy for permission checks
 const ROLE_HIERARCHY = ['user', 'subscriber', 'editor', 'admin'];
@@ -31,6 +33,14 @@ function ProvincesApp() {
 
   // Load sword data for province statistics
   const { swords, loading: swordsLoading } = useSwordData();
+
+  // Set meta tags for SEO
+  useDocumentMeta({
+    title: 'Province Map - Nihonto DB',
+    description: 'Interactive map of historical Japanese provinces (Gokishichidō). Explore sword-making traditions by region, view statistics on smiths and schools from each province.',
+    canonicalUrl: `${SITE_URL}/provinces`,
+    ogType: 'website'
+  });
 
   // Check authentication status
   useEffect(() => {

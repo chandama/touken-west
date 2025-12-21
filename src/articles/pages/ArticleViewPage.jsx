@@ -1,8 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import PdfViewer from '../components/PdfViewer.jsx';
+import useDocumentMeta from '../../hooks/useDocumentMeta.js';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
+const SITE_URL = 'https://nihonto-db.com';
 
 function ArticleViewPage() {
   const { slug } = useParams();
@@ -10,6 +12,15 @@ function ArticleViewPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [lightbox, setLightbox] = useState({ open: false, src: '', caption: '' });
+
+  // Set meta tags for SEO
+  useDocumentMeta({
+    title: article ? `${article.title} - Nihonto DB Articles` : 'Loading... - Nihonto DB Articles',
+    description: article?.summary || 'Read articles about Japanese swords, smiths, and sword-making traditions.',
+    canonicalUrl: article ? `${SITE_URL}/articles/${slug}` : null,
+    ogImage: article?.coverImage?.url || null,
+    ogType: 'article'
+  });
 
   // Scroll position persistence
   useEffect(() => {
