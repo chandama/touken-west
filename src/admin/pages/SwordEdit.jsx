@@ -98,6 +98,25 @@ function SwordEdit() {
     }
   };
 
+  const handleToggleCoverImage = async (filename) => {
+    try {
+      const response = await axios.patch(`${API_BASE}/swords/${index}/media/cover`, {
+        filename,
+      });
+
+      if (response.data.success) {
+        // Refresh sword data
+        fetch(`${API_BASE}/swords/${index}`)
+          .then(res => res.json())
+          .then(data => setSword(data));
+      } else {
+        alert('Failed to set cover image: ' + response.data.error);
+      }
+    } catch (err) {
+      alert('Error setting cover image: ' + (err.response?.data?.error || err.message));
+    }
+  };
+
   const handleInputChange = (e) => {
     const { name, value } = e.target;
     setFormData(prev => ({
@@ -590,9 +609,10 @@ function SwordEdit() {
               const isPdf = media.mimeType === 'application/pdf' ||
                 (media.url && media.url.toLowerCase().endsWith('.pdf'));
               const displayName = media.filename || media.caption || (media.url ? media.url.split('/').pop() : 'File');
+              const isCover = media.isCoverImage;
 
               return (
-              <div key={idx} className="media-item">
+              <div key={idx} className={`media-item ${isCover ? 'is-cover-image' : ''}`}>
                 {isPdf ? (
                   <div className="media-pdf" onClick={() => window.open(media.url, '_blank')} style={{ cursor: 'pointer' }}>
                     <div className="pdf-icon">📄</div>
@@ -623,12 +643,21 @@ function SwordEdit() {
                   )}
                 </div>
 
-                <button
-                  onClick={() => handleRemoveMedia(media.filename || displayName)}
-                  className="btn-danger btn-small"
-                >
-                  Remove
-                </button>
+                <div className="media-actions">
+                  <button
+                    onClick={() => handleToggleCoverImage(media.filename || displayName)}
+                    className={`btn-cover ${isCover ? 'is-active' : ''}`}
+                    title={isCover ? 'Remove as cover image' : 'Set as cover image for Digital Library'}
+                  >
+                    {isCover ? 'Cover Image' : 'Make Cover'}
+                  </button>
+                  <button
+                    onClick={() => handleRemoveMedia(media.filename || displayName)}
+                    className="btn-danger btn-small"
+                  >
+                    Remove
+                  </button>
+                </div>
               </div>
               );
             })}

@@ -213,7 +213,8 @@ const UserManagement = () => {
         </div>
       </div>
 
-      <div className="users-table-container">
+      {/* Desktop Table View */}
+      <div className="users-table-container desktop-only">
         <table className="users-table">
           <thead>
             <tr>
@@ -255,6 +256,46 @@ const UserManagement = () => {
             ))}
           </tbody>
         </table>
+      </div>
+
+      {/* Mobile Card View */}
+      <div className="users-cards-container mobile-only">
+        {users.map(user => (
+          <div key={user.id} className="user-card">
+            <div className="user-card-header">
+              <span className={`role-badge role-${user.role}`}>
+                {user.role}
+              </span>
+              <span className="user-card-date">
+                {new Date(user.createdAt).toLocaleDateString()}
+              </span>
+            </div>
+            <div className="user-card-body">
+              <div className="user-card-field">
+                <span className="user-card-label">Email</span>
+                <span className="user-card-value">{user.email}</span>
+              </div>
+              <div className="user-card-field">
+                <span className="user-card-label">Username</span>
+                <span className="user-card-value">{user.username}</span>
+              </div>
+            </div>
+            <div className="user-card-actions">
+              <button
+                onClick={() => handleEditUser(user)}
+                className="action-button edit"
+              >
+                Edit
+              </button>
+              <button
+                onClick={() => handleDeleteUser(user)}
+                className="action-button delete"
+              >
+                Delete
+              </button>
+            </div>
+          </div>
+        ))}
       </div>
 
       {showCreateModal && (
