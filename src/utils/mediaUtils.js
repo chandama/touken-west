@@ -80,6 +80,7 @@ function isCertificate(item) {
 /**
  * Get priority thumbnail for a sword
  * Priority order:
+ * 0. Manual override (isCoverImage flag set by admin)
  * 1. Tokubetsu Juyo certificate
  * 2. Juyo certificate (not Tokubetsu)
  * 3. Full Blade/Sugata image
@@ -91,6 +92,10 @@ function isCertificate(item) {
 export function getPriorityThumbnail(sword) {
   const media = parseMediaAttachments(sword.MediaAttachments);
   if (media.length === 0) return null;
+
+  // Priority 0: Manual cover image override
+  const coverImage = media.find(item => item.isCoverImage);
+  if (coverImage) return coverImage;
 
   // Priority 1: Tokubetsu Juyo certificate
   const tokujuCert = media.find(item =>

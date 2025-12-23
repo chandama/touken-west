@@ -1414,6 +1414,79 @@ app.delete('/api/swords/:index/media', authenticateToken, requireAdmin, async (r
   }
 });
 
+// Set cover image for a sword (Admin only)
+app.patch('/api/swords/:index/media/cover', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const { index } = req.params;
+    const { filename } = req.body;
+
+    console.log(`Setting cover image for sword ${index}:`, filename);
+
+    const sword = await Sword.findOne({ Index: { $eq: index } });
+    if (!sword) {
+      return res.status(404).json({ error: 'Sword not found' });
+    }
+
+    // Parse existing media attachments
+    let mediaAttachments = [];
+    if (sword.MediaAttachments && sword.MediaAttachments !== 'NA') {
+      try {
+        mediaAttachments = JSON.parse(sword.MediaAttachments);
+        if (!Array.isArray(mediaAttachments)) {
+          mediaAttachments = [];
+        }
+      } catch {
+        mediaAttachments = [];
+      }
+    }
+
+    // Find the target media
+    const targetIndex = mediaAttachments.findIndex(m => m.filename === filename);
+    if (targetIndex === -1) {
+      return res.status(404).json({ error: 'Media attachment not found' });
+    }
+
+    // Toggle: if already cover image, remove it; otherwise set it and clear others
+    const isCurrentlyCover = mediaAttachments[targetIndex].isCoverImage;
+
+    // Clear all cover image flags
+    mediaAttachments.forEach(m => {
+      m.isCoverImage = false;
+    });
+
+    // If it wasn't already the cover, set it
+    if (!isCurrentlyCover) {
+      mediaAttachments[targetIndex].isCoverImage = true;
+    }
+
+    // Update sword record
+    sword.MediaAttachments = JSON.stringify(mediaAttachments);
+    await sword.save();
+
+    // Invalidate cache so library shows updated cover
+    swordCache.invalidate();
+
+    // Log to changelog
+    await addChangelogEntry(index, sword, {
+      CoverImage: {
+        before: 'default',
+        after: isCurrentlyCover ? 'default' : mediaAttachments[targetIndex].category || mediaAttachments[targetIndex].filename
+      }
+    }, 'cover_image_change', req.user.id);
+
+    console.log(`Successfully ${isCurrentlyCover ? 'removed' : 'set'} cover image for sword ${index}`);
+
+    res.json({
+      success: true,
+      isCoverImage: !isCurrentlyCover,
+      sword: sword.toObject(),
+    });
+  } catch (error) {
+    console.error('Error setting cover image:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
 // Create new sword (Admin only)
 app.post('/api/swords', authenticateToken, requireAdmin, async (req, res) => {
   try {

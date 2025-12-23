@@ -8,7 +8,7 @@ const changelogSchema = new mongoose.Schema({
   },
   actionType: {
     type: String,
-    enum: ['edit', 'media_upload', 'media_delete', 'new_sword', 'delete'],
+    enum: ['edit', 'media_upload', 'media_delete', 'new_sword', 'delete', 'cover_image_change'],
     required: true
   },
   swordIndex: {
