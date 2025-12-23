@@ -1420,7 +1420,7 @@ app.patch('/api/swords/:index/media/cover', authenticateToken, requireAdmin, asy
     const { index } = req.params;
     const { filename } = req.body;
 
-    console.log(`Setting cover image for sword ${index}:`, filename);
+    console.log(`Setting cover image for sword ${index}: ${filename}`);
 
     const sword = await Sword.findOne({ Index: { $eq: index } });
     if (!sword) {
