@@ -1,0 +1,763 @@
+/* Chronology Page Styles - Data Science Aesthetic */
+
+.ChronologyApp {
+  min-height: 100vh;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  overflow: hidden;
+}
+
+.chronology-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+/* Sidebar - independent scrolling */
+.chronology-sidebar {
+  width: 280px;
+  min-width: 280px;
+  background: var(--bg-secondary);
+  border-right: 1px solid var(--border-color);
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  z-index: 10;
+}
+
+.sidebar-section {
+  padding: var(--space-md);
+  border-bottom: 1px solid var(--border-color);
+  flex-shrink: 0;
+}
+
+.sidebar-section h3 {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-tertiary);
+  margin: 0 0 var(--space-sm) 0;
+}
+
+.school-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+}
+
+.school-search-input:focus {
+  outline: none;
+  border-color: var(--accent-primary);
+  box-shadow: 0 0 0 3px rgba(var(--accent-primary-rgb), 0.12);
+}
+
+.tradition-select {
+  width: 100%;
+  padding: 8px 12px;
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.tradition-select option {
+  background: var(--bg-primary);
+  color: var(--text-primary);
+}
+
+.dark-mode .tradition-select {
+  background-color: #2a2f3e;
+  color: #e0e0e0;
+}
+
+.dark-mode .tradition-select option {
+  background-color: #2a2f3e;
+  color: #e0e0e0;
+}
+
+.schools-list-section {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+}
+
+.schools-list-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-sm);
+  flex-shrink: 0;
+}
+
+.schools-list-header h3 {
+  margin: 0;
+}
+
+.schools-list-actions {
+  display: flex;
+  gap: 12px;
+}
+
+.btn-link {
+  background: none;
+  border: none;
+  color: var(--accent-primary);
+  font-size: 11px;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0;
+}
+
+.btn-link:hover {
+  text-decoration: underline;
+}
+
+.schools-list {
+  flex: 1;
+  overflow-y: auto;
+  margin: 0 calc(-1 * var(--space-md));
+  padding: 0 var(--space-md);
+}
+
+.school-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 10px;
+  margin: 0 -10px;
+  cursor: pointer;
+  border-radius: 4px;
+  transition: background-color 0.15s;
+}
+
+.school-item:hover {
+  background: var(--bg-hover);
+}
+
+.school-item.selected {
+  background: rgba(var(--accent-primary-rgb), 0.08);
+}
+
+.school-item input[type="checkbox"] {
+  flex-shrink: 0;
+  width: 14px;
+  height: 14px;
+}
+
+.school-name {
+  flex: 1;
+  font-size: 13px;
+  color: var(--text-primary);
+}
+
+.school-years {
+  font-size: 11px;
+  color: var(--text-tertiary);
+  font-variant-numeric: tabular-nums;
+}
+
+.selected-section {
+  max-height: 140px;
+  display: flex;
+  flex-direction: column;
+  flex-shrink: 0;
+}
+
+.selected-schools {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  overflow-y: auto;
+  max-height: 100px;
+}
+
+.selected-school-tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--accent-primary);
+  color: white;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.selected-school-tag button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0;
+  font-size: 14px;
+  line-height: 1;
+  opacity: 0.7;
+  margin-left: 2px;
+}
+
+.selected-school-tag button:hover {
+  opacity: 1;
+}
+
+/* Main Content - Canvas area */
+.chronology-main {
+  flex: 1;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  background: #f8fafc;
+  position: relative;
+}
+
+.dark-mode .chronology-main {
+  background: #151921;
+}
+
+.timeline-placeholder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  text-align: center;
+  color: var(--text-secondary);
+  padding: 48px;
+}
+
+.timeline-placeholder h2 {
+  font-size: 20px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: var(--text-primary);
+}
+
+.timeline-placeholder p {
+  font-size: 14px;
+  margin-bottom: 32px;
+  max-width: 400px;
+  line-height: 1.5;
+}
+
+.quick-start {
+  background: var(--bg-secondary);
+  padding: 24px;
+  border-radius: 12px;
+  border: 1px solid var(--border-color);
+}
+
+.quick-start h4 {
+  margin: 0 0 16px 0;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-tertiary);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.quick-start-buttons {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.quick-start-buttons button {
+  padding: 10px 18px;
+  border: 1px solid var(--accent-primary);
+  background: transparent;
+  color: var(--accent-primary);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 500;
+  transition: all 0.15s;
+}
+
+.quick-start-buttons button:hover {
+  background: var(--accent-primary);
+  color: white;
+}
+
+/* Timeline Chart - Data Science Style */
+.school-timeline {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  padding: 24px;
+}
+
+/* Chart Header */
+.chart-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 16px;
+  padding-left: 48px;
+}
+
+.chart-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.chart-subtitle {
+  font-size: 12px;
+  color: var(--text-tertiary);
+}
+
+/* Chart Container */
+.chart-container {
+  flex: 1;
+  display: flex;
+  min-height: 0;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
+  overflow: hidden;
+}
+
+.dark-mode .chart-container {
+  background: #1e2330;
+  border-color: #2d3548;
+}
+
+/* Y-axis label */
+.y-axis-label {
+  width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-right: 1px solid #e2e8f0;
+  background: #f8fafc;
+}
+
+.dark-mode .y-axis-label {
+  background: #1a1f2a;
+  border-color: #2d3548;
+}
+
+.y-axis-label span {
+  transform: rotate(-90deg);
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+  white-space: nowrap;
+}
+
+/* Chart Plot Area */
+.chart-plot-area {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+/* Scrollable bars container */
+.timeline-bars-container {
+  flex: 1;
+  position: relative;
+  overflow-y: auto;
+  overflow-x: hidden;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  padding: 16px 24px 0 24px;
+}
+
+.timeline-content-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+/* Period divider lines */
+.timeline-period-dividers {
+  position: absolute;
+  top: -24px;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.period-divider {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #94a3b8;
+  opacity: 0.3;
+  transform: translateX(-50%);
+}
+
+.dark-mode .period-divider {
+  background: #64748b;
+  opacity: 0.4;
+}
+
+/* Minor grid lines */
+.timeline-grid {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  pointer-events: none;
+}
+
+.grid-line {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  width: 1px;
+  background: #e2e8f0;
+}
+
+.dark-mode .grid-line {
+  background: #2d3548;
+}
+
+/* Timeline bars */
+.timeline-bars {
+  position: relative;
+}
+
+.timeline-row {
+  position: absolute;
+  left: 0;
+  right: 0;
+}
+
+.timeline-bar {
+  position: absolute;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  overflow: hidden;
+}
+
+.timeline-bar:hover {
+  transform: scaleY(1.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  z-index: 10;
+}
+
+.bar-label {
+  color: white;
+  font-size: 11px;
+  font-weight: 600;
+  padding: 0 8px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+  position: relative;
+  z-index: 2;
+}
+
+.peak-period {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  background: rgba(255, 255, 255, 0.25);
+  border-radius: 4px;
+  z-index: 1;
+}
+
+/* X-Axis */
+.x-axis {
+  height: 52px;
+  position: relative;
+  background: #f8fafc;
+  border-top: 2px solid #475569;
+  margin: 0 24px;
+  flex-shrink: 0;
+}
+
+.dark-mode .x-axis {
+  background: #1a1f2a;
+  border-top-color: #64748b;
+}
+
+.x-axis-line {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #475569;
+}
+
+.dark-mode .x-axis-line {
+  background: #64748b;
+}
+
+/* Period dividers on X-axis */
+.x-axis-period-divider {
+  position: absolute;
+  top: 0;
+  height: 100%;
+  width: 1px;
+  background: #94a3b8;
+  opacity: 0.5;
+  transform: translateX(-50%);
+}
+
+.dark-mode .x-axis-period-divider {
+  background: #64748b;
+}
+
+/* Tick marks */
+.x-axis-ticks {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 100%;
+}
+
+.x-axis-tick {
+  position: absolute;
+  top: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  transform: translateX(-50%);
+}
+
+.tick-mark {
+  width: 1px;
+  height: 6px;
+  background: #475569;
+}
+
+.dark-mode .tick-mark {
+  background: #64748b;
+}
+
+.tick-label {
+  font-size: 10px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  margin-top: 4px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Period labels */
+.x-axis-periods {
+  position: absolute;
+  top: 26px;
+  left: 0;
+  right: 0;
+}
+
+.period-label-wrapper {
+  position: absolute;
+  transform: translateX(-50%);
+}
+
+.period-name {
+  font-size: 10px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: #6366f1;
+  white-space: nowrap;
+}
+
+.dark-mode .period-name {
+  color: #818cf8;
+}
+
+/* X-axis title */
+.x-axis-title {
+  text-align: center;
+  padding: 8px 0 0 0;
+  margin: 0 24px;
+}
+
+.x-axis-title span {
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: var(--text-tertiary);
+}
+
+/* Tooltip - Clean Data Card */
+.timeline-tooltip {
+  position: absolute;
+  background: white;
+  border: 1px solid #e2e8f0;
+  border-radius: 8px;
+  padding: 12px 14px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.12);
+  z-index: 1000;
+  pointer-events: none;
+  min-width: 200px;
+  max-width: 260px;
+}
+
+.dark-mode .timeline-tooltip {
+  background: #1e2330;
+  border-color: #2d3548;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.4);
+}
+
+.tooltip-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 10px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid #e2e8f0;
+}
+
+.dark-mode .tooltip-header {
+  border-color: #2d3548;
+}
+
+.tooltip-tradition-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.tooltip-header strong {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.tooltip-grid {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 4px 12px;
+  font-size: 12px;
+}
+
+.tooltip-label {
+  color: var(--text-tertiary);
+  font-weight: 500;
+}
+
+.tooltip-value {
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.tooltip-description {
+  font-size: 12px;
+  color: var(--text-secondary);
+  margin-top: 10px;
+  padding-top: 8px;
+  border-top: 1px solid #e2e8f0;
+  line-height: 1.4;
+}
+
+.dark-mode .tooltip-description {
+  border-color: #2d3548;
+}
+
+.tooltip-smiths {
+  margin-top: 8px;
+  font-size: 12px;
+}
+
+.tooltip-smiths .tooltip-label {
+  display: block;
+  margin-bottom: 2px;
+}
+
+.tooltip-smith-list {
+  color: var(--text-secondary);
+  line-height: 1.4;
+}
+
+.timeline-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  color: var(--text-tertiary);
+  font-size: 14px;
+}
+
+/* Mobile responsive */
+@media (max-width: 768px) {
+  .chronology-container {
+    flex-direction: column;
+  }
+
+  .chronology-sidebar {
+    width: 100%;
+    min-width: 100%;
+    max-height: 35vh;
+    border-right: none;
+    border-bottom: 1px solid var(--border-color);
+  }
+
+  .chronology-main {
+    min-height: 0;
+  }
+
+  .school-timeline {
+    padding: 16px;
+  }
+
+  .chart-header {
+    padding-left: 0;
+  }
+
+  .y-axis-label {
+    display: none;
+  }
+
+  .timeline-bars-container {
+    padding: 12px 16px 0 16px;
+  }
+
+  .x-axis {
+    margin: 0 16px;
+    height: 44px;
+  }
+
+  .x-axis-title {
+    margin: 0 16px;
+  }
+
+  .bar-label {
+    font-size: 10px;
+  }
+
+  .tick-label {
+    font-size: 9px;
+  }
+
+  .period-name {
+    font-size: 9px;
+  }
+}

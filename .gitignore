@@ -63,8 +63,8 @@ CLAUDE.md
 # Migration and processing scripts (temporary/one-time use)
 scripts/
 
-# Data files (exports, migrations, working files)
-data/
+# Data files (exports, migrations, working files - root level only)
+/data/
 
 # Migration logs
 image-migration.log
