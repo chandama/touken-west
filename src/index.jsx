@@ -11,6 +11,7 @@ const AdminApp = lazy(() => import('./admin/AdminApp.jsx'));
 const LibraryApp = lazy(() => import('./library/LibraryApp.jsx'));
 const ProvincesApp = lazy(() => import('./provinces/ProvincesApp.jsx'));
 const ArticlesApp = lazy(() => import('./articles/ArticlesApp.jsx'));
+const ChronologyApp = lazy(() => import('./chronology/ChronologyApp.jsx'));
 const AccountApp = lazy(() => import('./account/AccountApp.jsx'));
 const OAuthCallback = lazy(() => import('./components/OAuthCallback.jsx'));
 const VerifyEmail = lazy(() => import('./components/VerifyEmail.jsx'));
@@ -39,6 +40,7 @@ const isAdminRoute = window.location.pathname.startsWith('/admin');
 const isLibraryRoute = window.location.pathname.startsWith('/library');
 const isProvincesRoute = window.location.pathname.startsWith('/provinces');
 const isArticlesRoute = window.location.pathname.startsWith('/articles');
+const isChronologyRoute = window.location.pathname.startsWith('/chronology');
 const isAccountRoute = window.location.pathname.startsWith('/account');
 const isOAuthCallback = window.location.pathname.startsWith('/auth/callback');
 const isVerifyEmail = window.location.pathname.startsWith('/verify-email');
@@ -58,6 +60,7 @@ const getAppComponent = () => {
   if (isLibraryRoute) return <LibraryApp />;
   if (isProvincesRoute) return <ProvincesApp />;
   if (isArticlesRoute) return <ArticlesApp />;
+  if (isChronologyRoute) return <ChronologyApp />;
   return <App />;
 };
 

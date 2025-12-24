@@ -1,0 +1,101 @@
+Name,Tradition,Province,Start Year,End Year,Peak Start,Peak End,Description,Notable Smiths
+Sanjo,Yamashiro,Yamashiro,987,1185,987,1100,"Oldest Yamashiro school, founded by Munechika c. 1000","Munechika, Yoshiie, Kanenaga"
+Gojo,Yamashiro,Yamashiro,1028,1100,,,"Early Kyoto school, contemporary with Sanjo","Kuninaga, Kanenaga, Kanetsugu"
+Ayanokoji,Yamashiro,Yamashiro,1159,1300,1185,1264,"Early-mid Kamakura school, very classical workmanship","Sadatoshi, Sadayoshi, Nagamasa"
+Awataguchi,Yamashiro,Yamashiro,1185,1320,1200,1290,"Premier Kamakura-era Kyoto school, known for elegant tanto","Kunitomo, Hisakuni, Kuniyasu, Kunitsuna, Yoshimitsu"
+Rai,Yamashiro,Yamashiro,1250,1392,1280,1360,Succeeded Awataguchi as foremost Yamashiro school,"Kuniyuki, Kunitoshi, Kunimitsu, Niji Kunitoshi"
+Nakajima Rai,Yamashiro,Yamashiro,1320,1400,,,Branch of Rai school at Nakajima,Kunimune
+Ryokai,Yamashiro,Yamashiro,1278,1400,,,Late Rai school offshoot,Ryokai
+Nobukuni,Yamashiro,Yamashiro,1334,1500,,,Nanbokucho-Muromachi Kyoto school with Soshu influence,Nobukuni
+Hasebe,Yamashiro,Yamashiro,1334,1400,,,Nanbokucho school known for bold hamon,"Kunishige, Kuninobu"
+Kanro,Yamashiro,Yamashiro,1300,1400,,,Nanbokucho Kyoto school,Shigemitsu
+Sanjo Muromachi,Yamashiro,Yamashiro,1392,1500,,,Muromachi revival of Sanjo tradition,
+Aburanokoji,Yamashiro,Yamashiro,1350,1450,,,Late Nanbokucho-early Muromachi school,
+Ko-Bizen,Bizen,Bizen,961,1237,1050,1180,"Oldest Bizen school, late Heian period","Tomonari, Sukenari, Sanetsune, Masatsune, Kanehira"
+Ichimonji,Bizen,Bizen,1185,1370,1220,1320,Prominent Kamakura school known for choji hamon,"Norimune, Sukemune, Yoshifusa"
+Ko-Ichimonji,Bizen,Bizen,1185,1237,,,"Early Ichimonji, centered in Fukuoka","Norimune, Sukemune"
+Fukuoka Ichimonji,Bizen,Bizen,1220,1320,1240,1290,Main Ichimonji branch in Fukuoka district,"Yoshifusa, Sukezane, Sukemitsu, Yoshimoto"
+Yoshioka Ichimonji,Bizen,Bizen,1278,1370,,,Late Ichimonji branch that moved to Yoshioka,"Sukeyoshi, Sukemitsu"
+Katayama Ichimonji,Bizen,Bizen,1250,1350,,,Ichimonji branch in Katayama area,"Norifusa, Noritsune"
+Kamakura Ichimonji,Bizen,Bizen,1250,1350,,,Ichimonji smiths who worked in Kamakura,"Sukezane, Sukeyoshi"
+Iwato Ichimonji,Bizen,Bizen,1324,1420,,,"Also called Shochu Ichimonji, late Ichimonji branch","Yoshiuji, Yoshikage"
+Osafune,Bizen,Bizen,1238,1591,1238,1380,"Longest-running Bizen school, over 700 years until great flood","Mitsutada, Nagamitsu, Kagemitsu, Sanenaga, Kanemitsu"
+Hatakeda,Bizen,Bizen,1232,1380,,,Branch school from Osafune lineage,"Moriie, Morishige"
+Yoshii,Bizen,Bizen,1312,1428,,,Bizen school in Yoshii area,Sukemitsu
+Omiya,Bizen,Bizen,1260,1428,,,Nanbokucho-era Bizen school,"Morikage, Moritsugu, Moromitsu"
+Soden-Bizen,Bizen,Bizen,1333,1392,,,Bizen smiths influenced by Soshu techniques,"Chogi, Kanemitsu"
+Chogi,Bizen,Bizen,1334,1360,,,Exceptional smith combining Bizen and Soshu styles,Chogi (Nagayoshi)
+Motoshige,Bizen,Bizen,1303,1365,1330,1360,"One of Osafune Shiten-no, Soshu influenced",Motoshige
+Kozori,Bizen,Bizen,1350,1428,1394,1428,Nanbokucho-early Muromachi Osafune offshoot,"Morimitsu, Yasumitsu, Moromitsu"
+Oei-Bizen,Bizen,Bizen,1394,1428,,,"Osafune smiths of the Oei era, high quality","Morimitsu, Yasumitsu, Moromitsu"
+Oei-Eikyo,Bizen,Bizen,1394,1441,,,Combined Oei-Eikyo era Bizen production,"Morimitsu, Yasumitsu, Moromitsu, Norimitsu"
+Bizen Saburo,Bizen,Bizen,1350,1450,,,Nanbokucho-Muromachi Bizen school,Kunimune
+Seka Bizen,Bizen,Bizen,1440,1530,,,Mid-Muromachi Bizen production,
+Sue-Bizen,Bizen,Bizen,1460,1591,,,"Late Muromachi Bizen, mass production era","Sukesada, Kiyomitsu, Norimitsu, Katsumitsu"
+Ukai,Bizen,Bizen,1317,1450,,,Nanbokucho-Muromachi Bizen branch,"Kiyomitsu, Mitsusada"
+Senoo,Bizen,Bizen,1350,1450,,,Nanbokucho-Muromachi Bizen branch,Moriyasu
+Wake,Bizen,Bizen,1250,1350,,,Kamakura-Nanbokucho Bizen school in Wake area,
+Ko-Yamato,Yamato,Yamato,800,1000,,,Earliest Yamato tradition swords,Amakuni
+Senjuin,Yamato,Yamato,970,1450,1185,1334,Oldest of the five Yamato schools,"Yukinobu, Shigehiro, Yoshihiro"
+Ko-Senjuin,Yamato,Yamato,1151,1300,,,"Early Senjuin, Heian to early Kamakura",Yukinobu
+Chu-Senjuin,Yamato,Yamato,1300,1392,,,"Early Senjuin, Heian to early Kamakura",Yukinobu
+Mino Senjuin,Yamato,Mino,1350,1500,,,Senjuin smiths who relocated to Mino,
+Tegai,Yamato,Yamato,1288,1450,1288,1350,"One of five Yamato schools, known for robust construction","Kanenaga, Kanekiyo, Kaneuji"
+Taima,Yamato,Yamato,1288,1390,,,One of five Yamato schools,"Kuniyuki, Tomokiyo, Kunimitsu"
+Shikkake,Yamato,Yamato,1275,1390,,,"One of five Yamato schools, founded by Norihiro","Norihiro, Norinaga"
+Hosho,Yamato,Yamato,1290,1392,,,Longest surviving of five Yamato schools,"Sadayoshi, Sadamune, Sadakiyo"
+Uda,Yamato,Yamato,1320,1500,,,"Yamato school branch, relocated smiths","Kunimitsu, Kunifusa, Kunimune"
+Ko-Uda,Yamato,Yamato,1280,1350,,,Early Uda school,Kunimitsu
+Takagi,Yamato,Yamato,1330,1450,,,Nanbokucho-Muromachi Yamato branch,
+Soshu,Soshu,Sagami,1250,1500,1290,1350,"Kamakura school, pinnacle of sword making","Shintogo Kunimitsu, Yukimitsu, Masamune, Sadamune, Hiromitsu, Akihiro"
+Ko-Soshu,Soshu,Sagami,1250,1290,,,"Early Soshu, before Masamune era","Shintogo Kunimitsu, Kunitsuna"
+Go,Soshu,Etchu,1320,1380,,,"Go Yoshihiro, one of Masamune Juttetsu",Yoshihiro
+Norishige,Soshu,Etchu,1300,1360,,,"One of Masamune Juttetsu, known for matsukawa-hada",Norishige
+Shizu,Mino,Mino,1284,1380,1319,1344,Founded by Shizu Saburo Kaneuji after studying under Masamune,Kaneuji
+Yamato Shizu,Mino,Yamato,1280,1350,,,Students Kaneuji left in Yamato,Kaneuji (Nidai)
+Naoe Shizu,Mino,Mino,1344,1450,,,Kaneuji students who settled in Naoe village,"Kanetsugu, Kanenobu, Kanetomo, Kanetoshi"
+Seki,Mino,Mino,1400,1600,1467,1573,Major Mino production center,"Kanesada, Kanemoto, Kanefusa"
+Fujishima,Mino,Kaga,1334,1500,,,Mino-style school in Kaga province,Tomoshige
+Ko-Aoe,Yamashiro,Bitchu,1120,1250,,,"Old Aoe, late Heian to early Kamakura","Yasutsugu, Sadatsugu, Tsunetsugu"
+Chu-Aoe,Yamashiro,Bitchu,1250,1361,1280,1320,"Middle Aoe, mid-Kamakura to Nanbokucho","Tsugunao, Moritsugu, Tsuguyoshi"
+Sue-Aoe,Yamashiro,Bitchu,1361,1457,,,"Late Aoe, Nanbokucho era","Tsuguyoshi, Yoshitsugu"
+Ko-Mihara,Yamato,Bingo,1312,1394,1306,1350,"Old Mihara, founded by Masaie","Masaie, Masahiro, Masamitsu"
+Chu-Mihara,Yamato,Bingo,1394,1429,,,"Middle Mihara, Oei to Eikyo era",
+Sue-Mihara,Yamato,Bingo,1429,1600,,,Late Mihara through Edo period,"Masanori, Masaoki"
+Hokke,Bingo,Bingo,1280,1400,1333,1391,Bingo school in Ashida area,"Kaneyasu, Kanekiyo"
+Hoki,Ko-Kyo,Hoki,987,1185,987,1185,"Ko-Hoki/Ohara school, possibly earliest curved swords","Yasutsuna, Sanemori, Sadatsuna"
+Sa,Soshu,Chikuzen,1318,1500,1330,1380,Kyushu school founded by Samonji,"Samonji, Yasuyoshi, Hiroyuki"
+Sue-Sa,Soshu,Chikuzen,1450,1570,,,Late Sa school in Muromachi period,Yukihiro
+Nagato Sa,Soshu,Nagato,1380,1500,,,Sa school branch in Nagato province,
+Hirado Sa,Soshu,Hizen,1450,1570,,,Sa school branch in Hirado area,
+Oishi Sa,Soshu,Chikuzen,1450,1550,,,Sa school branch at Oishi,
+Kongobyoe,Yamato,Chikuzen,1280,1570,1467,1570,Chikuzen school with Buddhist connections,"Moritaka, Moritsugu"
+Ko-Kongobyoe,Yamato,Chikuzen,1280,1392,,,"Early Kongobyoe, Kamakura-Nanbokucho",
+Ko-Enju,Yamashiro,Higo,1275,1333,,,"Higo school founded by Kunimura, Rai lineage including Kunimura, Kunisuke, Kunitoki, and Kunitomo",
+Chu-Enju,Yamashiro,Higo,1333,1392,,,"Nanbokucho Enju Period including Kuniyoshi, Kunikiyo, Kunitsuna, Kunifusa, and Kunishige",
+Sue-Enju,Yamashiro,Higo,1392,1550,,,"Late Enju, Muromachi period",
+Bungo,Yamashiro,Bungo,1185,1300,,,General Bungo province swordsmiths,"Yukihira, Tomoyuki"
+Nio,Yamato,Bungo,1330,1450,,,Bungo school with Yamato influence,Kiyonaga
+Takada,Bungo,Bungo,1334,1600,,,"Major Bungo school, Bizen influenced","Tomoyuki, Tokiyuki, Munekage"
+Ko-Naminohira,Yamato,Satsuma,1159,1392,,,"Old Naminohira, Heian to Nanbokucho","Masakuni, Yukiyasu"
+Naminohira,Yamato,Satsuma,1392,1868,,,"Longest-running school, nearly 1000 years","Masakuni, Yukiyasu, Yasuyuki"
+Gassan,Yamashiro,Dewa,1222,1868,,,Long-running school known for ayasugi-hada,"Gassan Sadakazu, Gassan Sadayoshi"
+Mogusa,Dewa,Dewa,1150,1300,,,Early Dewa school,Nagamasa
+Echizen,Echizen,Echizen,1350,1600,,,Echizen province swordsmiths,Yasutsugu
+Echizen Rai,Echizen,Echizen,1370,1500,,,Rai smiths who relocated to Echizen,Kunitsugu
+Echigo,Echigo,Echigo,1400,1600,,,Echigo province swordsmiths,
+Kaga,Kaga,Kaga,1350,1600,,,Kaga province swordsmiths,Sanekage
+Shimada,Soshu,Suruga,1455,1868,1467,1600,"Suruga school, Soshu influenced","Yoshisuke, Hirosuke, Sukemune"
+Inaba,Inaba,Inaba,1350,1500,,,Inaba province swordsmiths,
+Sekishu,Soshu,Iwami,1350,1600,,,Iwami province swordsmiths,
+Hoju,Various,Various,1330,1450,,,Smiths using Hoju name across provinces,
+Hojoji,Various,Various,1330,1450,,,Related to Hoju school,
+Miike,Ko-Kyo,Chikugo,1074,1185,,,"Ancient Kyushu school, one of oldest",Tenta Mitsuyo
+Tametsugu,Kaga,Kaga,1330,1450,,,"Kaga school, Soshu influenced",Tametsugu
+Kokubunji,Bingo,Bingo,1278,1350,,,"Early Bingo school, related to Mihara founding",Sukekuni
+Nitta,Various,Kozuke,1350,1500,,,Kozuke province school,
+Goban Kaji,Yamashiro,Yamashiro,1050,1150,,,Legendary group of five imperial swordsmiths,"Munechika, Yasutsuna"
+Ko-Kyo,Yamashiro,Yamashiro,957,1100,,,Ancient Kyoto swordsmiths before main schools,
+Tochika,Yamashiro,Yamashiro,1050,1200,,,Early Kyoto school,
+Momokawa,Yamashiro,Yamashiro,1050,1200,,,Early Kyoto school,
+Tatsubo,Various,Various,1400,1600,,,Muromachi period smiths,
