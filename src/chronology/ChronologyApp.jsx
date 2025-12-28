@@ -294,7 +294,18 @@ function ChronologyApp() {
                 <div className="quick-start-buttons">
                   <button onClick={() => {
                     const gokaden = SCHOOL_PERIODS.filter(s =>
-                      ['Sanjo', 'Awataguchi', 'Rai', 'Osafune', 'Ichimonji', 'Soshu', 'Seki', 'Tegai', 'Senjuin'].includes(s.name)
+                      [
+                        // Yamashiro
+                        'Sanjo', 'Awataguchi', 'Rai', 'Hasebe', 'Nobukuni',
+                        // Bizen
+                        'Ko-Bizen', 'Osafune', 'Ko-Ichimonji', 'Fukuoka Ichimonji', 'Yoshioka Ichimonji', 'Katayama Ichimonji',
+                        // Soshu
+                        'Soshu',
+                        // Mino
+                        'Shizu', 'Naoe Shizu',
+                        // Yamato
+                        'Tegai', 'Shikkake', 'Taima', 'Hosho', 'Ko-Senjuin', 'Chu-Senjuin'
+                      ].includes(s.name)
                     );
                     setSelectedSchools(gokaden);
                   }}>
