@@ -2653,6 +2653,13 @@ app.get('/api/sitemap.xml', async (req, res) => {
     <priority>0.7</priority>
   </url>
 
+  <!-- Gokaden Timeline (sword school timeline) -->
+  <url>
+    <loc>${baseUrl}/chronology</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+
   <!-- Articles Index (new content hub) -->
   <url>
     <loc>${baseUrl}/articles</loc>
