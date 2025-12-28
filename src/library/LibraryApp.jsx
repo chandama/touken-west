@@ -5,7 +5,7 @@ import '../styles/App.css';
 import SearchBar from '../components/SearchBar.jsx';
 import FilterPanel from '../components/FilterPanel.jsx';
 import AdvancedFilterGroups from '../components/AdvancedFilterGroups.jsx';
-import DarkModeToggle from '../components/DarkModeToggle.jsx';
+import Header from '../components/Header.jsx';
 import Login from '../components/Login.jsx';
 import LibraryGallery from './components/LibraryGallery.jsx';
 import LibraryLightbox from './components/LibraryLightbox.jsx';
@@ -44,9 +44,6 @@ function LibraryAppContent() {
   // Lightbox state
   const [selectedSwordIndex, setSelectedSwordIndex] = useState(null);
 
-  // User dropdown state
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   // Dark mode
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -265,57 +262,17 @@ function LibraryAppContent() {
   if (!user) {
     return (
       <div className="LibraryApp">
-        <header className="subpage-header">
-          <div className="subpage-header-content">
-            <div className="subpage-header-text">
-              <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
-              <div className="subpage-header-title">
-                <h1>Touken West - Nihontō Database</h1>
-                <p>Nihontō Media Library</p>
-              </div>
-            </div>
-            <div className="subpage-header-actions">
-              <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-              {/* Mobile hamburger menu */}
-              <div className="mobile-menu">
-                <button
-                  className="mobile-menu-button"
-                  onClick={() => setShowMobileMenu(!showMobileMenu)}
-                  aria-label="Navigation menu"
-                  aria-expanded={showMobileMenu}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="mobile-menu-icon">
-                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-                  </svg>
-                </button>
-                {showMobileMenu && (
-                  <>
-                    <div className="mobile-menu-backdrop" onClick={() => setShowMobileMenu(false)} />
-                    <div className="mobile-menu-dropdown">
-                      <a href="/" className="mobile-nav-link">Sword Database</a>
-                      <a href="/provinces" className="mobile-nav-link">Province Map</a>
-                      <span className="mobile-nav-link active">Digital Library</span>
-                      <a href="/articles" className="mobile-nav-link">Articles</a>
-                    </div>
-                  </>
-                )}
-              </div>
-              {/* Desktop nav links */}
-              <a href="/" className="header-nav-link">
-                Sword Database
-              </a>
-              <a href="/provinces" className="header-nav-link">
-                Province Map
-              </a>
-              <span className="header-nav-link active">
-                Digital Library
-              </span>
-              <a href="/articles" className="header-nav-link">
-                Articles
-              </a>
-            </div>
-          </div>
-        </header>
+        <Header
+          variant="subpage"
+          currentPage="library"
+          subtitle="Nihontō Media Library"
+          user={null}
+          canAccessLibrary={false}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={toggleDarkMode}
+          onLoginClick={() => setShowLogin(true)}
+          onLogout={handleLogout}
+        />
 
         <div className="library-auth-required">
           <h2>Login Required</h2>
@@ -339,90 +296,17 @@ function LibraryAppContent() {
   if (!canAccessLibrary()) {
     return (
       <div className="LibraryApp">
-        <header className="subpage-header">
-          <div className="subpage-header-content">
-            <div className="subpage-header-text">
-              <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
-              <div className="subpage-header-title">
-                <h1>Touken West - Nihontō Database</h1>
-                <p>Nihontō Media Library</p>
-              </div>
-            </div>
-            <div className="subpage-header-actions">
-              <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-              {/* Mobile hamburger menu */}
-              <div className="mobile-menu">
-                <button
-                  className="mobile-menu-button"
-                  onClick={() => setShowMobileMenu(!showMobileMenu)}
-                  aria-label="Navigation menu"
-                  aria-expanded={showMobileMenu}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="mobile-menu-icon">
-                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-                  </svg>
-                </button>
-                {showMobileMenu && (
-                  <>
-                    <div className="mobile-menu-backdrop" onClick={() => setShowMobileMenu(false)} />
-                    <div className="mobile-menu-dropdown">
-                      <a href="/" className="mobile-nav-link">Sword Database</a>
-                      <a href="/provinces" className="mobile-nav-link">Province Map</a>
-                      <span className="mobile-nav-link active">Digital Library</span>
-                      <a href="/articles" className="mobile-nav-link">Articles</a>
-                      <hr className="mobile-menu-divider" />
-                      <a href="/account" className="mobile-nav-link">My Account</a>
-                    </div>
-                  </>
-                )}
-              </div>
-              {/* Desktop nav links */}
-              <a href="/" className="header-nav-link">
-                Sword Database
-              </a>
-              <a href="/provinces" className="header-nav-link">
-                Province Map
-              </a>
-              <span className="header-nav-link active">
-                Digital Library
-              </span>
-              <a href="/articles" className="header-nav-link">
-                Articles
-              </a>
-              <div className="user-menu">
-                <button
-                  className="user-avatar-button"
-                  onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  aria-label="User menu"
-                  aria-expanded={showUserDropdown}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="user-avatar-icon">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                  </svg>
-                </button>
-                {showUserDropdown && (
-                  <>
-                    <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
-                    <div className="user-dropdown">
-                      <div className="user-dropdown-email">{user.email}</div>
-                      <a href="/account" className="user-dropdown-item">
-                        My Account
-                      </a>
-                      {isEditor() && (
-                        <a href="/admin" className="user-dropdown-admin">
-                          Admin Panel
-                        </a>
-                      )}
-                      <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
-                        Logout
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            </div>
-          </div>
-        </header>
+        <Header
+          variant="subpage"
+          currentPage="library"
+          subtitle="Nihontō Media Library"
+          user={user}
+          canAccessLibrary={false}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={toggleDarkMode}
+          onLoginClick={() => setShowLogin(true)}
+          onLogout={handleLogout}
+        />
 
         <div className="library-auth-required">
           <h2>Access Restricted</h2>
@@ -449,93 +333,17 @@ function LibraryAppContent() {
 
   return (
     <div className="LibraryApp">
-      <header className="subpage-header">
-        <div className="subpage-header-content">
-          <div className="subpage-header-text">
-            <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
-            <div className="subpage-header-title">
-              <h1>Touken West - Nihontō Database</h1>
-              <p>Nihontō Media Library - {swordsWithMedia.length.toLocaleString()} Catalogued Items</p>
-            </div>
-          </div>
-          <div className="subpage-header-actions">
-            <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-            {/* Mobile hamburger menu */}
-            <div className="mobile-menu">
-              <button
-                className="mobile-menu-button"
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                aria-label="Navigation menu"
-                aria-expanded={showMobileMenu}
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" className="mobile-menu-icon">
-                  <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-                </svg>
-              </button>
-              {showMobileMenu && (
-                <>
-                  <div className="mobile-menu-backdrop" onClick={() => setShowMobileMenu(false)} />
-                  <div className="mobile-menu-dropdown">
-                    <a href="/" className="mobile-nav-link">Sword Database</a>
-                    <a href="/provinces" className="mobile-nav-link">Province Map</a>
-                    <span className="mobile-nav-link active">Digital Library</span>
-                    <a href="/articles" className="mobile-nav-link">Articles</a>
-                    <hr className="mobile-menu-divider" />
-                    <a href="/account" className="mobile-nav-link">My Account</a>
-                    {isEditor() && (
-                      <a href="/admin" className="mobile-nav-link">Admin Panel</a>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-            {/* Desktop nav links */}
-            <a href="/" className="header-nav-link">
-              Sword Database
-            </a>
-            <a href="/provinces" className="header-nav-link">
-              Province Map
-            </a>
-            <span className="header-nav-link active">
-              Digital Library
-            </span>
-            <a href="/articles" className="header-nav-link">
-              Articles
-            </a>
-            <div className="user-menu">
-              <button
-                className="user-avatar-button"
-                onClick={() => setShowUserDropdown(!showUserDropdown)}
-                aria-label="User menu"
-                aria-expanded={showUserDropdown}
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" className="user-avatar-icon">
-                  <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                </svg>
-              </button>
-              {showUserDropdown && (
-                <>
-                  <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
-                  <div className="user-dropdown">
-                    <div className="user-dropdown-email">{user.email}</div>
-                    <a href="/account" className="user-dropdown-item">
-                      My Account
-                    </a>
-                    {isEditor() && (
-                      <a href="/admin" className="user-dropdown-admin">
-                        Admin Panel
-                      </a>
-                    )}
-                    <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
-                      Logout
-                    </button>
-                  </div>
-                </>
-              )}
-            </div>
-          </div>
-        </div>
-      </header>
+      <Header
+        variant="subpage"
+        currentPage="library"
+        subtitle={`Nihontō Media Library - ${swordsWithMedia.length.toLocaleString()} Catalogued Items`}
+        user={user}
+        canAccessLibrary={true}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={toggleDarkMode}
+        onLoginClick={() => setShowLogin(true)}
+        onLogout={handleLogout}
+      />
 
       {loading && <div className="loading">Loading sword data...</div>}
       {error && <div className="error">Error loading data: {error}</div>}
