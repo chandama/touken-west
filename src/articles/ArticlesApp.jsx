@@ -3,7 +3,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import './styles/Articles.css';
 import '../styles/theme.css';
 import '../styles/App.css';
-import DarkModeToggle from '../components/DarkModeToggle.jsx';
+import Header from '../components/Header.jsx';
 import ArticleListPage from './pages/ArticleListPage.jsx';
 import ArticleViewPage from './pages/ArticleViewPage.jsx';
 import Footer from '../components/Footer.jsx';
@@ -15,8 +15,6 @@ const ROLE_HIERARCHY = ['user', 'subscriber', 'editor', 'admin'];
 
 function ArticlesApp() {
   const [user, setUser] = useState(null);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
 
   // Dark mode
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -79,106 +77,16 @@ function ArticlesApp() {
   return (
     <BrowserRouter>
       <div className="ArticlesApp">
-        <header className="subpage-header">
-          <div className="subpage-header-content">
-            <div className="subpage-header-text">
-              <a href="/">
-                <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
-              </a>
-              <div className="subpage-header-title">
-                <h1>Touken West - Nihontō Database</h1>
-                <p>Research & Educational Resources</p>
-              </div>
-            </div>
-            <div className="subpage-header-actions">
-              <DarkModeToggle isDarkMode={isDarkMode} onToggle={toggleDarkMode} />
-
-              {/* Mobile hamburger menu */}
-              <div className="mobile-menu">
-                <button
-                  className="mobile-menu-button"
-                  onClick={() => setShowMobileMenu(!showMobileMenu)}
-                  aria-label="Navigation menu"
-                  aria-expanded={showMobileMenu}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="mobile-menu-icon">
-                    <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-                  </svg>
-                </button>
-                {showMobileMenu && (
-                  <>
-                    <div className="mobile-menu-backdrop" onClick={() => setShowMobileMenu(false)} />
-                    <div className="mobile-menu-dropdown">
-                      <a href="/" className="mobile-nav-link">Sword Database</a>
-                      <a href="/provinces" className="mobile-nav-link">Province Map</a>
-                      {canAccessLibrary() && (
-                        <a href="/library" className="mobile-nav-link">Digital Library</a>
-                      )}
-                      <span className="mobile-nav-link active">Articles</span>
-                      {user && (
-                        <>
-                          <hr className="mobile-menu-divider" />
-                          <a href="/account" className="mobile-nav-link">My Account</a>
-                          {(user.role === 'admin' || user.role === 'editor') && (
-                            <a href="/admin" className="mobile-nav-link">Admin Panel</a>
-                          )}
-                        </>
-                      )}
-                    </div>
-                  </>
-                )}
-              </div>
-
-              {/* Desktop nav links */}
-              <a href="/" className="header-nav-link">Sword Database</a>
-              <a href="/provinces" className="header-nav-link">Province Map</a>
-              {canAccessLibrary() && (
-                <a href="/library" className="header-nav-link">Digital Library</a>
-              )}
-              <span className="header-nav-link active">Articles</span>
-
-              {/* User menu */}
-              {user && (
-                <div className="user-menu">
-                  <button
-                    className="user-avatar-button"
-                    onClick={() => setShowUserDropdown(!showUserDropdown)}
-                    aria-label="User menu"
-                    aria-expanded={showUserDropdown}
-                  >
-                    <svg viewBox="0 0 24 24" fill="currentColor" className="user-avatar-icon">
-                      <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                    </svg>
-                  </button>
-                  {showUserDropdown && (
-                    <>
-                      <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
-                      <div className="user-dropdown">
-                        <div className="user-dropdown-email">{user.email}</div>
-                        <a href="/account" className="user-dropdown-item">
-                          My Account
-                        </a>
-                        {(user.role === 'admin' || user.role === 'editor') && (
-                          <a href="/admin/articles" className="user-dropdown-admin">
-                            Manage Articles
-                          </a>
-                        )}
-                        {(user.role === 'admin' || user.role === 'editor') && (
-                          <a href="/admin" className="user-dropdown-admin">
-                            Admin Panel
-                          </a>
-                        )}
-                        <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
-                          Logout
-                        </button>
-                      </div>
-                    </>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </header>
+        <Header
+          variant="subpage"
+          currentPage="articles"
+          subtitle="Research & Educational Resources"
+          user={user}
+          canAccessLibrary={canAccessLibrary()}
+          isDarkMode={isDarkMode}
+          onToggleDarkMode={toggleDarkMode}
+          onLogout={handleLogout}
+        />
 
         <main className="articles-main">
           <Routes>

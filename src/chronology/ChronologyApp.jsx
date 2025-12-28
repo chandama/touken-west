@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import './styles/Chronology.css';
 import '../styles/theme.css';
 import '../styles/App.css';
-import DarkModeToggle from '../components/DarkModeToggle.jsx';
+import Header from '../components/Header.jsx';
 import Login from '../components/Login.jsx';
 import Footer from '../components/Footer.jsx';
 import SchoolTimeline from './components/SchoolTimeline.jsx';
@@ -14,6 +14,29 @@ const SITE_URL = 'https://nihonto-db.com';
 
 const ROLE_HIERARCHY = ['user', 'subscriber', 'editor', 'admin'];
 
+const TRADITION_COLORS = {
+  Yamashiro: '#5B8BD4',
+  Bizen: '#E07B7B',
+  Yamato: '#9B7BD4',
+  Soshu: '#6BD4A0',
+  Mino: '#D4A86B',
+  Bitchu: '#D46BA8',
+  Bingo: '#6BC4D4',
+  Hoki: '#A8D46B',
+  Chikuzen: '#D4916B',
+  Higo: '#916BD4',
+  Bungo: '#6B91D4',
+  Satsuma: '#D46B91',
+  Dewa: '#6BD4B8',
+  Echizen: '#B86BD4',
+  Echigo: '#D4B86B',
+  Kaga: '#6BA8D4',
+  Suruga: '#D46BC4',
+  Inaba: '#8BD46B',
+  'Ko-Kyo': '#D4D46B',
+  Various: '#9E9E9E',
+};
+
 function ChronologyApp() {
   const [selectedSchools, setSelectedSchools] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
@@ -24,11 +47,9 @@ function ChronologyApp() {
   });
   const [user, setUser] = useState(null);
   const [showLogin, setShowLogin] = useState(false);
-  const [showUserDropdown, setShowUserDropdown] = useState(false);
-  const [showMobileMenu, setShowMobileMenu] = useState(false);
 
   useDocumentMeta({
-    title: 'Chronological Data - Nihonto DB',
+    title: 'Gokaden Timeline - Nihonto DB',
     description: 'Interactive timeline visualization of Japanese sword schools. Compare schools across historical periods from Heian to Edo.',
     canonicalUrl: `${SITE_URL}/chronology`,
     ogType: 'website'
@@ -126,95 +147,17 @@ function ChronologyApp() {
 
   return (
     <div className="ChronologyApp">
-      <header className="subpage-header">
-        <div className="subpage-header-content">
-          <div className="subpage-header-text">
-            <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
-            <div className="subpage-header-title">
-              <h1>Touken West - Nihontō Database</h1>
-              <p>Chronological Data - School Timeline</p>
-            </div>
-          </div>
-          <div className="subpage-header-actions">
-            <DarkModeToggle isDarkMode={isDarkMode} onToggle={() => setIsDarkMode(!isDarkMode)} />
-            {/* Mobile hamburger menu */}
-            <div className="mobile-menu">
-              <button
-                className="mobile-menu-button"
-                onClick={() => setShowMobileMenu(!showMobileMenu)}
-                aria-label="Navigation menu"
-                aria-expanded={showMobileMenu}
-              >
-                <svg viewBox="0 0 24 24" fill="currentColor" className="mobile-menu-icon">
-                  <path d="M3 18h18v-2H3v2zm0-5h18v-2H3v2zm0-7v2h18V6H3z"/>
-                </svg>
-              </button>
-              {showMobileMenu && (
-                <>
-                  <div className="mobile-menu-backdrop" onClick={() => setShowMobileMenu(false)} />
-                  <div className="mobile-menu-dropdown">
-                    <a href="/" className="mobile-nav-link">Sword Database</a>
-                    <a href="/provinces" className="mobile-nav-link">Province Map</a>
-                    {canAccessLibrary() && (
-                      <a href="/library" className="mobile-nav-link">Digital Library</a>
-                    )}
-                    <a href="/articles" className="mobile-nav-link">Articles</a>
-                    <span className="mobile-nav-link active">Chronology</span>
-                    {user && (
-                      <>
-                        <hr className="mobile-menu-divider" />
-                        <a href="/account" className="mobile-nav-link">My Account</a>
-                        {(user.role === 'admin' || user.role === 'editor') && (
-                          <a href="/admin" className="mobile-nav-link">Admin Panel</a>
-                        )}
-                      </>
-                    )}
-                  </div>
-                </>
-              )}
-            </div>
-            {/* Desktop nav links */}
-            <a href="/" className="header-nav-link">Sword Database</a>
-            <a href="/provinces" className="header-nav-link">Province Map</a>
-            {canAccessLibrary() && (
-              <a href="/library" className="header-nav-link">Digital Library</a>
-            )}
-            <a href="/articles" className="header-nav-link">Articles</a>
-            <span className="header-nav-link active">Chronology</span>
-            {user ? (
-              <div className="user-menu">
-                <button
-                  className="user-avatar-button"
-                  onClick={() => setShowUserDropdown(!showUserDropdown)}
-                  aria-label="User menu"
-                  aria-expanded={showUserDropdown}
-                >
-                  <svg viewBox="0 0 24 24" fill="currentColor" className="user-avatar-icon">
-                    <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
-                  </svg>
-                </button>
-                {showUserDropdown && (
-                  <>
-                    <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
-                    <div className="user-dropdown">
-                      <div className="user-dropdown-email">{user.email}</div>
-                      <a href="/account" className="user-dropdown-item">My Account</a>
-                      {(user.role === 'admin' || user.role === 'editor') && (
-                        <a href="/admin" className="user-dropdown-admin">Admin Panel</a>
-                      )}
-                      <button onClick={() => { handleLogout(); setShowUserDropdown(false); }} className="user-dropdown-logout">
-                        Logout
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-            ) : (
-              <button onClick={() => setShowLogin(true)} className="login-button">Login</button>
-            )}
-          </div>
-        </div>
-      </header>
+      <Header
+        variant="subpage"
+        currentPage="chronology"
+        subtitle="Gokaden Timeline - Major Swordmaking Schools"
+        user={user}
+        canAccessLibrary={canAccessLibrary()}
+        isDarkMode={isDarkMode}
+        onToggleDarkMode={() => setIsDarkMode(!isDarkMode)}
+        onLoginClick={() => setShowLogin(true)}
+        onLogout={handleLogout}
+      />
 
       <div className="chronology-container">
         <aside className="chronology-sidebar">
@@ -274,7 +217,11 @@ function ChronologyApp() {
               <h3>Selected ({selectedSchools.length})</h3>
               <div className="selected-schools">
                 {selectedSchools.map(school => (
-                  <div key={school.name} className="selected-school-tag">
+                  <div
+                    key={school.name}
+                    className="selected-school-tag"
+                    style={{ backgroundColor: TRADITION_COLORS[school.tradition] || '#9E9E9E' }}
+                  >
                     <span>{school.name}</span>
                     <button onClick={() => handleSchoolToggle(school)}>&times;</button>
                   </div>
