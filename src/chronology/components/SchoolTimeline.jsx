@@ -1,4 +1,4 @@
-import React, { useMemo, useRef, useState } from 'react';
+import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 
 const TRADITION_COLORS = {
   Yamashiro: '#5B8BD4',
@@ -22,36 +22,118 @@ const TRADITION_COLORS = {
 };
 
 const PERIOD_MARKERS = [
-  { year: 794, label: 'Heian' },
-  { year: 1185, label: 'Kamakura' },
-  { year: 1333, label: 'Nanbokucho' },
-  { year: 1392, label: 'Muromachi' },
-  { year: 1573, label: 'Momoyama' },
-  { year: 1600, label: 'Edo' },
+  { year: 794, endYear: 1185, label: 'Heian', color: 'rgba(139, 92, 246, 0.08)' },      // purple tint
+  { year: 1185, endYear: 1333, label: 'Kamakura', color: 'rgba(59, 130, 246, 0.08)' },  // blue tint
+  { year: 1333, endYear: 1392, label: 'Nanbokucho', color: 'rgba(236, 72, 153, 0.08)' }, // pink tint
+  { year: 1392, endYear: 1600, label: 'Muromachi', color: 'rgba(34, 197, 94, 0.08)' },  // green tint
+  { year: 1600, endYear: 1868, label: 'Edo', color: 'rgba(249, 115, 22, 0.08)' },       // orange tint
 ];
+
+const PERIOD_COLORS_DARK = {
+  Heian: 'rgba(139, 92, 246, 0.15)',
+  Kamakura: 'rgba(59, 130, 246, 0.15)',
+  Nanbokucho: 'rgba(236, 72, 153, 0.15)',
+  Muromachi: 'rgba(34, 197, 94, 0.15)',
+  Edo: 'rgba(249, 115, 22, 0.15)',
+};
 
 function SchoolTimeline({ schools }) {
   const containerRef = useRef(null);
+  const barsContainerRef = useRef(null);
   const [hoveredSchool, setHoveredSchool] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
+  const [autoZoom, setAutoZoom] = useState(true);
+  const [manualZoom, setManualZoom] = useState(null); // { startYear, endYear }
+  const [containerHeight, setContainerHeight] = useState(400); // Default height
 
-  const timelineConfig = useMemo(() => {
+  // Calculate the "fit" range based on selected schools
+  const fitRange = useMemo(() => {
     if (schools.length === 0) return null;
 
     const allYears = schools.flatMap(s => [s.startYear, s.endYear]);
-    const minYear = Math.min(...allYears, 900);
-    const maxYear = Math.max(...allYears, 1600);
+    const minYear = Math.min(...allYears);
+    const maxYear = Math.max(...allYears);
 
-    const padding = 50;
-    const startYear = Math.floor((minYear - padding) / 50) * 50;
-    const endYear = Math.ceil((maxYear + padding) / 50) * 50;
+    const padding = 25;
+    const startYear = Math.floor((minYear - padding) / 25) * 25;
+    const endYear = Math.ceil((maxYear + padding) / 25) * 25;
+
+    return { startYear, endYear };
+  }, [schools]);
+
+  // Auto-zoom when schools change (if autoZoom is enabled)
+  useEffect(() => {
+    if (autoZoom && fitRange) {
+      setManualZoom(null);
+    }
+  }, [autoZoom, fitRange]);
+
+  // The actual timeline config (uses manual zoom if set, otherwise fit range)
+  const timelineConfig = useMemo(() => {
+    const range = manualZoom || fitRange;
+    if (!range) return null;
 
     return {
-      startYear,
-      endYear,
-      range: endYear - startYear,
+      startYear: range.startYear,
+      endYear: range.endYear,
+      range: range.endYear - range.startYear,
     };
-  }, [schools]);
+  }, [manualZoom, fitRange]);
+
+  // Zoom to fit handler
+  const handleZoomToFit = useCallback(() => {
+    setManualZoom(null);
+    setAutoZoom(true);
+  }, []);
+
+  // Zoom in (narrow the range by 20%)
+  const handleZoomIn = useCallback(() => {
+    if (!timelineConfig) return;
+    const { startYear, endYear, range } = timelineConfig;
+    const shrink = Math.max(range * 0.1, 25);
+    const newStart = Math.round((startYear + shrink) / 25) * 25;
+    const newEnd = Math.round((endYear - shrink) / 25) * 25;
+    if (newEnd - newStart >= 100) {
+      setManualZoom({ startYear: newStart, endYear: newEnd });
+      setAutoZoom(false);
+    }
+  }, [timelineConfig]);
+
+  // Zoom out (expand the range by 20%)
+  const handleZoomOut = useCallback(() => {
+    if (!timelineConfig) return;
+    const { startYear, endYear, range } = timelineConfig;
+    const expand = range * 0.1;
+    const newStart = Math.round((startYear - expand) / 25) * 25;
+    const newEnd = Math.round((endYear + expand) / 25) * 25;
+    setManualZoom({
+      startYear: Math.max(newStart, 700),
+      endYear: Math.min(newEnd, 1900)
+    });
+    setAutoZoom(false);
+  }, [timelineConfig]);
+
+  // Measure container height for dynamic bar sizing
+  useEffect(() => {
+    const container = barsContainerRef.current;
+    if (!container) return;
+
+    const updateHeight = () => {
+      const height = container.clientHeight;
+      if (height > 0) {
+        setContainerHeight(height);
+      }
+    };
+
+    // Initial measurement
+    updateHeight();
+
+    // Watch for resize
+    const resizeObserver = new ResizeObserver(updateHeight);
+    resizeObserver.observe(container);
+
+    return () => resizeObserver.disconnect();
+  }, []);
 
   const sortedSchools = useMemo(() => {
     return [...schools].sort((a, b) => {
@@ -100,16 +182,71 @@ function SchoolTimeline({ schools }) {
     return <div className="timeline-empty">No schools selected</div>;
   }
 
-  const barHeight = 28;
-  const barGap = 4;
+  // Dynamic bar sizing based on available height
+  const minBarHeight = 12;
+  const maxBarHeight = 60; // Allow bars to grow larger when few schools
+  const minGap = 2;
+  const maxGap = 8;
+  const availableHeight = containerHeight - 32; // Subtract padding
+
+  // Calculate optimal bar height to fit all schools and fill the space
+  const idealBarHeight = Math.floor(availableHeight / sortedSchools.length) - maxGap;
+  const barHeight = Math.max(minBarHeight, Math.min(maxBarHeight, idealBarHeight));
+  const barGap = barHeight >= 30 ? maxGap : barHeight >= 20 ? 4 : minGap;
   const totalBarsHeight = sortedSchools.length * (barHeight + barGap);
+
+  // Adjust font size based on bar height
+  const fontSize = barHeight >= 30 ? 14 : barHeight >= 20 ? 12 : barHeight >= 14 ? 10 : 9;
 
   return (
     <div className="school-timeline" ref={containerRef}>
       {/* Chart title */}
       <div className="chart-header">
-        <h3 className="chart-title">School Active Periods</h3>
-        <span className="chart-subtitle">{sortedSchools.length} schools selected</span>
+        <div className="chart-header-left">
+          <h3 className="chart-title">School Active Periods</h3>
+          <span className="chart-subtitle">{sortedSchools.length} schools selected</span>
+        </div>
+        <div className="chart-zoom-controls">
+          <button
+            className="zoom-btn"
+            onClick={handleZoomOut}
+            title="Zoom out"
+            aria-label="Zoom out"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+              <path d="M19 13H5v-2h14v2z"/>
+            </svg>
+          </button>
+          <button
+            className={`zoom-btn zoom-fit-btn ${autoZoom ? 'active' : ''}`}
+            onClick={handleZoomToFit}
+            title="Zoom to fit selected schools"
+            aria-label="Zoom to fit"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+              <path d="M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4z"/>
+            </svg>
+            <span>Fit</span>
+          </button>
+          <button
+            className="zoom-btn"
+            onClick={handleZoomIn}
+            title="Zoom in"
+            aria-label="Zoom in"
+          >
+            <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
+              <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
+            </svg>
+          </button>
+          <label className="auto-zoom-toggle" title="Automatically adjust zoom when schools change">
+            <input
+              type="checkbox"
+              checked={autoZoom}
+              onChange={(e) => setAutoZoom(e.target.checked)}
+            />
+            <span>Auto</span>
+          </label>
+        </div>
       </div>
 
       {/* Main chart area */}
@@ -122,73 +259,85 @@ function SchoolTimeline({ schools }) {
         {/* Chart plot area */}
         <div className="chart-plot-area">
           {/* Scrollable bars area */}
-          <div className="timeline-bars-container">
-            <div className="timeline-content-wrapper">
-              {/* Period divider lines - vertical separators */}
-              <div className="timeline-period-dividers">
-                {PERIOD_MARKERS.filter(p => p.year >= timelineConfig.startYear && p.year <= timelineConfig.endYear).map(period => (
+          <div className="timeline-bars-container" ref={barsContainerRef}>
+            {/* Background grid - fills entire container */}
+            <div className="timeline-grid-background">
+              {/* Period background bands */}
+              {PERIOD_MARKERS.filter(p =>
+                p.endYear > timelineConfig.startYear && p.year < timelineConfig.endYear
+              ).map(period => {
+                const startPercent = Math.max(0, yearToPercent(Math.max(period.year, timelineConfig.startYear)));
+                const endPercent = Math.min(100, yearToPercent(Math.min(period.endYear, timelineConfig.endYear)));
+                return (
                   <div
-                    key={period.year}
-                    className="period-divider"
-                    style={{ left: `${yearToPercent(period.year)}%` }}
+                    key={period.label}
+                    className="period-band"
+                    style={{
+                      left: `${startPercent}%`,
+                      width: `${endPercent - startPercent}%`,
+                      backgroundColor: period.color,
+                    }}
                   />
-                ))}
-              </div>
-
+                );
+              })}
               {/* Minor grid lines */}
-              <div className="timeline-grid">
-                {gridLines.map(year => (
+              {gridLines.map(year => (
+                <div
+                  key={year}
+                  className="grid-line"
+                  style={{ left: `${yearToPercent(year)}%` }}
+                />
+              ))}
+              {/* Period divider lines - vertical separators */}
+              {PERIOD_MARKERS.filter(p => p.year > timelineConfig.startYear && p.year < timelineConfig.endYear).map(period => (
+                <div
+                  key={period.year}
+                  className="period-divider"
+                  style={{ left: `${yearToPercent(period.year)}%` }}
+                />
+              ))}
+            </div>
+
+            {/* Bars - centered vertically with smooth transitions */}
+            <div className="timeline-bars-wrapper">
+              {sortedSchools.map((school, index) => {
+                const color = TRADITION_COLORS[school.tradition] || '#9E9E9E';
+                const hasPeak = school.peakStart && school.peakEnd;
+                const barWidthPercent = getBarWidth(school);
+
+                return (
                   <div
-                    key={year}
-                    className="grid-line"
-                    style={{ left: `${yearToPercent(year)}%` }}
-                  />
-                ))}
-              </div>
-
-              {/* Bars - stacked from bottom */}
-              <div className="timeline-bars" style={{ minHeight: totalBarsHeight }}>
-                {sortedSchools.map((school, index) => {
-                  const color = TRADITION_COLORS[school.tradition] || '#9E9E9E';
-                  const hasPeak = school.peakStart && school.peakEnd;
-                  const barWidthPercent = getBarWidth(school);
-                  const bottomOffset = (sortedSchools.length - 1 - index) * (barHeight + barGap);
-
-                  return (
+                    key={school.name}
+                    className="timeline-row"
+                    style={{
+                      height: barHeight,
+                      marginBottom: index < sortedSchools.length - 1 ? barGap : 0,
+                    }}
+                  >
                     <div
-                      key={school.name}
-                      className="timeline-row"
+                      className="timeline-bar"
                       style={{
-                        bottom: bottomOffset,
-                        height: barHeight,
+                        left: `${yearToPercent(school.startYear)}%`,
+                        width: `${barWidthPercent}%`,
+                        backgroundColor: color,
                       }}
+                      onMouseMove={(e) => handleMouseMove(e, school)}
+                      onMouseLeave={handleMouseLeave}
                     >
-                      <div
-                        className="timeline-bar"
-                        style={{
-                          left: `${yearToPercent(school.startYear)}%`,
-                          width: `${barWidthPercent}%`,
-                          backgroundColor: color,
-                          height: barHeight,
-                        }}
-                        onMouseMove={(e) => handleMouseMove(e, school)}
-                        onMouseLeave={handleMouseLeave}
-                      >
-                        {hasPeak && (
-                          <div
-                            className="peak-period"
-                            style={{
-                              left: `${((school.peakStart - school.startYear) / (school.endYear - school.startYear)) * 100}%`,
-                              width: `${((school.peakEnd - school.peakStart) / (school.endYear - school.startYear)) * 100}%`,
-                            }}
-                          />
-                        )}
-                        <span className="bar-label">{school.name}</span>
-                      </div>
+                      {hasPeak && (
+                        <div
+                          className="peak-period"
+                          style={{
+                            left: `${((school.peakStart - school.startYear) / (school.endYear - school.startYear)) * 100}%`,
+                            width: `${((school.peakEnd - school.peakStart) / (school.endYear - school.startYear)) * 100}%`,
+                          }}
+                        />
+                      )}
+                      <span className="bar-label" style={{ fontSize }}>{school.name}</span>
                     </div>
-                  );
-                })}
-              </div>
+                  </div>
+                );
+              })}
             </div>
           </div>
 
@@ -221,16 +370,28 @@ function SchoolTimeline({ schools }) {
             </div>
 
             {/* Period labels */}
+            {/* Period labels - centered within each band */}
             <div className="x-axis-periods">
-              {PERIOD_MARKERS.filter(p => p.year >= timelineConfig.startYear && p.year <= timelineConfig.endYear).map(period => (
-                <div
-                  key={period.year}
-                  className="period-label-wrapper"
-                  style={{ left: `${yearToPercent(period.year)}%` }}
-                >
-                  <span className="period-name">{period.label}</span>
-                </div>
-              ))}
+              {PERIOD_MARKERS.filter(p =>
+                p.endYear > timelineConfig.startYear && p.year < timelineConfig.endYear
+              ).map(period => {
+                const startPercent = Math.max(0, yearToPercent(Math.max(period.year, timelineConfig.startYear)));
+                const endPercent = Math.min(100, yearToPercent(Math.min(period.endYear, timelineConfig.endYear)));
+                const centerPercent = (startPercent + endPercent) / 2;
+                return (
+                  <div
+                    key={period.label}
+                    className="period-label-wrapper"
+                    style={{
+                      left: `${startPercent}%`,
+                      width: `${endPercent - startPercent}%`,
+                      backgroundColor: period.color,
+                    }}
+                  >
+                    <span className="period-name">{period.label}</span>
+                  </div>
+                );
+              })}
             </div>
           </div>
 

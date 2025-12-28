@@ -305,10 +305,16 @@
 /* Chart Header */
 .chart-header {
   display: flex;
-  align-items: baseline;
-  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
   margin-bottom: 16px;
   padding-left: 48px;
+}
+
+.chart-header-left {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
 }
 
 .chart-title {
@@ -321,6 +327,81 @@
 .chart-subtitle {
   font-size: 12px;
   color: var(--text-tertiary);
+}
+
+/* Zoom Controls */
+.chart-zoom-controls {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
+  border-radius: 6px;
+  padding: 4px;
+}
+
+.zoom-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  background: transparent;
+  border: none;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 4px;
+  transition: all 0.15s;
+}
+
+.zoom-btn:hover {
+  background: var(--bg-hover);
+  color: var(--text-primary);
+}
+
+.zoom-btn svg {
+  flex-shrink: 0;
+}
+
+.zoom-fit-btn {
+  padding: 6px 10px;
+}
+
+.zoom-fit-btn span {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.zoom-fit-btn.active {
+  background: var(--accent-primary);
+  color: white;
+}
+
+.zoom-fit-btn.active:hover {
+  background: var(--accent-primary-dark, var(--accent-primary));
+}
+
+.auto-zoom-toggle {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 8px;
+  cursor: pointer;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--text-tertiary);
+  border-left: 1px solid var(--border-color);
+  margin-left: 4px;
+}
+
+.auto-zoom-toggle:hover {
+  color: var(--text-secondary);
+}
+
+.auto-zoom-toggle input[type="checkbox"] {
+  width: 12px;
+  height: 12px;
+  cursor: pointer;
 }
 
 /* Chart Container */
@@ -381,23 +462,30 @@
   overflow-x: hidden;
   display: flex;
   flex-direction: column;
-  justify-content: flex-end;
-  padding: 16px 24px 0 24px;
+  justify-content: center;
+  padding: 16px 24px;
 }
 
-.timeline-content-wrapper {
-  position: relative;
-  flex-shrink: 0;
-}
-
-/* Period divider lines */
-.timeline-period-dividers {
+/* Background grid - fills entire container */
+.timeline-grid-background {
   position: absolute;
-  top: -24px;
-  left: 0;
-  right: 0;
+  top: 0;
+  left: 24px;
+  right: 24px;
   bottom: 0;
   pointer-events: none;
+}
+
+/* Period background bands */
+.period-band {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  transition: left 0.3s ease-out, width 0.3s ease-out;
+}
+
+.dark-mode .period-band {
+  opacity: 1.5; /* Slightly more visible in dark mode */
 }
 
 .period-divider {
@@ -406,23 +494,13 @@
   bottom: 0;
   width: 1px;
   background: #94a3b8;
-  opacity: 0.3;
+  opacity: 0.4;
   transform: translateX(-50%);
 }
 
 .dark-mode .period-divider {
   background: #64748b;
-  opacity: 0.4;
-}
-
-/* Minor grid lines */
-.timeline-grid {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  pointer-events: none;
+  opacity: 0.5;
 }
 
 .grid-line {
@@ -437,22 +515,29 @@
   background: #2d3548;
 }
 
-/* Timeline bars */
-.timeline-bars {
+/* Bars wrapper - vertically centered */
+.timeline-bars-wrapper {
   position: relative;
+  z-index: 1;
+  display: flex;
+  flex-direction: column;
+  transition: padding 0.2s ease-out;
 }
 
+/* Timeline bars */
 .timeline-row {
-  position: absolute;
-  left: 0;
-  right: 0;
+  position: relative;
+  width: 100%;
+  transition: height 0.2s ease-out, margin-bottom 0.2s ease-out;
 }
 
 .timeline-bar {
   position: absolute;
+  top: 0;
+  bottom: 0;
   border-radius: 4px;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: transform 0.15s ease, box-shadow 0.15s ease, left 0.3s ease-out, width 0.3s ease-out;
   display: flex;
   align-items: center;
   overflow: hidden;
@@ -475,6 +560,7 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
   position: relative;
   z-index: 2;
+  transition: font-size 0.2s ease-out;
 }
 
 .peak-period {
@@ -568,14 +654,20 @@
 /* Period labels */
 .x-axis-periods {
   position: absolute;
-  top: 26px;
+  top: 22px;
   left: 0;
   right: 0;
+  bottom: 0;
 }
 
 .period-label-wrapper {
   position: absolute;
-  transform: translateX(-50%);
+  top: 0;
+  bottom: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: left 0.3s ease-out, width 0.3s ease-out;
 }
 
 .period-name {
@@ -583,12 +675,12 @@
   font-weight: 600;
   text-transform: uppercase;
   letter-spacing: 0.05em;
-  color: #6366f1;
+  color: #475569;
   white-space: nowrap;
 }
 
 .dark-mode .period-name {
-  color: #818cf8;
+  color: #94a3b8;
 }
 
 /* X-axis title */
@@ -730,6 +822,25 @@
 
   .chart-header {
     padding-left: 0;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+
+  .chart-zoom-controls {
+    padding: 2px;
+    gap: 2px;
+  }
+
+  .zoom-btn {
+    padding: 4px 6px;
+  }
+
+  .zoom-fit-btn span {
+    display: none;
+  }
+
+  .auto-zoom-toggle span {
+    display: none;
   }
 
   .y-axis-label {
@@ -737,7 +848,12 @@
   }
 
   .timeline-bars-container {
-    padding: 12px 16px 0 16px;
+    padding: 12px 16px;
+  }
+
+  .timeline-grid-background {
+    left: 16px;
+    right: 16px;
   }
 
   .x-axis {
