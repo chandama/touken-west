@@ -45,6 +45,18 @@ function SchoolTimeline({ schools }) {
   const [autoZoom, setAutoZoom] = useState(true);
   const [manualZoom, setManualZoom] = useState(null); // { startYear, endYear }
   const [containerHeight, setContainerHeight] = useState(400); // Default height
+  const [isMobile, setIsMobile] = useState(false);
+  const [mobileZoomLevel, setMobileZoomLevel] = useState(1); // 1 = normal, 2 = 2x wider, etc.
+
+  // Detect mobile viewport
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth <= 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
 
   // Calculate the "fit" range based on selected schools
   const fitRange = useMemo(() => {
@@ -68,8 +80,21 @@ function SchoolTimeline({ schools }) {
     }
   }, [autoZoom, fitRange]);
 
-  // The actual timeline config (uses manual zoom if set, otherwise fit range)
+  // Full range for mobile - always show complete timeline, use zoom for scale
+  const mobileFullRange = { startYear: 800, endYear: 1900 };
+
+  // The actual timeline config
+  // On mobile: always use full range (scroll to navigate, zoom changes scale)
+  // On desktop: use zoom to change visible range
   const timelineConfig = useMemo(() => {
+    if (isMobile) {
+      return {
+        startYear: mobileFullRange.startYear,
+        endYear: mobileFullRange.endYear,
+        range: mobileFullRange.endYear - mobileFullRange.startYear,
+      };
+    }
+
     const range = manualZoom || fitRange;
     if (!range) return null;
 
@@ -78,7 +103,30 @@ function SchoolTimeline({ schools }) {
       endYear: range.endYear,
       range: range.endYear - range.startYear,
     };
-  }, [manualZoom, fitRange]);
+  }, [manualZoom, fitRange, isMobile]);
+
+  // Calculate dynamic width for mobile based on zoom level
+  // Zoom in = wider chart = more px per year = scroll to see full timeline
+  const mobileChartWidth = useMemo(() => {
+    if (!isMobile) return null;
+    // Base width of 800px at zoom level 1
+    // Each zoom level doubles the width
+    const baseWidth = 800;
+    return baseWidth * mobileZoomLevel;
+  }, [isMobile, mobileZoomLevel]);
+
+  // Mobile zoom handlers (scale-based, not range-based)
+  const handleMobileZoomIn = useCallback(() => {
+    setMobileZoomLevel(prev => Math.min(prev + 0.5, 4)); // Max 4x zoom
+  }, []);
+
+  const handleMobileZoomOut = useCallback(() => {
+    setMobileZoomLevel(prev => Math.max(prev - 0.5, 0.5)); // Min 0.5x zoom
+  }, []);
+
+  const handleMobileZoomReset = useCallback(() => {
+    setMobileZoomLevel(1);
+  }, []);
 
   // Zoom to fit handler
   const handleZoomToFit = useCallback(() => {
@@ -209,7 +257,7 @@ function SchoolTimeline({ schools }) {
         <div className="chart-zoom-controls">
           <button
             className="zoom-btn"
-            onClick={handleZoomOut}
+            onClick={isMobile ? handleMobileZoomOut : handleZoomOut}
             title="Zoom out"
             aria-label="Zoom out"
           >
@@ -218,19 +266,19 @@ function SchoolTimeline({ schools }) {
             </svg>
           </button>
           <button
-            className={`zoom-btn zoom-fit-btn ${autoZoom ? 'active' : ''}`}
-            onClick={handleZoomToFit}
-            title="Zoom to fit selected schools"
-            aria-label="Zoom to fit"
+            className={`zoom-btn zoom-fit-btn ${(isMobile ? mobileZoomLevel === 1 : autoZoom) ? 'active' : ''}`}
+            onClick={isMobile ? handleMobileZoomReset : handleZoomToFit}
+            title={isMobile ? "Reset zoom to 1x" : "Zoom to fit selected schools"}
+            aria-label={isMobile ? "Reset zoom" : "Zoom to fit"}
           >
             <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
               <path d="M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4z"/>
             </svg>
-            <span>Fit</span>
+            <span>{isMobile ? `${mobileZoomLevel}x` : 'Fit'}</span>
           </button>
           <button
             className="zoom-btn"
-            onClick={handleZoomIn}
+            onClick={isMobile ? handleMobileZoomIn : handleZoomIn}
             title="Zoom in"
             aria-label="Zoom in"
           >
@@ -238,14 +286,16 @@ function SchoolTimeline({ schools }) {
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
             </svg>
           </button>
-          <label className="auto-zoom-toggle" title="Automatically adjust zoom when schools change">
-            <input
-              type="checkbox"
-              checked={autoZoom}
-              onChange={(e) => setAutoZoom(e.target.checked)}
-            />
-            <span>Auto</span>
-          </label>
+          {!isMobile && (
+            <label className="auto-zoom-toggle" title="Automatically adjust zoom when schools change">
+              <input
+                type="checkbox"
+                checked={autoZoom}
+                onChange={(e) => setAutoZoom(e.target.checked)}
+              />
+              <span>Auto</span>
+            </label>
+          )}
         </div>
       </div>
 
@@ -257,7 +307,10 @@ function SchoolTimeline({ schools }) {
         </div>
 
         {/* Chart plot area */}
-        <div className="chart-plot-area">
+        <div
+          className="chart-plot-area"
+          style={mobileChartWidth ? { minWidth: `${mobileChartWidth}px` } : undefined}
+        >
           {/* Scrollable bars area */}
           <div className="timeline-bars-container" ref={barsContainerRef}>
             {/* Background grid - fills entire container */}

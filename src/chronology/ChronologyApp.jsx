@@ -41,6 +41,11 @@ function ChronologyApp() {
   const [selectedSchools, setSelectedSchools] = useState([]);
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedTradition, setSelectedTradition] = useState('');
+  // Mobile panel states
+  const [showMobileSearch, setShowMobileSearch] = useState(false);
+  const [showMobileFilter, setShowMobileFilter] = useState(false);
+  const [showMobileSchools, setShowMobileSchools] = useState(false);
+  const [showMobileSelected, setShowMobileSelected] = useState(false);
   const [isDarkMode, setIsDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -160,6 +165,217 @@ function ChronologyApp() {
       />
 
       <div className="chronology-container">
+        {/* Mobile Toolbar - visible only on mobile */}
+        <div className="mobile-toolbar">
+          <button
+            className={`mobile-toolbar-btn ${showMobileSearch ? 'active' : ''}`}
+            onClick={() => {
+              setShowMobileSearch(!showMobileSearch);
+              setShowMobileFilter(false);
+              setShowMobileSchools(false);
+              setShowMobileSelected(false);
+            }}
+            aria-label="Search schools"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <circle cx="11" cy="11" r="8"/>
+              <path d="M21 21l-4.35-4.35"/>
+            </svg>
+            {searchQuery && <span className="toolbar-badge">1</span>}
+          </button>
+          <button
+            className={`mobile-toolbar-btn ${showMobileFilter ? 'active' : ''}`}
+            onClick={() => {
+              setShowMobileFilter(!showMobileFilter);
+              setShowMobileSearch(false);
+              setShowMobileSchools(false);
+              setShowMobileSelected(false);
+            }}
+            aria-label="Filter by tradition"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <polygon points="22 3 2 3 10 12.46 10 19 14 21 14 12.46 22 3"/>
+            </svg>
+            {selectedTradition && <span className="toolbar-badge">1</span>}
+          </button>
+          <button
+            className={`mobile-toolbar-btn ${showMobileSchools ? 'active' : ''}`}
+            onClick={() => {
+              setShowMobileSchools(!showMobileSchools);
+              setShowMobileSearch(false);
+              setShowMobileFilter(false);
+              setShowMobileSelected(false);
+            }}
+            aria-label="Browse schools"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M4 6h16M4 12h16M4 18h16"/>
+            </svg>
+          </button>
+          <button
+            className={`mobile-toolbar-btn ${showMobileSelected ? 'active' : ''}`}
+            onClick={() => {
+              setShowMobileSelected(!showMobileSelected);
+              setShowMobileSearch(false);
+              setShowMobileFilter(false);
+              setShowMobileSchools(false);
+            }}
+            aria-label="Selected schools"
+          >
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <path d="M9 11l3 3L22 4"/>
+              <path d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"/>
+            </svg>
+            {selectedSchools.length > 0 && <span className="toolbar-badge">{selectedSchools.length}</span>}
+          </button>
+        </div>
+
+        {/* Mobile Search Panel */}
+        {showMobileSearch && (
+          <div className="mobile-panel mobile-panel-schools">
+            <div className="mobile-panel-header">
+              <h3>Search Schools</h3>
+              <button className="mobile-panel-close" onClick={() => setShowMobileSearch(false)}>&times;</button>
+            </div>
+            <input
+              type="text"
+              className="school-search-input"
+              placeholder="Search by name, tradition, province..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              autoFocus
+            />
+            {searchQuery && (
+              <button className="mobile-clear-btn" onClick={() => setSearchQuery('')}>Clear Search</button>
+            )}
+            {/* Show filtered results */}
+            <div className="mobile-schools-list" style={{ marginTop: '12px' }}>
+              {filteredSchools.length === 0 ? (
+                <p className="mobile-empty-message">No schools match your search</p>
+              ) : (
+                filteredSchools.map(school => {
+                  const isSelected = selectedSchools.some(s => s.name === school.name);
+                  return (
+                    <label
+                      key={school.name}
+                      className={`mobile-school-item ${isSelected ? 'selected' : ''}`}
+                      onClick={() => handleSchoolToggle(school)}
+                    >
+                      <span
+                        className="tradition-color-dot"
+                        style={{ backgroundColor: TRADITION_COLORS[school.tradition] || '#9E9E9E' }}
+                      />
+                      <span className="school-name">{school.name}</span>
+                      <span className="school-years">{school.startYear}-{school.endYear}</span>
+                      {isSelected && <span className="check-mark">✓</span>}
+                    </label>
+                  );
+                })
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Filter Panel */}
+        {showMobileFilter && (
+          <div className="mobile-panel">
+            <div className="mobile-panel-header">
+              <h3>Filter by Tradition</h3>
+              <button className="mobile-panel-close" onClick={() => setShowMobileFilter(false)}>&times;</button>
+            </div>
+            <div className="mobile-tradition-list">
+              <label
+                className={`mobile-tradition-item ${selectedTradition === '' ? 'selected' : ''}`}
+                onClick={() => setSelectedTradition('')}
+              >
+                <span>All Traditions</span>
+                {selectedTradition === '' && <span className="check-mark">✓</span>}
+              </label>
+              {traditions.map(tradition => (
+                <label
+                  key={tradition}
+                  className={`mobile-tradition-item ${selectedTradition === tradition ? 'selected' : ''}`}
+                  onClick={() => setSelectedTradition(tradition)}
+                >
+                  <span
+                    className="tradition-color-dot"
+                    style={{ backgroundColor: TRADITION_COLORS[tradition] || '#9E9E9E' }}
+                  />
+                  <span>{tradition}</span>
+                  {selectedTradition === tradition && <span className="check-mark">✓</span>}
+                </label>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Schools List Panel */}
+        {showMobileSchools && (
+          <div className="mobile-panel mobile-panel-schools">
+            <div className="mobile-panel-header">
+              <h3>Schools ({filteredSchools.length})</h3>
+              <div className="mobile-panel-actions">
+                <button className="mobile-action-btn" onClick={handleSelectAll}>Select All</button>
+                <button className="mobile-action-btn" onClick={handleClearAll}>Clear</button>
+                <button className="mobile-panel-close" onClick={() => setShowMobileSchools(false)}>&times;</button>
+              </div>
+            </div>
+            <div className="mobile-schools-list">
+              {filteredSchools.map(school => {
+                const isSelected = selectedSchools.some(s => s.name === school.name);
+                return (
+                  <label
+                    key={school.name}
+                    className={`mobile-school-item ${isSelected ? 'selected' : ''}`}
+                    onClick={() => handleSchoolToggle(school)}
+                  >
+                    <span
+                      className="tradition-color-dot"
+                      style={{ backgroundColor: TRADITION_COLORS[school.tradition] || '#9E9E9E' }}
+                    />
+                    <span className="school-name">{school.name}</span>
+                    <span className="school-years">{school.startYear}-{school.endYear}</span>
+                    {isSelected && <span className="check-mark">✓</span>}
+                  </label>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* Mobile Selected Schools Panel */}
+        {showMobileSelected && (
+          <div className="mobile-panel">
+            <div className="mobile-panel-header">
+              <h3>Selected Schools ({selectedSchools.length})</h3>
+              <button className="mobile-panel-close" onClick={() => setShowMobileSelected(false)}>&times;</button>
+            </div>
+            {selectedSchools.length === 0 ? (
+              <p className="mobile-empty-message">No schools selected. Tap the Schools button to browse and select.</p>
+            ) : (
+              <>
+                <div className="mobile-selected-list">
+                  {selectedSchools.map(school => (
+                    <div
+                      key={school.name}
+                      className="mobile-selected-item"
+                    >
+                      <span
+                        className="tradition-color-dot"
+                        style={{ backgroundColor: TRADITION_COLORS[school.tradition] || '#9E9E9E' }}
+                      />
+                      <span className="school-name">{school.name}</span>
+                      <span className="school-years">{school.startYear}-{school.endYear}</span>
+                      <button className="remove-btn" onClick={() => handleSchoolToggle(school)}>&times;</button>
+                    </div>
+                  ))}
+                </div>
+                <button className="mobile-clear-btn" onClick={() => setSelectedSchools([])}>Clear All</button>
+              </>
+            )}
+          </div>
+        )}
+
         <aside className="chronology-sidebar">
           <div className="sidebar-section">
             <h3>Search Schools</h3>
