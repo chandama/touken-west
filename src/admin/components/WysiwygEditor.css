@@ -77,6 +77,26 @@
   border-color: #3b82f6;
 }
 
+.editor-toolbar .font-size-select {
+  padding: 0.375rem 0.5rem;
+  border: 1px solid #d1d5db;
+  border-radius: 4px;
+  background: white;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  min-width: 80px;
+}
+
+.editor-toolbar .font-size-select:hover {
+  border-color: #9ca3af;
+}
+
+.editor-toolbar .font-size-select:focus {
+  outline: none;
+  border-color: #3b82f6;
+}
+
 .editor-statusbar {
   display: flex;
   justify-content: flex-end;
@@ -333,6 +353,16 @@ body.dark-mode .editor-toolbar .font-select {
 }
 
 body.dark-mode .editor-toolbar .font-select:hover {
+  border-color: #6b7280;
+}
+
+body.dark-mode .editor-toolbar .font-size-select {
+  background: #374151;
+  border-color: #4b5563;
+  color: #e5e7eb;
+}
+
+body.dark-mode .editor-toolbar .font-size-select:hover {
   border-color: #6b7280;
 }
 

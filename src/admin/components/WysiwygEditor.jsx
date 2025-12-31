@@ -7,7 +7,58 @@ import Placeholder from '@tiptap/extension-placeholder';
 import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { FontFamily } from '@tiptap/extension-font-family';
+import Underline from '@tiptap/extension-underline';
+import { Extension } from '@tiptap/core';
 import './WysiwygEditor.css';
+
+// Custom FontSize extension that works with TextStyle
+const FontSize = Extension.create({
+  name: 'fontSize',
+
+  addOptions() {
+    return {
+      types: ['textStyle'],
+    };
+  },
+
+  addGlobalAttributes() {
+    return [
+      {
+        types: this.options.types,
+        attributes: {
+          fontSize: {
+            default: null,
+            parseHTML: element => element.style.fontSize?.replace(/['"]+/g, ''),
+            renderHTML: attributes => {
+              if (!attributes.fontSize) {
+                return {};
+              }
+              return {
+                style: `font-size: ${attributes.fontSize}`,
+              };
+            },
+          },
+        },
+      },
+    ];
+  },
+
+  addCommands() {
+    return {
+      setFontSize: fontSize => ({ chain }) => {
+        return chain()
+          .setMark('textStyle', { fontSize })
+          .run();
+      },
+      unsetFontSize: () => ({ chain }) => {
+        return chain()
+          .setMark('textStyle', { fontSize: null })
+          .removeEmptyTextStyle()
+          .run();
+      },
+    };
+  },
+});
 
 // Extend Image to support data-size and data-caption attributes
 const CustomImage = Image.extend({
@@ -210,6 +261,7 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
   const [showImageModal, setShowImageModal] = useState(false);
   const [pendingImageUrl, setPendingImageUrl] = useState(null);
   const [currentFont, setCurrentFont] = useState('');
+  const [currentFontSize, setCurrentFontSize] = useState('');
   const [, setSelectionUpdate] = useState(0); // Forces re-render on selection change
   const [editorStats, setEditorStats] = useState({
     line: 1,
@@ -302,16 +354,19 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
       TextStyle,
       FontFamily.configure({
         types: ['textStyle']
-      })
+      }),
+      Underline,
+      FontSize
     ],
     content: content || '',
     onUpdate: ({ editor }) => {
       onChange(editor.getHTML());
     },
     onSelectionUpdate: ({ editor }) => {
-      // Update current font when selection changes
-      const fontFamily = editor.getAttributes('textStyle').fontFamily || '';
-      setCurrentFont(fontFamily);
+      // Update current font and font size when selection changes
+      const attrs = editor.getAttributes('textStyle');
+      setCurrentFont(attrs.fontFamily || '');
+      setCurrentFontSize(attrs.fontSize || '');
       // Force re-render to update all formatting button states
       setSelectionUpdate(n => n + 1);
       // Update editor statistics
@@ -319,8 +374,9 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
     },
     onTransaction: ({ editor }) => {
       // Also update on transactions (typing, formatting changes)
-      const fontFamily = editor.getAttributes('textStyle').fontFamily || '';
-      setCurrentFont(fontFamily);
+      const attrs = editor.getAttributes('textStyle');
+      setCurrentFont(attrs.fontFamily || '');
+      setCurrentFontSize(attrs.fontSize || '');
       setSelectionUpdate(n => n + 1);
       updateEditorStats(editor);
     },
@@ -577,6 +633,14 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
           >
             <s>S</s>
           </button>
+          <button
+            type="button"
+            onClick={() => editor.chain().focus().toggleUnderline().run()}
+            className={editor.isActive('underline') ? 'active' : ''}
+            title="Underline (Ctrl+U)"
+          >
+            <u>U</u>
+          </button>
         </div>
 
         <div className="toolbar-separator" />
@@ -601,6 +665,32 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
             <option value="Times New Roman, serif">Times</option>
             <option value="Arial, sans-serif">Arial</option>
             <option value="monospace">Monospace</option>
+          </select>
+          <select
+            className="font-size-select"
+            value={currentFontSize}
+            onChange={(e) => {
+              const newSize = e.target.value;
+              setCurrentFontSize(newSize);
+              if (newSize) {
+                editor.chain().focus().setFontSize(newSize).run();
+              } else {
+                editor.chain().focus().unsetFontSize().run();
+              }
+            }}
+            title="Font Size"
+          >
+            <option value="">Default</option>
+            <option value="12px">12px</option>
+            <option value="14px">14px</option>
+            <option value="16px">16px</option>
+            <option value="18px">18px</option>
+            <option value="20px">20px</option>
+            <option value="24px">24px</option>
+            <option value="28px">28px</option>
+            <option value="32px">32px</option>
+            <option value="36px">36px</option>
+            <option value="48px">48px</option>
           </select>
         </div>
 

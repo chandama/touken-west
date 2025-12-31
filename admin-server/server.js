@@ -404,7 +404,8 @@ function buildSearchQuery(searchTerms) {
     const termConditions = [];
 
     // Build regex patterns for each field
-    const searchFields = ['Smith', 'Mei', 'School', 'Type', 'Description', 'Authentication', 'Province', 'Period'];
+    // Include all text fields to match client-side search behavior (App.jsx uses Object.values)
+    const searchFields = ['Smith', 'Mei', 'School', 'Type', 'Description', 'Authentication', 'Province', 'Period', 'References', 'Tags', 'Attachments'];
 
     if (quoted.length > 0) {
       quoted.forEach(phrase => {

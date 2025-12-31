@@ -159,7 +159,7 @@ function Header({
             <>
               <div className="user-dropdown-backdrop" onClick={() => setShowUserDropdown(false)} />
               <div className="user-dropdown">
-                <div className="user-dropdown-email">{user.email}</div>
+                <div className="user-dropdown-email">{user.username || user.email}</div>
                 <a href="/account" className="user-dropdown-item">My Account</a>
                 {isAdminOrEditor && (
                   <a href="/admin" className="user-dropdown-admin">Admin Panel</a>
@@ -174,9 +174,13 @@ function Header({
       );
     }
 
+    // Not logged in - show login button with profile icon
     return (
-      <button onClick={onLoginClick} className="login-button">
-        Login
+      <button onClick={onLoginClick} className="login-button-with-icon">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="login-icon">
+          <path d="M12 12c2.21 0 4-1.79 4-4s-1.79-4-4-4-4 1.79-4 4 1.79 4 4 4zm0 2c-2.67 0-8 1.34-8 4v2h16v-2c0-2.66-5.33-4-8-4z"/>
+        </svg>
+        <span className="login-text">Login</span>
       </button>
     );
   };
@@ -185,17 +189,10 @@ function Header({
     return (
       <header className="App-header">
         <div className="header-content">
-          <div className="header-text">
-            <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="header-logo" />
-            <div className="header-title-group">
-              <h1>Touken West - Nihontō Database</h1>
-              <p>Japanese Sword Database - {(swordCount || 0).toLocaleString()} Historical Blades</p>
-            </div>
-          </div>
-          <div className="header-actions">
-            <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
-            {/* Mobile hamburger menu */}
-            <div className="mobile-menu">
+          {/* Left side: Mobile hamburger + Logo + Title */}
+          <div className="header-left">
+            {/* Mobile hamburger menu - shown on mobile only */}
+            <div className="mobile-menu mobile-menu-left">
               <button
                 className="mobile-menu-button"
                 onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -209,14 +206,23 @@ function Header({
               {showMobileMenu && (
                 <>
                   <div className="mobile-menu-backdrop" onClick={() => setShowMobileMenu(false)} />
-                  <div className="mobile-menu-dropdown">
+                  <div className="mobile-menu-dropdown mobile-menu-dropdown-left">
                     {renderNavLinks(true)}
                   </div>
                 </>
               )}
             </div>
+            <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="header-logo" />
+            <div className="header-title-group">
+              <h1>Touken West - Nihontō Database</h1>
+              <p>Japanese Sword Database - {(swordCount || 0).toLocaleString()} Historical Blades</p>
+            </div>
+          </div>
+          {/* Right side: Nav links + Dark mode + User menu */}
+          <div className="header-actions">
             {/* Desktop nav links */}
             {renderNavLinks(false)}
+            <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
             {renderUserMenu()}
           </div>
         </div>
@@ -228,19 +234,10 @@ function Header({
   return (
     <header className="subpage-header">
       <div className="subpage-header-content">
-        <div className="subpage-header-text">
-          <a href="/">
-            <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
-          </a>
-          <div className="subpage-header-title">
-            <h1>Touken West - Nihontō Database</h1>
-            <p>{subtitle}</p>
-          </div>
-        </div>
-        <div className="subpage-header-actions">
-          <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
-          {/* Mobile hamburger menu */}
-          <div className="mobile-menu">
+        {/* Left side: Mobile hamburger + Logo + Title */}
+        <div className="subpage-header-left">
+          {/* Mobile hamburger menu - shown on mobile only */}
+          <div className="mobile-menu mobile-menu-left">
             <button
               className="mobile-menu-button"
               onClick={() => setShowMobileMenu(!showMobileMenu)}
@@ -254,14 +251,25 @@ function Header({
             {showMobileMenu && (
               <>
                 <div className="mobile-menu-backdrop" onClick={() => setShowMobileMenu(false)} />
-                <div className="mobile-menu-dropdown">
+                <div className="mobile-menu-dropdown mobile-menu-dropdown-left">
                   {renderNavLinks(true)}
                 </div>
               </>
             )}
           </div>
+          <a href="/">
+            <img src="/shimazu-mon.svg" alt="Shimazu Clan Mon" className="subpage-header-logo" />
+          </a>
+          <div className="subpage-header-title">
+            <h1>Touken West - Nihontō Database</h1>
+            <p>{subtitle}</p>
+          </div>
+        </div>
+        {/* Right side: Nav links + Dark mode + User menu */}
+        <div className="subpage-header-actions">
           {/* Desktop nav links */}
           {renderNavLinks(false)}
+          <DarkModeToggle isDarkMode={isDarkMode} onToggle={onToggleDarkMode} />
           {renderUserMenu()}
         </div>
       </div>
