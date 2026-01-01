@@ -3,6 +3,37 @@ import axios from '../../config/axios.js';
 
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
+// Format date/time for display with relative time
+const formatDateTime = (dateString) => {
+  if (!dateString) return 'Never';
+  const date = new Date(dateString);
+  const now = new Date();
+  const diffMs = now - date;
+  const diffMins = Math.floor(diffMs / 60000);
+  const diffHours = Math.floor(diffMs / 3600000);
+  const diffDays = Math.floor(diffMs / 86400000);
+
+  if (diffMins < 1) return 'Just now';
+  if (diffMins < 60) return `${diffMins}m ago`;
+  if (diffHours < 24) return `${diffHours}h ago`;
+  if (diffDays < 7) return `${diffDays}d ago`;
+
+  return date.toLocaleDateString('en-US', {
+    month: 'short',
+    day: 'numeric',
+    year: date.getFullYear() !== now.getFullYear() ? 'numeric' : undefined
+  });
+};
+
+// Format device info for display
+const formatDevice = (device) => {
+  if (!device) return '-';
+  const parts = [];
+  if (device.browser && device.browser !== 'Unknown') parts.push(device.browser);
+  if (device.os && device.os !== 'Unknown') parts.push(device.os);
+  return parts.join(' / ') || '-';
+};
+
 const UserManagement = () => {
   const [users, setUsers] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -221,7 +252,10 @@ const UserManagement = () => {
               <th>Email</th>
               <th>Username</th>
               <th>Role</th>
-              <th>Created</th>
+              <th>Last Login</th>
+              <th>Logins</th>
+              <th className="hide-md">Last Activity</th>
+              <th className="hide-lg">Device</th>
               <th>Actions</th>
             </tr>
           </thead>
@@ -235,21 +269,32 @@ const UserManagement = () => {
                     {user.role}
                   </span>
                 </td>
-                <td>{new Date(user.createdAt).toLocaleDateString()}</td>
+                <td className="analytics-cell">
+                  {formatDateTime(user.analytics?.lastLogin)}
+                </td>
+                <td className="analytics-cell analytics-count">
+                  {user.analytics?.loginCount || 0}
+                </td>
+                <td className="analytics-cell hide-md">
+                  {formatDateTime(user.analytics?.lastActivity)}
+                </td>
+                <td className="analytics-cell analytics-device hide-lg" title={user.analytics?.lastIp || ''}>
+                  {formatDevice(user.analytics?.lastDevice)}
+                </td>
                 <td className="actions-cell">
                   <button
                     onClick={() => handleEditUser(user)}
                     className="action-button edit"
                     title="Edit user"
                   >
-                    ✏️ Edit
+                    Edit
                   </button>
                   <button
                     onClick={() => handleDeleteUser(user)}
                     className="action-button delete"
                     title="Delete user"
                   >
-                    🗑️ Delete
+                    Delete
                   </button>
                 </td>
               </tr>
@@ -278,6 +323,10 @@ const UserManagement = () => {
               <div className="user-card-field">
                 <span className="user-card-label">Username</span>
                 <span className="user-card-value">{user.username}</span>
+              </div>
+              <div className="user-card-field">
+                <span className="user-card-label">Last Login</span>
+                <span className="user-card-value">{formatDateTime(user.analytics?.lastLogin)}</span>
               </div>
             </div>
             <div className="user-card-actions">

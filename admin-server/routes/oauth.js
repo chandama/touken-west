@@ -8,6 +8,8 @@ const passport = require('passport');
 const jwt = require('jsonwebtoken');
 const router = express.Router();
 const { isProviderConfigured, getConfiguredProviders } = require('../config/passport');
+const User = require('../models/User');
+const { parseUserAgent, getClientIp } = require('../utils/userAgent');
 
 // Frontend URL for redirects
 const FRONTEND_URL = process.env.FRONTEND_URL || 'http://localhost:5173';
@@ -48,9 +50,30 @@ function setAuthCookie(res, token) {
  * @param {object} req - Express request
  * @param {object} res - Express response
  */
-function handleOAuthSuccess(req, res) {
+async function handleOAuthSuccess(req, res) {
   if (!req.user) {
     return res.redirect(`${FRONTEND_URL}/auth/callback?error=no_user`);
+  }
+
+  // Track login analytics
+  const now = new Date();
+  const ip = getClientIp(req);
+  const userAgent = req.headers['user-agent'] || '';
+  const parsedDevice = parseUserAgent(userAgent);
+
+  try {
+    await User.findByIdAndUpdate(req.user._id, {
+      $set: {
+        'analytics.lastLogin': now,
+        'analytics.lastActivity': now,
+        'analytics.lastIp': ip,
+        'analytics.lastUserAgent': userAgent,
+        'analytics.lastDevice': parsedDevice
+      },
+      $inc: { 'analytics.loginCount': 1 }
+    });
+  } catch (err) {
+    console.error('[OAuth] Analytics update error:', err);
   }
 
   const token = generateToken(req.user);
