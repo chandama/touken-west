@@ -2196,7 +2196,9 @@ app.get('/api/changelog', async (req, res) => {
     // Build query filter for search
     let query = {};
     if (search && search.trim()) {
-      const searchRegex = new RegExp(search.trim(), 'i');
+      // Escape regex special characters to prevent ReDoS attacks
+      const escapedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const searchRegex = new RegExp(escapedSearch, 'i');
       query = {
         $or: [
           { swordIndex: searchRegex },
