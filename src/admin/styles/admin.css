@@ -1073,24 +1073,52 @@ select {
 }
 
 /* Changelog Styles */
-.changelog-search {
+.changelog-toolbar {
   display: flex;
-  gap: 0.5rem;
   align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
+  padding: 0.75rem 1rem;
+  background-color: #f3f4f6;
+  border-radius: 8px;
   margin-bottom: 1.5rem;
-}
-
-.changelog-search .search-input {
-  flex: 1;
 }
 
 .changelog-stats {
   display: flex;
   gap: 2rem;
-  padding: 1rem 1.5rem;
-  background-color: #f9fafb;
-  border-radius: 8px;
-  margin-bottom: 1.5rem;
+  align-items: center;
+}
+
+.changelog-search {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  padding: 0.4rem 0.75rem;
+  min-width: 200px;
+  max-width: 280px;
+}
+
+.changelog-search .search-input {
+  flex: 1;
+  background: transparent;
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  color: #374151;
+  padding: 0.25rem 0;
+  min-width: 0;
+}
+
+.changelog-search .search-input::placeholder {
+  color: #9ca3af;
+}
+
+.changelog-search:focus-within {
+  border-color: #6b7280;
 }
 
 .stat-item {
@@ -1325,9 +1353,19 @@ select {
 
 /* Responsive Changelog */
 @media (max-width: 768px) {
-  .changelog-stats {
+  .changelog-toolbar {
     flex-direction: column;
+    align-items: stretch;
+    gap: 0.75rem;
+  }
+
+  .changelog-stats {
+    flex-wrap: wrap;
     gap: 1rem;
+  }
+
+  .changelog-search {
+    max-width: none;
   }
 
   .changelog-header {
@@ -1481,6 +1519,46 @@ select {
   border: 1px solid #4caf50;
 }
 
+/* Analytics columns */
+.analytics-cell {
+  font-size: 0.9rem;
+  color: #666;
+  white-space: nowrap;
+}
+
+.analytics-count {
+  text-align: center;
+  font-weight: 600;
+}
+
+.analytics-device {
+  max-width: 140px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  cursor: help;
+}
+
+/* Responsive column hiding */
+.hide-lg {
+  display: table-cell;
+}
+
+.hide-md {
+  display: table-cell;
+}
+
+@media (max-width: 1200px) {
+  .hide-lg {
+    display: none;
+  }
+}
+
+@media (max-width: 992px) {
+  .hide-md {
+    display: none;
+  }
+}
+
 .actions-cell {
   display: flex;
   gap: 0.5rem;
@@ -1609,11 +1687,21 @@ select {
 
 /* Mobile/Desktop visibility helpers */
 .mobile-only {
-  display: none;
+  display: none !important;
 }
 
 .desktop-only {
   display: block;
+}
+
+@media (max-width: 768px) {
+  .mobile-only {
+    display: block !important;
+  }
+
+  .mobile-only.users-cards-container {
+    display: flex !important;
+  }
 }
 
 /* Mobile User Cards */
@@ -1691,12 +1779,8 @@ select {
 
 /* User Management Mobile Styles */
 @media (max-width: 768px) {
-  .mobile-only {
-    display: block;
-  }
-
   .desktop-only {
-    display: none;
+    display: none !important;
   }
 
   .user-management .page-header {
@@ -2591,6 +2675,35 @@ select {
   border-bottom-color: var(--color-border);
 }
 
+.dark-mode .changelog-toolbar {
+  background-color: var(--color-background-elevated);
+}
+
+.dark-mode .changelog-search {
+  background: var(--color-background);
+  border-color: var(--color-border);
+}
+
+.dark-mode .changelog-search .search-input {
+  color: var(--color-text-primary);
+}
+
+.dark-mode .changelog-search .search-input::placeholder {
+  color: var(--color-text-tertiary);
+}
+
+.dark-mode .changelog-search:focus-within {
+  border-color: var(--color-text-secondary);
+}
+
+.dark-mode .stat-label {
+  color: var(--color-text-secondary);
+}
+
+.dark-mode .stat-value {
+  color: var(--color-text-primary);
+}
+
 .dark-mode .sword-link {
   color: var(--color-primary-light);
 }
@@ -2669,6 +2782,10 @@ select {
 
 .dark-mode .users-table tbody tr:hover {
   background: var(--color-background);
+}
+
+.dark-mode .analytics-cell {
+  color: var(--color-text-secondary);
 }
 
 /* User cards dark mode */

@@ -1,14 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
 function Changelog() {
   const [entries, setEntries] = useState([]);
-  const [filteredEntries, setFilteredEntries] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
+  const [debouncedSearch, setDebouncedSearch] = useState('');
   const [expandedEntries, setExpandedEntries] = useState(new Set());
 
   // Pagination
@@ -30,16 +30,25 @@ function Changelog() {
     });
   };
 
+  // Debounce search input
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearch(searchQuery);
+      setPage(1); // Reset to first page on new search
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchQuery]);
+
   // Load changelog entries
   useEffect(() => {
     setLoading(true);
     setError(null);
 
-    fetch(`${API_BASE}/changelog?page=${page}&limit=${limit}`)
+    const searchParam = debouncedSearch ? `&search=${encodeURIComponent(debouncedSearch)}` : '';
+    fetch(`${API_BASE}/changelog?page=${page}&limit=${limit}${searchParam}`)
       .then(res => res.json())
       .then(data => {
         setEntries(data.entries || []);
-        setFilteredEntries(data.entries || []);
         setTotal(data.total || 0);
         setPages(data.pages || 0);
         setLoading(false);
@@ -48,34 +57,7 @@ function Changelog() {
         setError(err.message);
         setLoading(false);
       });
-  }, [page]);
-
-  // Filter entries based on search query
-  useEffect(() => {
-    if (!searchQuery.trim()) {
-      setFilteredEntries(entries);
-      return;
-    }
-
-    const query = searchQuery.toLowerCase();
-    const filtered = entries.filter(entry => {
-      // Search in sword index, smith, type
-      const swordInfo = `${entry.swordIndex} ${entry.swordSmith} ${entry.swordType}`.toLowerCase();
-      if (swordInfo.includes(query)) return true;
-
-      // Search in changed field names
-      const fieldNames = entry.changes.map(c => c.field).join(' ').toLowerCase();
-      if (fieldNames.includes(query)) return true;
-
-      // Search in before/after values
-      const values = entry.changes.map(c => `${c.before} ${c.after}`).join(' ').toLowerCase();
-      if (values.includes(query)) return true;
-
-      return false;
-    });
-
-    setFilteredEntries(filtered);
-  }, [searchQuery, entries]);
+  }, [page, debouncedSearch]);
 
   const formatDate = (timestamp) => {
     const date = new Date(timestamp);
@@ -128,43 +110,37 @@ function Changelog() {
         </p>
       </div>
 
-      {/* Search */}
-      <div className="changelog-search">
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Search by sword index, smith, type, field name, or values..."
-          className="search-input"
-        />
-        {searchQuery && (
-          <button
-            onClick={() => setSearchQuery('')}
-            className="btn-secondary btn-small"
-          >
-            Clear
-          </button>
-        )}
-      </div>
-
-      {/* Stats */}
-      <div className="changelog-stats">
-        <div className="stat-item">
-          <span className="stat-label">Total Changes:</span>
-          <span className="stat-value">{total.toLocaleString()}</span>
+      {/* Stats and Search Row */}
+      <div className="changelog-toolbar">
+        <div className="changelog-stats">
+          <div className="stat-item">
+            <span className="stat-label">{debouncedSearch ? 'Results:' : 'Total Changes:'}</span>
+            <span className="stat-value">{total.toLocaleString()}</span>
+          </div>
+          {entries.length > 0 && (
+            <div className="stat-item">
+              <span className="stat-label">Latest Update:</span>
+              <span className="stat-value">{formatRelativeTime(entries[0].timestamp)}</span>
+            </div>
+          )}
         </div>
-        {entries.length > 0 && (
-          <div className="stat-item">
-            <span className="stat-label">Latest Update:</span>
-            <span className="stat-value">{formatRelativeTime(entries[0].timestamp)}</span>
-          </div>
-        )}
-        {searchQuery && (
-          <div className="stat-item">
-            <span className="stat-label">Filtered Results:</span>
-            <span className="stat-value">{filteredEntries.length}</span>
-          </div>
-        )}
+        <div className="changelog-search">
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search..."
+            className="search-input"
+          />
+          {searchQuery && (
+            <button
+              onClick={() => setSearchQuery('')}
+              className="btn-secondary btn-small"
+            >
+              Clear
+            </button>
+          )}
+        </div>
       </div>
 
       {/* Loading / Error */}
@@ -176,15 +152,13 @@ function Changelog() {
         <>
           {entries.length === 0 ? (
             <div className="empty-state">
-              No changes recorded yet. Changes will appear here when sword records are updated.
-            </div>
-          ) : filteredEntries.length === 0 ? (
-            <div className="empty-state">
-              No changes found matching "{searchQuery}"
+              {debouncedSearch
+                ? `No changes found matching "${debouncedSearch}"`
+                : 'No changes recorded yet. Changes will appear here when sword records are updated.'}
             </div>
           ) : (
             <div className="changelog-list">
-              {filteredEntries.map((entry) => {
+              {entries.map((entry) => {
                 const actionInfo = getActionTypeInfo(entry.actionType);
                 const isExpanded = expandedEntries.has(entry.id);
                 return (

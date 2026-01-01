@@ -75,6 +75,20 @@ const userSchema = new mongoose.Schema({
     type: String
   },
 
+  // Analytics
+  analytics: {
+    lastLogin: { type: Date, default: null },
+    loginCount: { type: Number, default: 0 },
+    lastActivity: { type: Date, default: null },
+    lastIp: { type: String, default: null },
+    lastUserAgent: { type: String, default: null },
+    lastDevice: {
+      browser: String,
+      os: String,
+      device: String  // 'desktop', 'mobile', 'tablet'
+    }
+  },
+
   createdAt: {
     type: Date,
     default: Date.now

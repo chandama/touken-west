@@ -46,6 +46,9 @@ const User = require('./models/User');
 const Changelog = require('./models/Changelog');
 const Article = require('./models/Article');
 
+// Utilities
+const { parseUserAgent, getClientIp } = require('./utils/userAgent');
+
 // Spaces configuration
 const {
   upload,
@@ -676,6 +679,23 @@ app.post('/api/auth/login', async (req, res) => {
       secure: process.env.NODE_ENV === 'production',
     });
 
+    // Track login analytics
+    const now = new Date();
+    const ip = getClientIp(req);
+    const userAgent = req.headers['user-agent'] || '';
+    const parsedDevice = parseUserAgent(userAgent);
+
+    await User.findByIdAndUpdate(user._id, {
+      $set: {
+        'analytics.lastLogin': now,
+        'analytics.lastActivity': now,
+        'analytics.lastIp': ip,
+        'analytics.lastUserAgent': userAgent,
+        'analytics.lastDevice': parsedDevice
+      },
+      $inc: { 'analytics.loginCount': 1 }
+    });
+
     res.json({
       success: true,
       user: {
@@ -875,12 +895,20 @@ const findUserById = async (id) => {
 // Get all users (Admin only)
 app.get('/api/users', authenticateToken, requireAdmin, async (req, res) => {
   try {
-    const users = await User.find().select('-password');
+    const users = await User.find().select('-password -verificationToken -resetToken -resetTokenExpiry -verificationTokenExpiry');
     // Transform to include id for frontend compatibility
     // Use custom id field if it exists, otherwise use _id
     const usersWithId = users.map(user => {
       const userObj = user.toObject();
       userObj.id = userObj.id || userObj._id.toString();
+      // Ensure analytics object exists with defaults
+      userObj.analytics = {
+        lastLogin: userObj.analytics?.lastLogin || null,
+        loginCount: userObj.analytics?.loginCount || 0,
+        lastActivity: userObj.analytics?.lastActivity || null,
+        lastIp: userObj.analytics?.lastIp || null,
+        lastDevice: userObj.analytics?.lastDevice || null
+      };
       return userObj;
     });
     res.json({ users: usersWithId });
@@ -2159,21 +2187,43 @@ app.post('/api/swords/bulk/import', authenticateToken, requireAdmin, async (req,
 // Get changelog entries
 app.get('/api/changelog', async (req, res) => {
   try {
-    const { page = 1, limit = 50 } = req.query;
+    const { page = 1, limit = 50, search = '' } = req.query;
 
     const pageNum = parseInt(page);
     const limitNum = parseInt(limit);
     const skip = (pageNum - 1) * limitNum;
 
-    const total = await Changelog.countDocuments();
-    const entries = await Changelog.find()
+    // Build query filter for search
+    let query = {};
+    if (search && search.trim()) {
+      const searchRegex = new RegExp(search.trim(), 'i');
+      query = {
+        $or: [
+          { swordIndex: searchRegex },
+          { swordSmith: searchRegex },
+          { swordType: searchRegex },
+          { 'changes.field': searchRegex },
+          { 'changes.before': searchRegex },
+          { 'changes.after': searchRegex }
+        ]
+      };
+    }
+
+    const total = await Changelog.countDocuments(query);
+    const entries = await Changelog.find(query)
       .sort({ timestamp: -1 })
       .skip(skip)
       .limit(limitNum)
       .lean();
 
+    // Transform _id to id for frontend compatibility
+    const entriesWithId = entries.map(entry => ({
+      ...entry,
+      id: entry._id.toString()
+    }));
+
     res.json({
-      entries,
+      entries: entriesWithId,
       total,
       page: pageNum,
       limit: limitNum,
