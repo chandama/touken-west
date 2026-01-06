@@ -45,17 +45,52 @@ const Acknowledgements = () => {
         <h1>Acknowledgements</h1>
 
         <section>
-          <h2>Organizations</h2>
+          <p>
+            This project has been a passion of mine for years. The biggest barrier was always
+            "Where to begin?"—a question that kept this on the backburner for almost two years
+            as I experimented with ways to create a portable "Nihonto Digital Encyclopedia" for
+            sword shows in the USA and Japan.
+          </p>
+          <p>
+            That stumbling block was removed when <strong>Jussi Ekholm</strong> graciously shared
+            his Koto Sword Index with the Nihonto Message Board. His index catalogues over 15,000
+            koto-era swords from NBTHK sources, museums, national treasures, shrines, temples, and
+            an extensive library of books—meticulously cross-referenced with signatures, dates,
+            measurements, and authentication information.
+          </p>
+          <p>
+            Jussi's index is the backbone of this website. Thank you for supporting my efforts to
+            transform your years of hard work into a searchable, filterable platform that helps
+            sword enthusiasts find information about their favorite smiths, schools, and swordmaking
+            traditions. This would not have been possible without you.
+          </p>
+        </section>
+
+        <section>
+          <h2>Special Thanks</h2>
           <ul>
             <li>
-              <a href="https://www.touken.or.jp/" target="_blank" rel="noopener noreferrer">
-                NBTHK (Nihon Bijutsu Token Hozon Kyokai)
-              </a>
+              <strong>Mike Yamasaki</strong> – For taking the time to help me as a novice at my
+              first San Francisco sword show and teaching me so much over the years
+            </li>
+            <li>
+              <strong>Nihonto Message Board</strong> – Many members have been wonderful resources,
+              and I've had the pleasure of meeting them at Dai Token Ichi and other shows
+            </li>
+            <li>
+              <strong>Markus Sesko</strong> – Your translations and books are essential for any
+              serious student of nihonto
             </li>
             <li>
               <a href="https://nbthk-ab2.org/" target="_blank" rel="noopener noreferrer">
-                NBTHK-AB (American Branch)
-              </a>
+                <strong>NBTHK-AB</strong>
+              </a> – The American Branch membership is a wonderful community; I'm fortunate to
+              see so many of your collections
+            </li>
+            <li>
+              <a href="https://www.touken.or.jp/" target="_blank" rel="noopener noreferrer">
+                <strong>NBTHK</strong>
+              </a> – For all you do for the preservation of nihonto
             </li>
           </ul>
         </section>

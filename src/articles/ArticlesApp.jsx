@@ -4,6 +4,8 @@ import './styles/Articles.css';
 import '../styles/theme.css';
 import '../styles/App.css';
 import Header from '../components/Header.jsx';
+import Login from '../components/Login.jsx';
+import Register from '../components/Register.jsx';
 import ArticleListPage from './pages/ArticleListPage.jsx';
 import ArticleViewPage from './pages/ArticleViewPage.jsx';
 import Footer from '../components/Footer.jsx';
@@ -15,6 +17,8 @@ const ROLE_HIERARCHY = ['user', 'subscriber', 'editor', 'admin'];
 
 function ArticlesApp() {
   const [user, setUser] = useState(null);
+  const [showLogin, setShowLogin] = useState(false);
+  const [showRegister, setShowRegister] = useState(false);
 
   // Dark mode
   const [isDarkMode, setIsDarkMode] = useState(() => {
@@ -85,6 +89,7 @@ function ArticlesApp() {
           canAccessLibrary={canAccessLibrary()}
           isDarkMode={isDarkMode}
           onToggleDarkMode={toggleDarkMode}
+          onLoginClick={() => setShowLogin(true)}
           onLogout={handleLogout}
         />
 
@@ -96,6 +101,26 @@ function ArticlesApp() {
         </main>
 
         <Footer />
+
+        {showLogin && (
+          <Login
+            onClose={() => setShowLogin(false)}
+            onSwitchToRegister={() => {
+              setShowLogin(false);
+              setShowRegister(true);
+            }}
+          />
+        )}
+
+        {showRegister && (
+          <Register
+            onClose={() => setShowRegister(false)}
+            onSwitchToLogin={() => {
+              setShowRegister(false);
+              setShowLogin(true);
+            }}
+          />
+        )}
       </div>
     </BrowserRouter>
   );
