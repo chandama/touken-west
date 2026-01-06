@@ -485,4 +485,8 @@
   .stat-value {
     font-size: var(--font-size-xl, 1.25rem);
   }
+
+  .panel-actions {
+    padding-bottom: env(safe-area-inset-bottom, 24px);
+  }
 }
