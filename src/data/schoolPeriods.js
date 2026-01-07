@@ -20,7 +20,7 @@
  * - sho-shin.com
  * - Various scholarly sources
  *
- * Generated from schoolPeriods.csv on 2025-12-28
+ * Generated from Swordsmithing School Timelines v2.xlsx (Koto sheet) on 2026-01-07
  */
 
 // Period definitions with year ranges
@@ -70,7 +70,7 @@ export const SCHOOL_PERIODS = [
     endYear: 1185,
     peakStart: 987,
     peakEnd: 1100,
-    description: 'Oldest Yamashiro school, founded by Munechika c. 1000',
+    description: '',
     notableSmiths: ['Munechika', 'Yoshiie', 'Kanenaga'],
   },
   {
@@ -79,7 +79,7 @@ export const SCHOOL_PERIODS = [
     province: 'Yamashiro',
     startYear: 1028,
     endYear: 1100,
-    description: 'Early Kyoto school, contemporary with Sanjo',
+    description: '',
     notableSmiths: ['Kuninaga', 'Kanenaga', 'Kanetsugu'],
   },
   {
@@ -117,7 +117,7 @@ export const SCHOOL_PERIODS = [
     endYear: 1320,
     peakStart: 1200,
     peakEnd: 1290,
-    description: 'Premier Kamakura-era Kyoto school, known for elegant tanto',
+    description: '',
     notableSmiths: ['Kunitomo', 'Hisakuni', 'Kuniyasu', 'Kunitsuna', 'Yoshimitsu'],
   },
   {
@@ -133,9 +133,9 @@ export const SCHOOL_PERIODS = [
     name: 'Gassan',
     tradition: 'Yamashiro',
     province: 'Dewa',
-    startYear: 1222,
-    endYear: 1868,
-    description: 'Long-running school known for ayasugi-hada',
+    startYear: 1185,
+    endYear: 1592,
+    description: 'Long-running school known for ayasugi-hada that died out before the Edo period and re-emerged again in the 1700s',
     notableSmiths: ['Gassan Sadakazu', 'Gassan Sadayoshi'],
   },
   {
@@ -168,7 +168,7 @@ export const SCHOOL_PERIODS = [
     endYear: 1300,
     peakStart: 1264,
     peakEnd: 1333,
-    description: 'Early-mid Kamakura school, very classical workmanship',
+    description: '',
     notableSmiths: ['Sadatoshi', 'Sadayoshi', 'Nagamasa'],
   },
   {
@@ -231,8 +231,8 @@ export const SCHOOL_PERIODS = [
     province: 'Yamashiro',
     startYear: 1334,
     endYear: 1500,
-    description: 'Nanbokucho-Muromachi Kyoto school with Soshu influence',
-    notableSmiths: ['Nobukuni'],
+    description: 'Nanbokucho-Muromachi Kyoto school with Soshu influence. Many generations of smiths signing Nobukuni',
+    notableSmiths: ['Nobukuni', 'Nobusada'],
   },
   {
     name: 'Hasebe',
@@ -240,7 +240,7 @@ export const SCHOOL_PERIODS = [
     province: 'Yamashiro',
     startYear: 1334,
     endYear: 1400,
-    description: 'Nanbokucho school known for bold hamon',
+    description: 'Nanbokucho school known for vibrant hitatsura hamon',
     notableSmiths: ['Kunishige', 'Kuninobu'],
   },
   {
@@ -312,24 +312,22 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Tomonari', 'Sukenari', 'Sanetsune', 'Masatsune', 'Kanehira'],
   },
   {
-    name: 'Ichimonji',
-    tradition: 'Bizen',
-    province: 'Bizen',
-    startYear: 1185,
-    endYear: 1370,
-    peakStart: 1220,
-    peakEnd: 1320,
-    description: 'Prominent Kamakura school known for choji hamon',
-    notableSmiths: ['Norimune', 'Sukemune', 'Yoshifusa'],
-  },
-  {
     name: 'Ko-Ichimonji',
     tradition: 'Bizen',
     province: 'Bizen',
     startYear: 1185,
     endYear: 1237,
-    description: 'Early Ichimonji, centered in Fukuoka',
+    description: 'Early Ichimonji, centered in Fukuoka. Evolved from the Ko-Bizen school',
     notableSmiths: ['Norimune', 'Sukemune'],
+  },
+  {
+    name: 'Senoo',
+    tradition: 'Bizen',
+    province: 'Bitchu',
+    startYear: 1185,
+    endYear: 1334,
+    description: 'Subgroup of the Aoe school founded by Noritaka',
+    notableSmiths: ['Moriyasu'],
   },
   {
     name: 'Fukuoka Ichimonji',
@@ -348,17 +346,8 @@ export const SCHOOL_PERIODS = [
     province: 'Bizen',
     startYear: 1232,
     endYear: 1380,
-    description: 'Branch school from Osafune lineage',
+    description: 'Bizen school branch founded by Moriie in the late 13th century',
     notableSmiths: ['Moriie', 'Morishige'],
-  },
-  {
-    name: 'Bizen Saburo',
-    tradition: 'Bizen',
-    province: 'Bizen',
-    startYear: 1232,
-    endYear: 1306,
-    description: 'Nanbokucho-Muromachi Bizen school',
-    notableSmiths: ['Kunimune'],
   },
   {
     name: 'Osafune',
@@ -368,7 +357,7 @@ export const SCHOOL_PERIODS = [
     endYear: 1591,
     peakStart: 1238,
     peakEnd: 1380,
-    description: 'Longest-running Bizen school, over 700 years until great flood',
+    description: 'Longest-running Bizen school spanning many centuries and producing the most swords of any school',
     notableSmiths: ['Mitsutada', 'Nagamitsu', 'Kagemitsu', 'Sanenaga', 'Kanemitsu'],
   },
   {
@@ -390,15 +379,6 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Sukezane', 'Sukeyoshi'],
   },
   {
-    name: 'Wake',
-    tradition: 'Bizen',
-    province: 'Bizen',
-    startYear: 1250,
-    endYear: 1350,
-    description: 'Kamakura-Nanbokucho Bizen school in Wake area',
-    notableSmiths: [],
-  },
-  {
     name: 'Omiya',
     tradition: 'Bizen',
     province: 'Bizen',
@@ -417,6 +397,15 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Sukeyoshi', 'Sukemitsu'],
   },
   {
+    name: 'Kokubunji',
+    tradition: 'Bizen',
+    province: 'Bingo',
+    startYear: 1278,
+    endYear: 1350,
+    description: 'Early Bingo school, related to Mihara founding',
+    notableSmiths: ['Sukekuni'],
+  },
+  {
     name: 'Motoshige',
     tradition: 'Bizen',
     province: 'Bizen',
@@ -424,7 +413,7 @@ export const SCHOOL_PERIODS = [
     endYear: 1365,
     peakStart: 1330,
     peakEnd: 1360,
-    description: 'One of Osafune Shiten-no, Soshu influenced',
+    description: 'One of Osafune Shiten-no, Soshu influenced, studied under Sadamune and continued after Motoshige with Shigezane',
     notableSmiths: ['Motoshige'],
   },
   {
@@ -437,12 +426,12 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Sukemitsu'],
   },
   {
-    name: 'Ukai',
+    name: 'Unrui',
     tradition: 'Bizen',
     province: 'Bizen',
-    startYear: 1317,
-    endYear: 1450,
-    description: 'Nanbokucho-Muromachi Bizen branch',
+    startYear: 1315,
+    endYear: 1374,
+    description: 'Part of Bizen group, founded by Unsho and contuniued by Unji and Unju',
     notableSmiths: ['Kiyomitsu', 'Mitsusada'],
   },
   {
@@ -453,6 +442,15 @@ export const SCHOOL_PERIODS = [
     endYear: 1420,
     description: 'Also called Shochu Ichimonji, late Ichimonji branch',
     notableSmiths: ['Yoshiuji', 'Yoshikage'],
+  },
+  {
+    name: 'Hojoji',
+    tradition: 'Bizen',
+    province: 'Tajima',
+    startYear: 1330,
+    endYear: 1450,
+    description: 'Founded by Kunimitsu and worked in the Tajima province with Bizen influence',
+    notableSmiths: [],
   },
   {
     name: 'Soden-Bizen',
@@ -484,13 +482,13 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Morimitsu', 'Yasumitsu', 'Moromitsu'],
   },
   {
-    name: 'Senoo',
+    name: 'Nitta',
     tradition: 'Bizen',
-    province: 'Bizen',
+    province: 'Kozuke',
     startYear: 1350,
-    endYear: 1450,
-    description: 'Nanbokucho-Muromachi Bizen branch',
-    notableSmiths: ['Moriyasu'],
+    endYear: 1500,
+    description: 'Kozuke province school',
+    notableSmiths: [],
   },
   {
     name: 'Oei-Bizen',
@@ -498,7 +496,7 @@ export const SCHOOL_PERIODS = [
     province: 'Bizen',
     startYear: 1394,
     endYear: 1428,
-    description: 'Osafune smiths of the Oei era, high quality',
+    description: 'Osafune smiths of the Oei era (Late Nanbokucho into early Muromachi)',
     notableSmiths: ['Morimitsu', 'Yasumitsu', 'Moromitsu'],
   },
   {
@@ -546,7 +544,7 @@ export const SCHOOL_PERIODS = [
     province: 'Yamato',
     startYear: 1151,
     endYear: 1300,
-    description: 'Early Senjuin, Heian to early Kamakura',
+    description: 'Early Senjuin, Heian to late Kamakura',
     notableSmiths: ['Yukinobu'],
   },
   {
@@ -577,33 +575,13 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Norihiro', 'Norinaga'],
   },
   {
-    name: 'Ko-Uda',
-    tradition: 'Yamato',
-    province: 'Yamato',
-    startYear: 1280,
-    endYear: 1350,
-    description: 'Early Uda school',
-    notableSmiths: ['Kunimitsu'],
-  },
-  {
-    name: 'Kongobyoe',
-    tradition: 'Yamato',
-    province: 'Chikuzen',
-    startYear: 1280,
-    endYear: 1570,
-    peakStart: 1467,
-    peakEnd: 1570,
-    description: 'Chikuzen school with Buddhist connections',
-    notableSmiths: ['Moritaka', 'Moritsugu'],
-  },
-  {
     name: 'Ko-Kongobyoe',
     tradition: 'Yamato',
     province: 'Chikuzen',
     startYear: 1280,
     endYear: 1392,
     description: 'Early Kongobyoe, Kamakura-Nanbokucho',
-    notableSmiths: [],
+    notableSmiths: ['Reisen Sadamori', 'Moritaka'],
   },
   {
     name: 'Tegai',
@@ -613,7 +591,7 @@ export const SCHOOL_PERIODS = [
     endYear: 1450,
     peakStart: 1288,
     peakEnd: 1350,
-    description: 'One of five Yamato schools, known for robust construction',
+    description: 'One of 5 main Yamato schools, founded by Kanenaga and worked near the gates of the Todaji Temple in Nara',
     notableSmiths: ['Kanenaga', 'Kanekiyo', 'Kaneuji'],
   },
   {
@@ -626,12 +604,21 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Kuniyuki', 'Tomokiyo', 'Kunimitsu'],
   },
   {
+    name: 'Yamato Shizu',
+    tradition: 'Yamato',
+    province: 'Yamato',
+    startYear: 1288,
+    endYear: 1350,
+    description: 'Refers to pre-Soshu Kaneuji works with a stronger Yamato influence before his migration to Mino (Naoe)',
+    notableSmiths: ['Kaneuji (Nidai)'],
+  },
+  {
     name: 'Hosho',
     tradition: 'Yamato',
     province: 'Yamato',
     startYear: 1290,
     endYear: 1392,
-    description: 'Longest surviving of five Yamato schools',
+    description: 'Yamato school known for their distinct masame hada, founded by Hosho Sadamune',
     notableSmiths: ['Sadayoshi', 'Sadamune', 'Sadakiyo'],
   },
   {
@@ -640,7 +627,7 @@ export const SCHOOL_PERIODS = [
     province: 'Yamato',
     startYear: 1300,
     endYear: 1392,
-    description: 'Early Senjuin, Heian to early Kamakura',
+    description: 'Middle Senjuin school, late Kamakura-Nanbokucho',
     notableSmiths: ['Yukinobu'],
   },
   {
@@ -657,10 +644,10 @@ export const SCHOOL_PERIODS = [
   {
     name: 'Uda',
     tradition: 'Yamato',
-    province: 'Yamato',
-    startYear: 1320,
+    province: 'Etchu',
+    startYear: 1317,
     endYear: 1500,
-    description: 'Yamato school branch, relocated smiths',
+    description: 'Yamato school that migrated to Etchu province founded by Kunimitsu',
     notableSmiths: ['Kunimitsu', 'Kunifusa', 'Kunimune'],
   },
   {
@@ -682,12 +669,23 @@ export const SCHOOL_PERIODS = [
     notableSmiths: [],
   },
   {
+    name: 'Kongobyoe',
+    tradition: 'Yamato',
+    province: 'Chikuzen',
+    startYear: 1392,
+    endYear: 1570,
+    peakStart: 1467,
+    peakEnd: 1570,
+    description: 'Chikuzen school with Buddhist connections',
+    notableSmiths: ['Moritaka', 'Moritsugu'],
+  },
+  {
     name: 'Naminohira',
     tradition: 'Yamato',
     province: 'Satsuma',
     startYear: 1392,
     endYear: 1868,
-    description: 'Longest-running school, nearly 1000 years',
+    description: 'Naminohira smiths spanning Muromachi through Shinshinto',
     notableSmiths: ['Masakuni', 'Yukiyasu', 'Yasuyuki'],
   },
   {
@@ -716,29 +714,11 @@ export const SCHOOL_PERIODS = [
     tradition: 'Soshu',
     province: 'Sagami',
     startYear: 1250,
-    endYear: 1500,
+    endYear: 1392,
     peakStart: 1290,
     peakEnd: 1350,
-    description: 'Kamakura school, pinnacle of sword making',
+    description: 'Kamakura school, often claimed to have the greatest swordsmiths (Masamune, Sadamune, etc.). Many smiths traveled to Sagami province to study under the great Soshu masters',
     notableSmiths: ['Shintogo Kunimitsu', 'Yukimitsu', 'Masamune', 'Sadamune', 'Hiromitsu', 'Akihiro'],
-  },
-  {
-    name: 'Ko-Soshu',
-    tradition: 'Soshu',
-    province: 'Sagami',
-    startYear: 1250,
-    endYear: 1290,
-    description: 'Early Soshu, before Masamune era',
-    notableSmiths: ['Shintogo Kunimitsu', 'Kunitsuna'],
-  },
-  {
-    name: 'Norishige',
-    tradition: 'Soshu',
-    province: 'Etchu',
-    startYear: 1300,
-    endYear: 1360,
-    description: 'One of Masamune Juttetsu, known for matsukawa-hada',
-    notableSmiths: ['Norishige'],
   },
   {
     name: 'O-Sa',
@@ -752,13 +732,13 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Samonji'],
   },
   {
-    name: 'Go',
+    name: 'Go Yoshihiro',
     tradition: 'Soshu',
     province: 'Etchu',
     startYear: 1320,
     endYear: 1380,
-    description: 'Go Yoshihiro, one of Masamune Juttetsu',
-    notableSmiths: ['Yoshihiro'],
+    description: 'Go Yoshihiro, one of Masamune Juttetsu and other smiths working near Etchu in the Soshu-style including Norishige and Tametsugu',
+    notableSmiths: ['Yoshihiro', 'Norishige', 'Tametsugu'],
   },
   {
     name: 'Sue-Sa',
@@ -768,15 +748,6 @@ export const SCHOOL_PERIODS = [
     endYear: 1360,
     description: 'Sue-Sa Ichimon smiths, students of O-Sa',
     notableSmiths: ['Yukihiro', 'Yasuyoshi', 'Hiroyuki'],
-  },
-  {
-    name: 'Tametsugu',
-    tradition: 'Soshu',
-    province: 'Kaga',
-    startYear: 1330,
-    endYear: 1450,
-    description: 'Kaga school, Soshu influenced',
-    notableSmiths: ['Tametsugu'],
   },
   {
     name: 'Sekishu',
@@ -795,6 +766,15 @@ export const SCHOOL_PERIODS = [
     endYear: 1500,
     description: 'Sa school branch in Nagato province',
     notableSmiths: [],
+  },
+  {
+    name: 'Sue-Soshu',
+    tradition: 'Soshu',
+    province: 'Sagami',
+    startYear: 1392,
+    endYear: 1500,
+    description: 'Muromachi period Soshu-work',
+    notableSmiths: ['Hiromasa', 'Tsunahiro', 'Masahiro', 'Hirostugu', 'Yoshihiro', 'Sukehiro'],
   },
   {
     name: 'Hirado Sa',
@@ -823,7 +803,25 @@ export const SCHOOL_PERIODS = [
     peakStart: 1467,
     peakEnd: 1600,
     description: 'Suruga school, Soshu influenced',
-    notableSmiths: ['Yoshisuke', 'Hirosuke', 'Sukemune'],
+    notableSmiths: ['Yoshisuke', 'Hirosuke', 'Sukemune', 'Motosuke'],
+  },
+  {
+    name: 'Muramasa',
+    tradition: 'Soshu',
+    province: 'Ise',
+    startYear: 1501,
+    endYear: 1554,
+    description: 'Ise based school and home of the ill-famed Muramasa',
+    notableSmiths: ['Muramasa', 'Masashige', 'Masazane'],
+  },
+  {
+    name: 'Shitahara',
+    tradition: 'Soshu',
+    province: 'Musashi',
+    startYear: 1528,
+    endYear: 1868,
+    description: 'Sue-Soshu School',
+    notableSmiths: ['Chikashige', 'Terushige', 'Yasushige', 'Hiroshige'],
   },
   // ============================================
   // MINO
@@ -831,22 +829,13 @@ export const SCHOOL_PERIODS = [
   {
     name: 'Shizu',
     tradition: 'Mino',
-    province: 'Mino',
+    province: 'Naoe',
     startYear: 1288,
     endYear: 1380,
     peakStart: 1319,
     peakEnd: 1344,
     description: 'Founded by Shizu Saburo Kaneuji after studying under Masamune',
     notableSmiths: ['Kaneuji'],
-  },
-  {
-    name: 'Yamato Shizu',
-    tradition: 'Mino',
-    province: 'Yamato',
-    startYear: 1288,
-    endYear: 1350,
-    description: 'Students Kaneuji left in Yamato',
-    notableSmiths: ['Kaneuji (Nidai)'],
   },
   {
     name: 'Fujishima',
@@ -860,10 +849,10 @@ export const SCHOOL_PERIODS = [
   {
     name: 'Naoe Shizu',
     tradition: 'Mino',
-    province: 'Mino',
+    province: 'Naoe',
     startYear: 1344,
     endYear: 1450,
-    description: 'Kaneuji students who settled in Naoe village',
+    description: 'Kaneuji students who settled in Naoe village (Mino)',
     notableSmiths: ['Kanetsugu', 'Kanenobu', 'Kanetomo', 'Kanetoshi'],
   },
   {
@@ -877,6 +866,29 @@ export const SCHOOL_PERIODS = [
     description: 'Major Mino production center',
     notableSmiths: ['Kanesada', 'Kanemoto', 'Kanefusa'],
   },
+  {
+    name: 'Sue-Seki',
+    tradition: 'Mino',
+    province: 'Mino',
+    startYear: 1521,
+    endYear: 1592,
+    description: 'Mino smiths from Seki who worked from the middle Muromachi period to the end of the Koto era and beyond',
+    notableSmiths: ['Kanefusa', 'Kanemoto', 'Ujifusa'],
+  },
+  // ============================================
+  // --
+  // ============================================
+  {
+    name: 'Ko-Hoki',
+    tradition: '--',
+    province: 'Hoki',
+    startYear: 808,
+    endYear: 1185,
+    peakStart: 987,
+    peakEnd: 1185,
+    description: 'Ko-Hoki/Ohara school, possibly earliest curved swords',
+    notableSmiths: ['Yasutsuna', 'Sanemori', 'Sadatsuna'],
+  },
   // ============================================
   // BINGO
   // ============================================
@@ -884,24 +896,12 @@ export const SCHOOL_PERIODS = [
     name: 'Hokke',
     tradition: 'Bingo',
     province: 'Bingo',
-    startYear: 1280,
+    startYear: 1352,
     endYear: 1400,
-    peakStart: 1333,
+    peakStart: 1369,
     peakEnd: 1391,
-    description: 'Bingo school in Ashida area',
-    notableSmiths: ['Kaneyasu', 'Kanekiyo'],
-  },
-  // ============================================
-  // KO-KYO
-  // ============================================
-  {
-    name: 'Miike',
-    tradition: 'Ko-Kyo',
-    province: 'Chikugo',
-    startYear: 1074,
-    endYear: 1185,
-    description: 'Ancient Kyushu school, one of oldest',
-    notableSmiths: ['Tenta Mitsuyo'],
+    description: 'Bingo school in Ashida area, prospered in late Nanbokucho',
+    notableSmiths: ['Kaneyasu', 'Kanekiyo', 'Chikatsugu'],
   },
   // ============================================
   // BUNGO
@@ -916,16 +916,16 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Tomoyuki', 'Tokiyuki', 'Munekage'],
   },
   // ============================================
-  // DEWA
+  // ECHIGO
   // ============================================
   {
-    name: 'Mogusa',
-    tradition: 'Dewa',
-    province: 'Dewa',
-    startYear: 1150,
-    endYear: 1300,
-    description: 'Early Dewa school',
-    notableSmiths: ['Nagamasa'],
+    name: 'Echigo',
+    tradition: 'Echigo',
+    province: 'Echigo',
+    startYear: 1400,
+    endYear: 1600,
+    description: 'Echigo province swordsmiths',
+    notableSmiths: [],
   },
   // ============================================
   // ECHIZEN
@@ -940,15 +940,15 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Yasutsugu'],
   },
   // ============================================
-  // ECHIGO
+  // INABA
   // ============================================
   {
-    name: 'Echigo',
-    tradition: 'Echigo',
-    province: 'Echigo',
-    startYear: 1400,
-    endYear: 1600,
-    description: 'Echigo province swordsmiths',
+    name: 'Inaba',
+    tradition: 'Inaba',
+    province: 'Inaba',
+    startYear: 1288,
+    endYear: 1500,
+    description: 'Founded by Kanenaga who moved from Awataguchi to Inaba and formed the Inaba Kokaji school around 1288',
     notableSmiths: [],
   },
   // ============================================
@@ -964,16 +964,16 @@ export const SCHOOL_PERIODS = [
     notableSmiths: ['Sanekage'],
   },
   // ============================================
-  // INABA
+  // KO-KYO
   // ============================================
   {
-    name: 'Inaba',
-    tradition: 'Inaba',
-    province: 'Inaba',
-    startYear: 1350,
-    endYear: 1500,
-    description: 'Inaba province swordsmiths',
-    notableSmiths: [],
+    name: 'Miike',
+    tradition: 'Ko-Kyo',
+    province: 'Chikugo',
+    startYear: 1074,
+    endYear: 1185,
+    description: 'Ancient Kyushu school, one of oldest',
+    notableSmiths: ['Tenta Mitsuyo'],
   },
   // ============================================
   // VARIOUS
@@ -985,24 +985,6 @@ export const SCHOOL_PERIODS = [
     startYear: 1330,
     endYear: 1450,
     description: 'Smiths using Hoju name across provinces',
-    notableSmiths: [],
-  },
-  {
-    name: 'Hojoji',
-    tradition: 'Various',
-    province: 'Various',
-    startYear: 1330,
-    endYear: 1450,
-    description: 'Related to Hoju school',
-    notableSmiths: [],
-  },
-  {
-    name: 'Nitta',
-    tradition: 'Various',
-    province: 'Kozuke',
-    startYear: 1350,
-    endYear: 1500,
-    description: 'Kozuke province school',
     notableSmiths: [],
   },
 
