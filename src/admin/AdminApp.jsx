@@ -10,6 +10,7 @@ import ArticleList from './pages/ArticleList.jsx';
 import ArticleCreate from './pages/ArticleCreate.jsx';
 import ArticleEdit from './pages/ArticleEdit.jsx';
 import ArticlePreview from './pages/ArticlePreview.jsx';
+import JuyoMatching from './pages/JuyoMatching.jsx';
 import ProtectedRoute from '../components/ProtectedRoute.jsx';
 import DarkModeToggle from '../components/DarkModeToggle.jsx';
 import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
@@ -87,6 +88,9 @@ function AdminAppContent() {
                       <Link to="/admin/changelog" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
                         Changelog
                       </Link>
+                      <Link to="/admin/juyo-matching" className="actions-dropdown-item" onClick={() => setShowActionsDropdown(false)}>
+                        Juyo Matching
+                      </Link>
                     </div>
                   </>
                 )}
@@ -147,6 +151,7 @@ function AdminAppContent() {
               )
             } />
             <Route path="/admin/changelog" element={<Changelog />} />
+            <Route path="/admin/juyo-matching" element={<JuyoMatching />} />
           </Routes>
         </main>
       </div>

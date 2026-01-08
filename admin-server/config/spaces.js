@@ -1,4 +1,4 @@
-const { S3Client } = require('@aws-sdk/client-s3');
+const { S3Client, ListObjectsV2Command, CopyObjectCommand, DeleteObjectCommand } = require('@aws-sdk/client-s3');
 const { Upload } = require('@aws-sdk/lib-storage');
 const multer = require('multer');
 const sharp = require('sharp');
@@ -115,6 +115,67 @@ function generateFilename(originalName) {
   return `${timestamp}${ext}`;
 }
 
+/**
+ * List objects in a Spaces folder
+ * @param {string} prefix - Folder prefix (e.g., "Juyo Zufu/47/jpg/")
+ * @returns {Promise<Array>} - Array of object keys
+ */
+async function listSpacesObjects(prefix) {
+  const objects = [];
+  let continuationToken = undefined;
+
+  do {
+    const command = new ListObjectsV2Command({
+      Bucket: process.env.SPACES_BUCKET,
+      Prefix: prefix,
+      ContinuationToken: continuationToken,
+    });
+
+    const response = await s3Client.send(command);
+
+    if (response.Contents) {
+      objects.push(...response.Contents.map(obj => obj.Key));
+    }
+
+    continuationToken = response.IsTruncated ? response.NextContinuationToken : undefined;
+  } while (continuationToken);
+
+  return objects;
+}
+
+/**
+ * Rename (copy + delete) an object in Spaces
+ * @param {string} oldKey - Current object key
+ * @param {string} newKey - New object key
+ * @returns {Promise<string>} - New URL
+ */
+async function renameSpacesObject(oldKey, newKey) {
+  const bucket = process.env.SPACES_BUCKET;
+
+  // Copy to new location - CopySource must be URL-encoded for special characters (kanji, etc.)
+  const copyCommand = new CopyObjectCommand({
+    Bucket: bucket,
+    CopySource: encodeURIComponent(`${bucket}/${oldKey}`),
+    Key: newKey,
+    ACL: 'public-read',
+  });
+  await s3Client.send(copyCommand);
+
+  // Delete old object
+  const deleteCommand = new DeleteObjectCommand({
+    Bucket: bucket,
+    Key: oldKey,
+  });
+  await s3Client.send(deleteCommand);
+
+  // Return CDN URL
+  const cdnEndpoint = process.env.SPACES_CDN_ENDPOINT;
+  if (cdnEndpoint) {
+    return `${cdnEndpoint}/${newKey}`;
+  }
+  return `${process.env.SPACES_ENDPOINT}/${bucket}/${newKey}`;
+}
+
 module.exports = {
   s3Client,
   upload,
@@ -123,4 +184,6 @@ module.exports = {
   generateThumbnail,
   calculateMD5,
   generateFilename,
+  listSpacesObjects,
+  renameSpacesObject,
 };
