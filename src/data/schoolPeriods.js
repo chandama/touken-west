@@ -1273,3 +1273,19 @@ export const getSchoolsActiveInYear = (year) => {
 export const getPeriodForYear = (year) => {
   return Object.values(PERIODS).find(p => year >= p.startYear && year <= p.endYear);
 };
+
+/**
+ * Search schools by name, tradition, province, or notable smiths
+ */
+export const searchSchools = (query) => {
+  if (!query) return SCHOOL_PERIODS;
+  const lowerQuery = query.toLowerCase();
+  return SCHOOL_PERIODS.filter(school =>
+    school.name.toLowerCase().includes(lowerQuery) ||
+    school.tradition.toLowerCase().includes(lowerQuery) ||
+    school.province.toLowerCase().includes(lowerQuery) ||
+    (school.notableSmiths && school.notableSmiths.some(smith =>
+      smith.toLowerCase().includes(lowerQuery)
+    ))
+  );
+};
