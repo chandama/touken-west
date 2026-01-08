@@ -1,5 +1,6 @@
 // Load .env from local directory first, then fall back to parent
 const path = require('path');
+const fs = require('fs');
 require('dotenv').config({ path: path.join(__dirname, '.env') });
 require('dotenv').config({ path: path.join(__dirname, '..', '.env') });
 const express = require('express');
@@ -45,6 +46,7 @@ const Sword = require('./models/Sword');
 const User = require('./models/User');
 const Changelog = require('./models/Changelog');
 const Article = require('./models/Article');
+const JuyoMatch = require('./models/JuyoMatch');
 
 // Utilities
 const { parseUserAgent, getClientIp } = require('./utils/userAgent');
@@ -57,6 +59,8 @@ const {
   generateThumbnail,
   calculateMD5,
   generateFilename,
+  listSpacesObjects,
+  renameSpacesObject,
 } = require('./config/spaces');
 
 // OAuth configuration
@@ -2837,6 +2841,465 @@ app.get('/api/sitemap.xml', async (req, res) => {
   } catch (error) {
     console.error('Error generating sitemap:', error);
     res.status(500).send('Error generating sitemap');
+  }
+});
+
+// ==================== JUYO ZUFU MATCHING ====================
+
+// Load Juyo index data
+const juyoIndexPath = path.join(__dirname, 'data', 'juyo-index.csv');
+let juyoIndexData = [];
+
+function loadJuyoIndex() {
+  try {
+    if (fs.existsSync(juyoIndexPath)) {
+      const content = fs.readFileSync(juyoIndexPath, 'utf-8');
+      const lines = content.trim().split('\n');
+      const headers = lines[0].split(',');
+
+      juyoIndexData = lines.slice(1).map(line => {
+        const values = [];
+        let current = '';
+        let inQuotes = false;
+
+        for (const char of line) {
+          if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            values.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        values.push(current.trim());
+
+        const row = {};
+        headers.forEach((header, i) => {
+          row[header.trim()] = values[i] || '';
+        });
+        return row;
+      });
+
+      console.log(`Loaded ${juyoIndexData.length} Juyo index entries`);
+    }
+  } catch (err) {
+    console.error('Error loading Juyo index:', err);
+  }
+}
+
+loadJuyoIndex();
+
+// Blade types to include (same as generate-pdf-match-report.js)
+const BLADE_TYPES = ['Katana', 'Tachi', 'Tantō', 'Wakizashi', 'Ken', 'Naoshi', 'Naginata', 'Yari', 'Kodachi', 'Ōdachi', 'Jōkotō', 'Chokutō', 'Hoko', 'Onaginata', 'Daishō'];
+
+function isBladeType(item) {
+  return BLADE_TYPES.some(bt => {
+    if (item === bt) return true;
+    if (item.startsWith(bt + ' & ')) return true;
+    return false;
+  });
+}
+
+// Get available sessions
+app.get('/api/juyo/sessions', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const sessions = [46, 47, 49, 50, 51, 52, 53, 54, 55, 56, 57, 58, 59, 60, 61, 62, 63, 64, 65, 66, 67, 68, 69, 70];
+
+    // Get stats for each session
+    const sessionStats = await Promise.all(sessions.map(async (session) => {
+      const total = await JuyoMatch.countDocuments({ session });
+      const matched = await JuyoMatch.countDocuments({ session, status: 'matched' });
+      const renamed = await JuyoMatch.countDocuments({ session, status: 'renamed' });
+
+      return {
+        session,
+        total,
+        matched,
+        renamed,
+        pending: total - matched - renamed
+      };
+    }));
+
+    res.json(sessionStats);
+  } catch (error) {
+    console.error('Error getting sessions:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get blades for a session (from S3)
+app.get('/api/juyo/session/:session/blades', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const session = parseInt(req.params.session, 10);
+    const prefix = `Juyo Zufu/${session}/jpg/`;
+
+    // List all JPGs in the session folder
+    const objects = await listSpacesObjects(prefix);
+
+    // Group by blade number (blade_001_p1.jpg, blade_001_p2.jpg -> blade_001)
+    const bladeMap = new Map();
+
+    for (const key of objects) {
+      const filename = key.replace(prefix, '');
+      const match = filename.match(/^(.+)_p(\d+)\.jpg$/);
+
+      if (match) {
+        const bladeName = match[1];
+        const page = parseInt(match[2], 10);
+
+        if (!bladeMap.has(bladeName)) {
+          bladeMap.set(bladeName, { name: bladeName, pages: [] });
+        }
+
+        const cdnUrl = `${process.env.SPACES_CDN_ENDPOINT}/${key}`;
+        bladeMap.get(bladeName).pages.push({ page, url: cdnUrl, key });
+      }
+    }
+
+    // Get match status from database first
+    const matches = await JuyoMatch.find({ session }).lean();
+    const matchMap = new Map(matches.map(m => [m.originalName, m]));
+    // Also map by newFilename for renamed blades
+    const renamedMap = new Map(matches.filter(m => m.newFilename).map(m => [m.newFilename, m]));
+
+    // Convert to array and extract blade numbers
+    const blades = Array.from(bladeMap.values())
+      .map(blade => {
+        // Check if this is a renamed file (format: session_index_type_...)
+        const renamedMatch = blade.name.match(/^(\d+)_(\d+)_/);
+        // Check if this is an unrenamed file (format: blade_xxx_...)
+        const unnamedMatch = blade.name.match(/^blade_(\d+)/);
+
+        let number;
+        let isRenamed = false;
+
+        if (renamedMatch) {
+          // Renamed file: use the index (second number)
+          number = parseInt(renamedMatch[2], 10);
+          isRenamed = true;
+        } else if (unnamedMatch) {
+          // Unrenamed file: use the blade number
+          number = parseInt(unnamedMatch[1], 10);
+        } else {
+          // Fallback: use first number found
+          number = parseInt(blade.name.match(/(\d+)/)?.[1] || '0', 10);
+        }
+
+        return {
+          ...blade,
+          pages: blade.pages.sort((a, b) => a.page - b.page),
+          number,
+          isRenamed
+        };
+      });
+
+    // Merge match data with blade data
+    const bladesWithStatus = blades.map(blade => {
+      // Try to find match by original name or by new filename
+      const match = matchMap.get(blade.name) || renamedMap.get(blade.name);
+      return {
+        ...blade,
+        matchedIndex: match?.matchedIndex || null,
+        matchedItem: match?.matchedItem || null,
+        matchedAttribution: match?.matchedAttribution || null,
+        nagasa: match?.nagasa || null,
+        sori: match?.sori || null,
+        status: match?.status || (blade.isRenamed ? 'renamed' : 'pending')
+      };
+    });
+
+    // Sort: pending/matched first (by number), then not_found, then renamed (by number)
+    bladesWithStatus.sort((a, b) => {
+      // Define sort priority: pending/matched = 0, not_found = 1, renamed = 2
+      const getPriority = (blade) => {
+        if (blade.status === 'not_found') return 1;
+        if (blade.isRenamed) return 2;
+        return 0;
+      };
+
+      const priorityA = getPriority(a);
+      const priorityB = getPriority(b);
+
+      if (priorityA !== priorityB) {
+        return priorityA - priorityB;
+      }
+      // Within same category, sort by number
+      return a.number - b.number;
+    });
+
+    res.json(bladesWithStatus);
+  } catch (error) {
+    console.error('Error getting blades:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Get Juyo index entries for a session
+app.get('/api/juyo/session/:session/index', authenticateToken, requireEditor, (req, res) => {
+  try {
+    const session = parseInt(req.params.session, 10);
+
+    const entries = juyoIndexData
+      .filter(row => {
+        if (parseInt(row.Session, 10) !== session) return false;
+        return isBladeType(row.Item || '');
+      })
+      .map(row => ({
+        index: parseInt(row.Index, 10),
+        item: row.Item,
+        attribution: row.Attribution,
+        mei: row.Mei,
+        book: row.Book,
+        attachment: row.Attachment
+      }))
+      .sort((a, b) => a.index - b.index);
+
+    res.json(entries);
+  } catch (error) {
+    console.error('Error getting index:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Mark a blade as not found
+app.post('/api/juyo/session/:session/not-found/:bladeNumber', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const session = parseInt(req.params.session, 10);
+    const bladeNumber = parseInt(req.params.bladeNumber, 10);
+    const { originalName } = req.body;
+
+    const match = await JuyoMatch.findOneAndUpdate(
+      { session, bladeNumber },
+      {
+        session,
+        bladeNumber,
+        originalName,
+        status: 'not_found',
+        matchedIndex: null,
+        matchedItem: null,
+        matchedAttribution: null,
+        matchedMei: null,
+        nagasa: null,
+        sori: null,
+        matchedBy: req.user.id,
+        matchedAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json({ success: true, match });
+  } catch (error) {
+    console.error('Error marking as not found:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Save a match
+app.post('/api/juyo/match', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const { session, bladeNumber, originalName, matchedIndex, matchedItem, matchedAttribution, matchedMei, nagasa, sori } = req.body;
+
+    const match = await JuyoMatch.findOneAndUpdate(
+      { session, bladeNumber },
+      {
+        session,
+        bladeNumber,
+        originalName,
+        matchedIndex,
+        matchedItem,
+        matchedAttribution,
+        matchedMei,
+        nagasa,
+        sori,
+        status: matchedIndex ? 'matched' : 'pending',
+        matchedBy: req.user.id,
+        matchedAt: new Date()
+      },
+      { upsert: true, new: true }
+    );
+
+    res.json(match);
+  } catch (error) {
+    console.error('Error saving match:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Bulk save matches
+app.post('/api/juyo/matches/bulk', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const { matches } = req.body;
+
+    const operations = matches.map(m => ({
+      updateOne: {
+        filter: { session: m.session, bladeNumber: m.bladeNumber },
+        update: {
+          $set: {
+            ...m,
+            status: m.matchedIndex ? 'matched' : 'pending',
+            matchedBy: req.user.id,
+            matchedAt: new Date()
+          }
+        },
+        upsert: true
+      }
+    }));
+
+    await JuyoMatch.bulkWrite(operations);
+
+    res.json({ success: true, count: matches.length });
+  } catch (error) {
+    console.error('Error bulk saving matches:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Rename files in S3 based on matches
+app.post('/api/juyo/session/:session/rename', authenticateToken, requireAdmin, async (req, res) => {
+  try {
+    const session = parseInt(req.params.session, 10);
+
+    // Get all matched blades for this session
+    const matches = await JuyoMatch.find({
+      session,
+      status: 'matched',
+      matchedIndex: { $ne: null }
+    });
+
+    if (matches.length === 0) {
+      return res.status(400).json({ error: 'No matched blades to rename' });
+    }
+
+    const results = [];
+    const errors = [];
+
+    for (const match of matches) {
+      try {
+        // Generate new filename
+        const nagasaStr = match.nagasa ? match.nagasa.toFixed(1) : 'NA';
+        const soriStr = match.sori ? match.sori.toFixed(1) : 'NA';
+
+        const cleanAttribution = (match.matchedAttribution || '')
+          .replace(/[^\w\s\-()]/g, '')
+          .replace(/\s+/g, '_')
+          .replace(/_+/g, '_')
+          .trim();
+
+        const newBaseName = `${session}_${String(match.matchedIndex).padStart(3, '0')}_${match.matchedItem}_${cleanAttribution}_${nagasaStr}_${soriStr}`;
+
+        // Rename both pages
+        for (let page = 1; page <= 2; page++) {
+          const oldKey = `Juyo Zufu/${session}/jpg/${match.originalName}_p${page}.jpg`;
+          const newKey = `Juyo Zufu/${session}/jpg/${newBaseName}_p${page}.jpg`;
+
+          await renameSpacesObject(oldKey, newKey);
+        }
+
+        // Update match status
+        match.newFilename = newBaseName;
+        match.status = 'renamed';
+        match.renamedAt = new Date();
+        await match.save();
+
+        results.push({
+          originalName: match.originalName,
+          newFilename: newBaseName,
+          success: true
+        });
+      } catch (err) {
+        errors.push({
+          originalName: match.originalName,
+          error: err.message
+        });
+      }
+    }
+
+    res.json({
+      success: true,
+      renamed: results.length,
+      errors: errors.length,
+      results,
+      errors
+    });
+  } catch (error) {
+    console.error('Error renaming files:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Rename a single blade file in S3
+app.post('/api/juyo/session/:session/rename/:bladeNumber', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const session = parseInt(req.params.session, 10);
+    const bladeNumber = parseInt(req.params.bladeNumber, 10);
+
+    const match = await JuyoMatch.findOne({
+      session,
+      bladeNumber,
+      status: 'matched',
+      matchedIndex: { $ne: null }
+    });
+
+    if (!match) {
+      return res.status(400).json({ error: 'No matched blade found to rename' });
+    }
+
+    // Generate new filename
+    const nagasaStr = match.nagasa ? match.nagasa.toFixed(1) : 'NA';
+    const soriStr = match.sori ? match.sori.toFixed(1) : 'NA';
+
+    const cleanAttribution = (match.matchedAttribution || '')
+      .replace(/[^\w\s\-()]/g, '')
+      .replace(/\s+/g, '_')
+      .replace(/_+/g, '_')
+      .trim();
+
+    const newBaseName = `${session}_${String(match.matchedIndex).padStart(3, '0')}_${match.matchedItem}_${cleanAttribution}_${nagasaStr}_${soriStr}`;
+
+    // Rename both pages
+    for (let page = 1; page <= 2; page++) {
+      const oldKey = `Juyo Zufu/${session}/jpg/${match.originalName}_p${page}.jpg`;
+      const newKey = `Juyo Zufu/${session}/jpg/${newBaseName}_p${page}.jpg`;
+
+      await renameSpacesObject(oldKey, newKey);
+    }
+
+    // Update match status
+    match.newFilename = newBaseName;
+    match.status = 'renamed';
+    match.renamedAt = new Date();
+    await match.save();
+
+    res.json({
+      success: true,
+      originalName: match.originalName,
+      newFilename: newBaseName
+    });
+  } catch (error) {
+    console.error('Error renaming single file:', error);
+    res.status(500).json({ error: error.message });
+  }
+});
+
+// Export matches as CSV
+app.get('/api/juyo/session/:session/export', authenticateToken, requireEditor, async (req, res) => {
+  try {
+    const session = parseInt(req.params.session, 10);
+    const matches = await JuyoMatch.find({ session }).sort({ bladeNumber: 1 });
+
+    let csv = 'Session,BladeNumber,OriginalName,MatchedIndex,Item,Attribution,Nagasa,Sori,Status,NewFilename\n';
+
+    for (const m of matches) {
+      csv += `${m.session},${m.bladeNumber},"${m.originalName}",${m.matchedIndex || ''},"${m.matchedItem || ''}","${m.matchedAttribution || ''}",${m.nagasa || ''},${m.sori || ''},${m.status},"${m.newFilename || ''}"\n`;
+    }
+
+    res.set('Content-Type', 'text/csv');
+    res.set('Content-Disposition', `attachment; filename="juyo-${session}-matches.csv"`);
+    res.send(csv);
+  } catch (error) {
+    console.error('Error exporting matches:', error);
+    res.status(500).json({ error: error.message });
   }
 });
 
