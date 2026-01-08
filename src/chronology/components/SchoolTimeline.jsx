@@ -1,5 +1,13 @@
 import React, { useMemo, useRef, useState, useEffect, useCallback } from 'react';
 
+// Constants for pan/zoom limits
+const FULL_YEAR_RANGE = { min: 700, max: 1900 };
+const MIN_VISIBLE_SCHOOLS = 3;  // Minimum schools visible when zoomed in
+const MIN_YEAR_SPAN = 50;       // Minimum years visible when zoomed in
+
+// Helper function to clamp a value between min and max
+const clamp = (value, min, max) => Math.min(Math.max(value, min), max);
+
 const TRADITION_COLORS = {
   Yamashiro: '#5B8BD4',
   Bizen: '#E07B7B',
@@ -42,11 +50,25 @@ function SchoolTimeline({ schools }) {
   const barsContainerRef = useRef(null);
   const [hoveredSchool, setHoveredSchool] = useState(null);
   const [tooltipPos, setTooltipPos] = useState({ x: 0, y: 0 });
-  const [autoZoom, setAutoZoom] = useState(true);
-  const [manualZoom, setManualZoom] = useState(null); // { startYear, endYear }
-  const [containerHeight, setContainerHeight] = useState(400); // Default height
+  const [containerHeight, setContainerHeight] = useState(400);
   const [isMobile, setIsMobile] = useState(false);
-  const [mobileZoomLevel, setMobileZoomLevel] = useState(1); // 1 = normal, 2 = 2x wider, etc.
+
+  // 2D ViewBox state for pan/zoom
+  const [viewBox, setViewBox] = useState({
+    x: FULL_YEAR_RANGE.min,      // Start year
+    y: 0,                         // Start school index
+    width: FULL_YEAR_RANGE.max - FULL_YEAR_RANGE.min,  // Visible year range
+    height: 10,                   // Visible school count (will be auto-set)
+  });
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState({ x: 0, y: 0 });
+
+  // Touch tracking refs
+  const lastTouchDistance = useRef(null);
+  const lastTouchCenter = useRef(null);
+
+  // Total schools count for calculations
+  const totalSchools = schools.length;
 
   // Detect mobile viewport
   useEffect(() => {
@@ -58,110 +80,39 @@ function SchoolTimeline({ schools }) {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Calculate the "fit" range based on selected schools
-  const fitRange = useMemo(() => {
-    if (schools.length === 0) return null;
+  // Calculate "fit" dimensions based on selected schools
+  const fitDimensions = useMemo(() => {
+    if (schools.length === 0) {
+      return { startYear: FULL_YEAR_RANGE.min, width: FULL_YEAR_RANGE.max - FULL_YEAR_RANGE.min, height: 10 };
+    }
 
     const allYears = schools.flatMap(s => [s.startYear, s.endYear]);
     const minYear = Math.min(...allYears);
     const maxYear = Math.max(...allYears);
-
     const padding = 25;
-    const startYear = Math.floor((minYear - padding) / 25) * 25;
-    const endYear = Math.ceil((maxYear + padding) / 25) * 25;
-
-    return { startYear, endYear };
-  }, [schools]);
-
-  // Auto-zoom when schools change (if autoZoom is enabled)
-  useEffect(() => {
-    if (autoZoom && fitRange) {
-      setManualZoom(null);
-    }
-  }, [autoZoom, fitRange]);
-
-  // Full range for mobile - always show complete timeline, use zoom for scale
-  const mobileFullRange = { startYear: 800, endYear: 1900 };
-
-  // The actual timeline config
-  // On mobile: always use full range (scroll to navigate, zoom changes scale)
-  // On desktop: use zoom to change visible range
-  const timelineConfig = useMemo(() => {
-    if (isMobile) {
-      return {
-        startYear: mobileFullRange.startYear,
-        endYear: mobileFullRange.endYear,
-        range: mobileFullRange.endYear - mobileFullRange.startYear,
-      };
-    }
-
-    const range = manualZoom || fitRange;
-    if (!range) return null;
+    const startYear = Math.max(FULL_YEAR_RANGE.min, Math.floor((minYear - padding) / 25) * 25);
+    const endYear = Math.min(FULL_YEAR_RANGE.max, Math.ceil((maxYear + padding) / 25) * 25);
 
     return {
-      startYear: range.startYear,
-      endYear: range.endYear,
-      range: range.endYear - range.startYear,
+      startYear,
+      width: endYear - startYear,
+      height: schools.length,
     };
-  }, [manualZoom, fitRange, isMobile]);
+  }, [schools]);
 
-  // Calculate dynamic width for mobile based on zoom level
-  // Zoom in = wider chart = more px per year = scroll to see full timeline
-  const mobileChartWidth = useMemo(() => {
-    if (!isMobile) return null;
-    // Base width of 800px at zoom level 1
-    // Each zoom level doubles the width
-    const baseWidth = 800;
-    return baseWidth * mobileZoomLevel;
-  }, [isMobile, mobileZoomLevel]);
+  // Initialize viewBox when schools change - fit all schools
+  useEffect(() => {
+    if (schools.length === 0) return;
 
-  // Mobile zoom handlers (scale-based, not range-based)
-  const handleMobileZoomIn = useCallback(() => {
-    setMobileZoomLevel(prev => Math.min(prev + 0.5, 4)); // Max 4x zoom
-  }, []);
-
-  const handleMobileZoomOut = useCallback(() => {
-    setMobileZoomLevel(prev => Math.max(prev - 0.5, 0.5)); // Min 0.5x zoom
-  }, []);
-
-  const handleMobileZoomReset = useCallback(() => {
-    setMobileZoomLevel(1);
-  }, []);
-
-  // Zoom to fit handler
-  const handleZoomToFit = useCallback(() => {
-    setManualZoom(null);
-    setAutoZoom(true);
-  }, []);
-
-  // Zoom in (narrow the range by 20%)
-  const handleZoomIn = useCallback(() => {
-    if (!timelineConfig) return;
-    const { startYear, endYear, range } = timelineConfig;
-    const shrink = Math.max(range * 0.1, 25);
-    const newStart = Math.round((startYear + shrink) / 25) * 25;
-    const newEnd = Math.round((endYear - shrink) / 25) * 25;
-    if (newEnd - newStart >= 100) {
-      setManualZoom({ startYear: newStart, endYear: newEnd });
-      setAutoZoom(false);
-    }
-  }, [timelineConfig]);
-
-  // Zoom out (expand the range by 20%)
-  const handleZoomOut = useCallback(() => {
-    if (!timelineConfig) return;
-    const { startYear, endYear, range } = timelineConfig;
-    const expand = range * 0.1;
-    const newStart = Math.round((startYear - expand) / 25) * 25;
-    const newEnd = Math.round((endYear + expand) / 25) * 25;
-    setManualZoom({
-      startYear: Math.max(newStart, 700),
-      endYear: Math.min(newEnd, 1900)
+    setViewBox({
+      x: fitDimensions.startYear,
+      y: 0,
+      width: fitDimensions.width,
+      height: fitDimensions.height,
     });
-    setAutoZoom(false);
-  }, [timelineConfig]);
+  }, [fitDimensions]);
 
-  // Measure container height for dynamic bar sizing
+  // Measure container height
   useEffect(() => {
     const container = barsContainerRef.current;
     if (!container) return;
@@ -173,15 +124,287 @@ function SchoolTimeline({ schools }) {
       }
     };
 
-    // Initial measurement
     updateHeight();
-
-    // Watch for resize
     const resizeObserver = new ResizeObserver(updateHeight);
     resizeObserver.observe(container);
-
     return () => resizeObserver.disconnect();
   }, []);
+
+  // Touch helper functions
+  const getTouchDistance = (touches) => {
+    const dx = touches[0].clientX - touches[1].clientX;
+    const dy = touches[0].clientY - touches[1].clientY;
+    return Math.sqrt(dx * dx + dy * dy);
+  };
+
+  const getTouchCenter = (touches, rect) => ({
+    x: (touches[0].clientX + touches[1].clientX) / 2 - rect.left,
+    y: (touches[0].clientY + touches[1].clientY) / 2 - rect.top,
+  });
+
+  // Pan handlers
+  const handleMouseDown = useCallback((e) => {
+    if (e.button === 0) {
+      setIsDragging(true);
+      setDragStart({ x: e.clientX, y: e.clientY });
+    }
+  }, []);
+
+  const handleMouseMove = useCallback((e) => {
+    if (!isDragging || !barsContainerRef.current) return;
+
+    const rect = barsContainerRef.current.getBoundingClientRect();
+    // Account for padding: 24px left/right, 16px top/bottom
+    const contentWidth = rect.width - 48;
+    const contentHeight = rect.height - 32;
+
+    const dx = (e.clientX - dragStart.x) / contentWidth * viewBox.width;
+    const dy = (e.clientY - dragStart.y) / contentHeight * viewBox.height;
+
+    setViewBox(prev => ({
+      ...prev,
+      x: clamp(prev.x - dx, FULL_YEAR_RANGE.min, FULL_YEAR_RANGE.max - prev.width),
+      y: clamp(prev.y - dy, 0, Math.max(0, totalSchools - prev.height)),
+    }));
+
+    setDragStart({ x: e.clientX, y: e.clientY });
+  }, [isDragging, dragStart, viewBox, totalSchools]);
+
+  const handleMouseUp = useCallback(() => {
+    setIsDragging(false);
+  }, []);
+
+  // Wheel zoom handler with smart axis zooming
+  const handleWheel = useCallback((e) => {
+    e.preventDefault();
+    if (!barsContainerRef.current) return;
+
+    const rect = barsContainerRef.current.getBoundingClientRect();
+    // Account for padding: 24px left/right, 16px top/bottom
+    const contentWidth = rect.width - 48;
+    const contentHeight = rect.height - 32;
+
+    // Adjust mouse position for padding offset
+    const mouseX = (e.clientX - rect.left - 24) / contentWidth;
+    const mouseY = (e.clientY - rect.top - 16) / contentHeight;
+
+    // Zoom factor: scroll down = zoom out (larger view), scroll up = zoom in (smaller view)
+    const zoomFactor = e.deltaY > 0 ? 1.15 : 0.87;
+    const isZoomingIn = zoomFactor < 1;
+
+    const fullYearRange = FULL_YEAR_RANGE.max - FULL_YEAR_RANGE.min;
+
+    let newWidth, newHeight;
+
+    // Smart zoom: if one axis is "wider" than fit while other is at limit, zoom that axis first
+    const xIsWiderThanFit = viewBox.width > fitDimensions.width * 1.05; // 5% tolerance
+    const yIsAtMax = viewBox.height >= totalSchools - 0.1; // Small tolerance for floating point
+
+    if (isZoomingIn && xIsWiderThanFit && yIsAtMax) {
+      // Zooming in: x-axis is wider than fit, y is at max - only zoom x until it reaches fit
+      newWidth = clamp(viewBox.width * zoomFactor, fitDimensions.width, fullYearRange);
+      newHeight = viewBox.height; // Keep y at max
+    } else if (!isZoomingIn && yIsAtMax) {
+      // Zooming out: y is at max - only zoom x-axis out
+      newWidth = clamp(viewBox.width * zoomFactor, MIN_YEAR_SPAN, fullYearRange);
+      newHeight = viewBox.height; // Keep y at max
+    } else {
+      // Normal unified zoom for both axes
+      newWidth = clamp(viewBox.width * zoomFactor, MIN_YEAR_SPAN, fullYearRange);
+      newHeight = clamp(viewBox.height * zoomFactor, MIN_VISIBLE_SCHOOLS, totalSchools);
+    }
+
+    // Check if we've hit the limits
+    if (newWidth === viewBox.width && newHeight === viewBox.height) return;
+
+    // Zoom toward mouse position
+    const yearAtMouse = viewBox.x + mouseX * viewBox.width;
+    const schoolAtMouse = viewBox.y + mouseY * viewBox.height;
+
+    const newX = clamp(yearAtMouse - mouseX * newWidth, FULL_YEAR_RANGE.min, FULL_YEAR_RANGE.max - newWidth);
+    const newY = clamp(schoolAtMouse - mouseY * newHeight, 0, Math.max(0, totalSchools - newHeight));
+
+    setViewBox({ x: newX, y: newY, width: newWidth, height: newHeight });
+  }, [viewBox, totalSchools, fitDimensions]);
+
+  // Touch handlers
+  const handleTouchStart = useCallback((e) => {
+    if (e.touches.length === 2) {
+      e.preventDefault();
+      const rect = barsContainerRef.current?.getBoundingClientRect();
+      if (rect) {
+        lastTouchDistance.current = getTouchDistance(e.touches);
+        lastTouchCenter.current = getTouchCenter(e.touches, rect);
+      }
+    } else if (e.touches.length === 1) {
+      setIsDragging(true);
+      setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    }
+  }, []);
+
+  const handleTouchMove = useCallback((e) => {
+    if (e.touches.length === 2 && lastTouchDistance.current !== null) {
+      e.preventDefault();
+      const rect = barsContainerRef.current?.getBoundingClientRect();
+      if (!rect) return;
+
+      // Account for padding: 24px left/right, 16px top/bottom
+      const contentWidth = rect.width - 48;
+      const contentHeight = rect.height - 32;
+
+      const currentDistance = getTouchDistance(e.touches);
+      const currentCenter = getTouchCenter(e.touches, rect);
+
+      // Pinch out = zoom in (smaller view), pinch in = zoom out (larger view)
+      const zoomFactor = lastTouchDistance.current / currentDistance;
+      const isZoomingIn = zoomFactor < 1;
+
+      const fullYearRange = FULL_YEAR_RANGE.max - FULL_YEAR_RANGE.min;
+
+      // Smart zoom logic
+      const xIsWiderThanFit = viewBox.width > fitDimensions.width * 1.05;
+      const yIsAtMax = viewBox.height >= totalSchools - 0.1;
+
+      let newWidth, newHeight;
+
+      if (isZoomingIn && xIsWiderThanFit && yIsAtMax) {
+        newWidth = clamp(viewBox.width * zoomFactor, fitDimensions.width, fullYearRange);
+        newHeight = viewBox.height;
+      } else if (!isZoomingIn && yIsAtMax) {
+        newWidth = clamp(viewBox.width * zoomFactor, MIN_YEAR_SPAN, fullYearRange);
+        newHeight = viewBox.height;
+      } else {
+        newWidth = clamp(viewBox.width * zoomFactor, MIN_YEAR_SPAN, fullYearRange);
+        newHeight = clamp(viewBox.height * zoomFactor, MIN_VISIBLE_SCHOOLS, totalSchools);
+      }
+
+      if (newWidth !== viewBox.width || newHeight !== viewBox.height) {
+        // Adjust for padding offset (24px left, 16px top)
+        const mouseX = (currentCenter.x - 24) / contentWidth;
+        const mouseY = (currentCenter.y - 16) / contentHeight;
+
+        const yearAtCenter = viewBox.x + mouseX * viewBox.width;
+        const schoolAtCenter = viewBox.y + mouseY * viewBox.height;
+
+        setViewBox({
+          x: clamp(yearAtCenter - mouseX * newWidth, FULL_YEAR_RANGE.min, FULL_YEAR_RANGE.max - newWidth),
+          y: clamp(schoolAtCenter - mouseY * newHeight, 0, Math.max(0, totalSchools - newHeight)),
+          width: newWidth,
+          height: newHeight,
+        });
+      }
+
+      lastTouchDistance.current = currentDistance;
+      lastTouchCenter.current = currentCenter;
+    } else if (e.touches.length === 1 && isDragging && barsContainerRef.current) {
+      const rect = barsContainerRef.current.getBoundingClientRect();
+      // Account for padding: 24px left/right, 16px top/bottom
+      const contentWidth = rect.width - 48;
+      const contentHeight = rect.height - 32;
+
+      const dx = (e.touches[0].clientX - dragStart.x) / contentWidth * viewBox.width;
+      const dy = (e.touches[0].clientY - dragStart.y) / contentHeight * viewBox.height;
+
+      setViewBox(prev => ({
+        ...prev,
+        x: clamp(prev.x - dx, FULL_YEAR_RANGE.min, FULL_YEAR_RANGE.max - prev.width),
+        y: clamp(prev.y - dy, 0, Math.max(0, totalSchools - prev.height)),
+      }));
+
+      setDragStart({ x: e.touches[0].clientX, y: e.touches[0].clientY });
+    }
+  }, [viewBox, isDragging, dragStart, totalSchools, fitDimensions]);
+
+  const handleTouchEnd = useCallback(() => {
+    lastTouchDistance.current = null;
+    lastTouchCenter.current = null;
+    setIsDragging(false);
+  }, []);
+
+  // Event listeners for mouse/wheel
+  useEffect(() => {
+    const container = barsContainerRef.current;
+    if (!container) return;
+
+    container.addEventListener('wheel', handleWheel, { passive: false });
+    window.addEventListener('mouseup', handleMouseUp);
+    window.addEventListener('mousemove', handleMouseMove);
+
+    return () => {
+      container.removeEventListener('wheel', handleWheel);
+      window.removeEventListener('mouseup', handleMouseUp);
+      window.removeEventListener('mousemove', handleMouseMove);
+    };
+  }, [handleWheel, handleMouseUp, handleMouseMove]);
+
+  // Zoom button handlers with smart axis zooming
+  const handleZoomIn = useCallback(() => {
+    const zoomFactor = 0.75; // Smaller = zoom in
+    const fullYearRange = FULL_YEAR_RANGE.max - FULL_YEAR_RANGE.min;
+
+    // Smart zoom logic
+    const xIsWiderThanFit = viewBox.width > fitDimensions.width * 1.05;
+    const yIsAtMax = viewBox.height >= totalSchools - 0.1;
+
+    let newWidth, newHeight;
+
+    if (xIsWiderThanFit && yIsAtMax) {
+      newWidth = clamp(viewBox.width * zoomFactor, fitDimensions.width, fullYearRange);
+      newHeight = viewBox.height;
+    } else {
+      newWidth = clamp(viewBox.width * zoomFactor, MIN_YEAR_SPAN, fullYearRange);
+      newHeight = clamp(viewBox.height * zoomFactor, MIN_VISIBLE_SCHOOLS, totalSchools);
+    }
+
+    const centerX = viewBox.x + viewBox.width / 2;
+    const centerY = viewBox.y + viewBox.height / 2;
+
+    setViewBox({
+      x: clamp(centerX - newWidth / 2, FULL_YEAR_RANGE.min, FULL_YEAR_RANGE.max - newWidth),
+      y: clamp(centerY - newHeight / 2, 0, Math.max(0, totalSchools - newHeight)),
+      width: newWidth,
+      height: newHeight,
+    });
+  }, [viewBox, totalSchools, fitDimensions]);
+
+  const handleZoomOut = useCallback(() => {
+    const zoomFactor = 1.33; // Larger = zoom out
+    const fullYearRange = FULL_YEAR_RANGE.max - FULL_YEAR_RANGE.min;
+
+    // Smart zoom logic - if y is at max, only zoom x
+    const yIsAtMax = viewBox.height >= totalSchools - 0.1;
+
+    let newWidth, newHeight;
+
+    if (yIsAtMax) {
+      newWidth = clamp(viewBox.width * zoomFactor, MIN_YEAR_SPAN, fullYearRange);
+      newHeight = viewBox.height;
+    } else {
+      newWidth = clamp(viewBox.width * zoomFactor, MIN_YEAR_SPAN, fullYearRange);
+      newHeight = clamp(viewBox.height * zoomFactor, MIN_VISIBLE_SCHOOLS, totalSchools);
+    }
+
+    const centerX = viewBox.x + viewBox.width / 2;
+    const centerY = viewBox.y + viewBox.height / 2;
+
+    setViewBox({
+      x: clamp(centerX - newWidth / 2, FULL_YEAR_RANGE.min, FULL_YEAR_RANGE.max - newWidth),
+      y: clamp(centerY - newHeight / 2, 0, Math.max(0, totalSchools - newHeight)),
+      width: newWidth,
+      height: newHeight,
+    });
+  }, [viewBox, totalSchools, fitDimensions]);
+
+  const handleReset = useCallback(() => {
+    if (schools.length === 0) return;
+
+    setViewBox({
+      x: fitDimensions.startYear,
+      y: 0,
+      width: fitDimensions.width,
+      height: fitDimensions.height,
+    });
+  }, [schools, fitDimensions]);
 
   const sortedSchools = useMemo(() => {
     return [...schools].sort((a, b) => {
@@ -192,26 +415,38 @@ function SchoolTimeline({ schools }) {
     });
   }, [schools]);
 
-  const yearToPercent = (year) => {
-    if (!timelineConfig) return 0;
-    return ((year - timelineConfig.startYear) / timelineConfig.range) * 100;
-  };
+  // Convert year to X position (percentage)
+  const yearToPercent = useCallback((year) => {
+    return ((year - viewBox.x) / viewBox.width) * 100;
+  }, [viewBox.x, viewBox.width]);
+
+  // Convert school index to Y position (percentage)
+  const schoolToPercent = useCallback((index) => {
+    return ((index - viewBox.y) / viewBox.height) * 100;
+  }, [viewBox.y, viewBox.height]);
 
   const getBarWidth = (school) => {
     return yearToPercent(school.endYear) - yearToPercent(school.startYear);
   };
 
+  // Dynamic grid lines based on zoom level
   const gridLines = useMemo(() => {
-    if (!timelineConfig) return [];
+    const visibleRange = viewBox.width;
+    let step;
+    if (visibleRange <= 100) step = 10;
+    else if (visibleRange <= 200) step = 25;
+    else if (visibleRange <= 500) step = 50;
+    else step = 100;
+
     const lines = [];
-    const step = 50;
-    for (let year = Math.ceil(timelineConfig.startYear / step) * step; year <= timelineConfig.endYear; year += step) {
+    const start = Math.ceil(viewBox.x / step) * step;
+    for (let year = start; year <= viewBox.x + viewBox.width; year += step) {
       lines.push(year);
     }
     return lines;
-  }, [timelineConfig]);
+  }, [viewBox.x, viewBox.width]);
 
-  const handleMouseMove = (e, school) => {
+  const handleBarMouseMove = (e, school) => {
     const rect = containerRef.current?.getBoundingClientRect();
     if (rect) {
       setTooltipPos({
@@ -222,29 +457,40 @@ function SchoolTimeline({ schools }) {
     setHoveredSchool(school);
   };
 
-  const handleMouseLeave = () => {
+  const handleBarMouseLeave = () => {
     setHoveredSchool(null);
   };
 
-  if (!timelineConfig || schools.length === 0) {
+  if (schools.length === 0) {
     return <div className="timeline-empty">No schools selected</div>;
   }
 
-  // Dynamic bar sizing based on available height
-  const minBarHeight = 12;
-  const maxBarHeight = 60; // Allow bars to grow larger when few schools
-  const minGap = 2;
-  const maxGap = 8;
+  // Calculate bar height based on visible schools in viewBox
+  const visibleSchoolCount = Math.ceil(viewBox.height);
   const availableHeight = containerHeight - 32; // Subtract padding
 
-  // Calculate optimal bar height to fit all schools and fill the space
-  const idealBarHeight = Math.floor(availableHeight / sortedSchools.length) - maxGap;
+  // Bar height fills available space for visible schools
+  const minBarHeight = 12;
+  const maxBarHeight = 80;
+  const minGap = 2;
+  const maxGap = 8;
+
+  const idealBarHeight = Math.floor(availableHeight / visibleSchoolCount) - maxGap;
   const barHeight = Math.max(minBarHeight, Math.min(maxBarHeight, idealBarHeight));
   const barGap = barHeight >= 30 ? maxGap : barHeight >= 20 ? 4 : minGap;
-  const totalBarsHeight = sortedSchools.length * (barHeight + barGap);
 
   // Adjust font size based on bar height
   const fontSize = barHeight >= 30 ? 14 : barHeight >= 20 ? 12 : barHeight >= 14 ? 10 : 9;
+
+  // Calculate which schools are visible
+  const visibleSchools = useMemo(() => {
+    const startIdx = Math.max(0, Math.floor(viewBox.y) - 1);
+    const endIdx = Math.min(sortedSchools.length, Math.ceil(viewBox.y + viewBox.height) + 1);
+    return sortedSchools.slice(startIdx, endIdx).map((school, i) => ({
+      ...school,
+      absoluteIndex: startIdx + i,
+    }));
+  }, [sortedSchools, viewBox.y, viewBox.height]);
 
   return (
     <div className="school-timeline" ref={containerRef}>
@@ -257,7 +503,7 @@ function SchoolTimeline({ schools }) {
         <div className="chart-zoom-controls">
           <button
             className="zoom-btn"
-            onClick={isMobile ? handleMobileZoomOut : handleZoomOut}
+            onClick={handleZoomOut}
             title="Zoom out"
             aria-label="Zoom out"
           >
@@ -266,19 +512,19 @@ function SchoolTimeline({ schools }) {
             </svg>
           </button>
           <button
-            className={`zoom-btn zoom-fit-btn ${(isMobile ? mobileZoomLevel === 1 : autoZoom) ? 'active' : ''}`}
-            onClick={isMobile ? handleMobileZoomReset : handleZoomToFit}
-            title={isMobile ? "Reset zoom to 1x" : "Zoom to fit selected schools"}
-            aria-label={isMobile ? "Reset zoom" : "Zoom to fit"}
+            className="zoom-btn zoom-fit-btn"
+            onClick={handleReset}
+            title="Reset to fit all schools"
+            aria-label="Zoom to fit"
           >
             <svg viewBox="0 0 24 24" fill="currentColor" width="18" height="18">
               <path d="M5 15H3v4c0 1.1.9 2 2 2h4v-2H5v-4zM5 5h4V3H5c-1.1 0-2 .9-2 2v4h2V5zm14-2h-4v2h4v4h2V5c0-1.1-.9-2-2-2zm0 16h-4v2h4c1.1 0 2-.9 2-2v-4h-2v4z"/>
             </svg>
-            <span>{isMobile ? `${mobileZoomLevel}x` : 'Fit'}</span>
+            <span>Fit</span>
           </button>
           <button
             className="zoom-btn"
-            onClick={isMobile ? handleMobileZoomIn : handleZoomIn}
+            onClick={handleZoomIn}
             title="Zoom in"
             aria-label="Zoom in"
           >
@@ -286,16 +532,6 @@ function SchoolTimeline({ schools }) {
               <path d="M19 13h-6v6h-2v-6H5v-2h6V5h2v6h6v2z"/>
             </svg>
           </button>
-          {!isMobile && (
-            <label className="auto-zoom-toggle" title="Automatically adjust zoom when schools change">
-              <input
-                type="checkbox"
-                checked={autoZoom}
-                onChange={(e) => setAutoZoom(e.target.checked)}
-              />
-              <span>Auto</span>
-            </label>
-          )}
         </div>
       </div>
 
@@ -307,20 +543,24 @@ function SchoolTimeline({ schools }) {
         </div>
 
         {/* Chart plot area */}
-        <div
-          className="chart-plot-area"
-          style={mobileChartWidth ? { minWidth: `${mobileChartWidth}px` } : undefined}
-        >
-          {/* Scrollable bars area */}
-          <div className="timeline-bars-container" ref={barsContainerRef}>
+        <div className="chart-plot-area">
+          {/* Pan/zoom bars area */}
+          <div
+            className={`timeline-bars-container ${isDragging ? 'dragging' : ''}`}
+            ref={barsContainerRef}
+            onMouseDown={handleMouseDown}
+            onTouchStart={handleTouchStart}
+            onTouchMove={handleTouchMove}
+            onTouchEnd={handleTouchEnd}
+          >
             {/* Background grid - fills entire container */}
             <div className="timeline-grid-background">
               {/* Period background bands */}
               {PERIOD_MARKERS.filter(p =>
-                p.endYear > timelineConfig.startYear && p.year < timelineConfig.endYear
+                p.endYear > viewBox.x && p.year < viewBox.x + viewBox.width
               ).map(period => {
-                const startPercent = Math.max(0, yearToPercent(Math.max(period.year, timelineConfig.startYear)));
-                const endPercent = Math.min(100, yearToPercent(Math.min(period.endYear, timelineConfig.endYear)));
+                const startPercent = Math.max(0, yearToPercent(Math.max(period.year, viewBox.x)));
+                const endPercent = Math.min(100, yearToPercent(Math.min(period.endYear, viewBox.x + viewBox.width)));
                 return (
                   <div
                     key={period.label}
@@ -342,7 +582,7 @@ function SchoolTimeline({ schools }) {
                 />
               ))}
               {/* Period divider lines - vertical separators */}
-              {PERIOD_MARKERS.filter(p => p.year > timelineConfig.startYear && p.year < timelineConfig.endYear).map(period => (
+              {PERIOD_MARKERS.filter(p => p.year > viewBox.x && p.year < viewBox.x + viewBox.width).map(period => (
                 <div
                   key={period.year}
                   className="period-divider"
@@ -351,20 +591,27 @@ function SchoolTimeline({ schools }) {
               ))}
             </div>
 
-            {/* Bars - centered vertically with smooth transitions */}
+            {/* Bars - positioned based on viewBox */}
             <div className="timeline-bars-wrapper">
-              {sortedSchools.map((school, index) => {
+              {visibleSchools.map((school) => {
                 const color = TRADITION_COLORS[school.tradition] || '#9E9E9E';
                 const hasPeak = school.peakStart && school.peakEnd;
                 const barWidthPercent = getBarWidth(school);
+                const topPercent = schoolToPercent(school.absoluteIndex);
+                const heightPercent = 100 / viewBox.height;
 
                 return (
                   <div
-                    key={school.name}
+                    key={`${school.name}-${school.absoluteIndex}`}
                     className="timeline-row"
                     style={{
-                      height: barHeight,
-                      marginBottom: index < sortedSchools.length - 1 ? barGap : 0,
+                      position: 'absolute',
+                      top: `${topPercent}%`,
+                      height: `${heightPercent}%`,
+                      left: 0,
+                      right: 0,
+                      padding: `${barGap / 2}px 0`,
+                      boxSizing: 'border-box',
                     }}
                   >
                     <div
@@ -374,8 +621,8 @@ function SchoolTimeline({ schools }) {
                         width: `${barWidthPercent}%`,
                         backgroundColor: color,
                       }}
-                      onMouseMove={(e) => handleMouseMove(e, school)}
-                      onMouseLeave={handleMouseLeave}
+                      onMouseMove={(e) => handleBarMouseMove(e, school)}
+                      onMouseLeave={handleBarMouseLeave}
                     >
                       {hasPeak && (
                         <div
@@ -400,7 +647,7 @@ function SchoolTimeline({ schools }) {
             <div className="x-axis-line" />
 
             {/* Period dividers extending down */}
-            {PERIOD_MARKERS.filter(p => p.year >= timelineConfig.startYear && p.year <= timelineConfig.endYear).map(period => (
+            {PERIOD_MARKERS.filter(p => p.year >= viewBox.x && p.year <= viewBox.x + viewBox.width).map(period => (
               <div
                 key={`divider-${period.year}`}
                 className="x-axis-period-divider"
@@ -422,15 +669,13 @@ function SchoolTimeline({ schools }) {
               ))}
             </div>
 
-            {/* Period labels */}
             {/* Period labels - centered within each band */}
             <div className="x-axis-periods">
               {PERIOD_MARKERS.filter(p =>
-                p.endYear > timelineConfig.startYear && p.year < timelineConfig.endYear
+                p.endYear > viewBox.x && p.year < viewBox.x + viewBox.width
               ).map(period => {
-                const startPercent = Math.max(0, yearToPercent(Math.max(period.year, timelineConfig.startYear)));
-                const endPercent = Math.min(100, yearToPercent(Math.min(period.endYear, timelineConfig.endYear)));
-                const centerPercent = (startPercent + endPercent) / 2;
+                const startPercent = Math.max(0, yearToPercent(Math.max(period.year, viewBox.x)));
+                const endPercent = Math.min(100, yearToPercent(Math.min(period.endYear, viewBox.x + viewBox.width)));
                 return (
                   <div
                     key={period.label}
@@ -452,6 +697,11 @@ function SchoolTimeline({ schools }) {
           <div className="x-axis-title">
             <span>Year (CE)</span>
           </div>
+        </div>
+
+        {/* Pan/zoom hint */}
+        <div className="timeline-hint">
+          {isMobile ? 'Pinch to zoom, drag to pan' : 'Scroll to zoom, drag to pan'}
         </div>
       </div>
 
