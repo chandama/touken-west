@@ -3098,7 +3098,24 @@ app.post('/api/juyo/session/:session/not-found/:bladeNumber', authenticateToken,
 // Save a match
 app.post('/api/juyo/match', authenticateToken, requireEditor, async (req, res) => {
   try {
-    const { session, bladeNumber, originalName, matchedIndex, matchedItem, matchedAttribution, matchedMei, nagasa, sori } = req.body;
+    const {
+      session: rawSession,
+      bladeNumber: rawBladeNumber,
+      originalName,
+      matchedIndex,
+      matchedItem,
+      matchedAttribution,
+      matchedMei,
+      nagasa,
+      sori
+    } = req.body;
+
+    const session = parseInt(rawSession, 10);
+    const bladeNumber = parseInt(rawBladeNumber, 10);
+
+    if (!Number.isFinite(session) || !Number.isFinite(bladeNumber)) {
+      return res.status(400).json({ error: 'Invalid session or bladeNumber' });
+    }
 
     const match = await JuyoMatch.findOneAndUpdate(
       { session, bladeNumber },
