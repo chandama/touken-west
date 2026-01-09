@@ -2908,19 +2908,42 @@ app.get('/api/juyo/sessions', authenticateToken, requireEditor, async (req, res)
 
     // Get stats for each session
     const sessionStats = await Promise.all(sessions.map(async (session) => {
-      const total = await JuyoMatch.countDocuments({ session });
-      const matched = await JuyoMatch.countDocuments({ session, status: 'matched' });
-      const renamed = await JuyoMatch.countDocuments({ session, status: 'renamed' });
+      // Index count - count blade-type entries for this session (matches detail page filter)
+      const indexTotal = juyoIndexData.filter(row =>
+        parseInt(row.Session, 10) === session && isBladeType(row.Item || '')
+      ).length;
+
+      // Count renamed blades from S3 (renamed files match pattern: session_index_...)
+      let renamed = 0;
+      try {
+        const prefix = `Juyo Zufu/${session}/jpg/`;
+        const objects = await listSpacesObjects(prefix);
+        const renamedBlades = new Set();
+        for (const key of objects) {
+          const filename = key.replace(prefix, '');
+          // Renamed files start with "session_index_" pattern
+          const renamedMatch = filename.match(/^(\d+)_(\d+)_/);
+          if (renamedMatch) {
+            renamedBlades.add(renamedMatch[2]); // Use index number as unique identifier
+          }
+        }
+        renamed = renamedBlades.size;
+      } catch (err) {
+        console.error(`Error counting S3 blades for session ${session}:`, err.message);
+      }
+
+      // Get not_found count from DB
+      const notFound = await JuyoMatch.countDocuments({ session, status: 'not_found' });
 
       return {
         session,
-        total,
-        matched,
+        indexTotal,
         renamed,
-        pending: total - matched - renamed
+        notFound
       };
     }));
 
+    console.log('Sessions API called - Sample data:', JSON.stringify(sessionStats[0]));
     res.json(sessionStats);
   } catch (error) {
     console.error('Error getting sessions:', error);
@@ -3104,6 +3127,7 @@ app.post('/api/juyo/match', authenticateToken, requireEditor, async (req, res) =
       originalName,
       matchedIndex,
       matchedItem,
+      itemOverride,
       matchedAttribution,
       matchedMei,
       nagasa,
@@ -3125,6 +3149,7 @@ app.post('/api/juyo/match', authenticateToken, requireEditor, async (req, res) =
         originalName,
         matchedIndex,
         matchedItem,
+        itemOverride: itemOverride || null,
         matchedAttribution,
         matchedMei,
         nagasa,
@@ -3193,7 +3218,8 @@ app.post('/api/juyo/session/:session/rename', authenticateToken, requireAdmin, a
 
     for (const match of matches) {
       try {
-        // Generate new filename
+        // Generate new filename - use itemOverride if set, otherwise matchedItem
+        const bladeType = match.itemOverride || match.matchedItem;
         const nagasaStr = match.nagasa ? match.nagasa.toFixed(1) : 'NA';
         const soriStr = match.sori ? match.sori.toFixed(1) : 'NA';
 
@@ -3203,7 +3229,7 @@ app.post('/api/juyo/session/:session/rename', authenticateToken, requireAdmin, a
           .replace(/_+/g, '_')
           .trim();
 
-        const newBaseName = `${session}_${String(match.matchedIndex).padStart(3, '0')}_${match.matchedItem}_${cleanAttribution}_${nagasaStr}_${soriStr}`;
+        const newBaseName = `${session}_${String(match.matchedIndex).padStart(3, '0')}_${bladeType}_${cleanAttribution}_${nagasaStr}_${soriStr}`;
 
         // Rename both pages
         for (let page = 1; page <= 2; page++) {
@@ -3262,7 +3288,8 @@ app.post('/api/juyo/session/:session/rename/:bladeNumber', authenticateToken, re
       return res.status(400).json({ error: 'No matched blade found to rename' });
     }
 
-    // Generate new filename
+    // Generate new filename - use itemOverride if set, otherwise matchedItem
+    const bladeType = match.itemOverride || match.matchedItem;
     const nagasaStr = match.nagasa ? match.nagasa.toFixed(1) : 'NA';
     const soriStr = match.sori ? match.sori.toFixed(1) : 'NA';
 
@@ -3272,7 +3299,7 @@ app.post('/api/juyo/session/:session/rename/:bladeNumber', authenticateToken, re
       .replace(/_+/g, '_')
       .trim();
 
-    const newBaseName = `${session}_${String(match.matchedIndex).padStart(3, '0')}_${match.matchedItem}_${cleanAttribution}_${nagasaStr}_${soriStr}`;
+    const newBaseName = `${session}_${String(match.matchedIndex).padStart(3, '0')}_${bladeType}_${cleanAttribution}_${nagasaStr}_${soriStr}`;
 
     // Rename both pages
     for (let page = 1; page <= 2; page++) {

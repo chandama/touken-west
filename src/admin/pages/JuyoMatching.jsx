@@ -5,6 +5,20 @@ import '../styles/juyo-matching.css';
 
 const API_BASE = import.meta.env.VITE_API_URL || 'http://localhost:3002/api';
 
+// Blade type options for override dropdown
+const BLADE_TYPES = [
+  'Katana',
+  'Tachi',
+  'Wakizashi',
+  'Tantō',
+  'Ken',
+  'Naginata',
+  'Naoshi',
+  'Yari',
+  'Nagamaki',
+  'Kodachi'
+];
+
 function JuyoMatching() {
   const { user } = useAuth();
 
@@ -23,6 +37,7 @@ function JuyoMatching() {
   const [selectedIndexIdx, setSelectedIndexIdx] = useState(null);
   const [nagasa, setNagasa] = useState('');
   const [sori, setSori] = useState('');
+  const [typeOverride, setTypeOverride] = useState('');
   const [filterText, setFilterText] = useState('');
 
   // UI state
@@ -37,7 +52,7 @@ function JuyoMatching() {
   const loadSessions = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API_BASE}/juyo/sessions`);
+      const response = await axios.get(`${API_BASE}/juyo/sessions?_t=${Date.now()}`);
       setSessions(response.data);
       setLoading(false);
     } catch (err) {
@@ -69,6 +84,7 @@ function JuyoMatching() {
       setSelectedIndexIdx(null);
       setNagasa('');
       setSori('');
+      setTypeOverride('');
       setLoading(false);
     } catch (err) {
       setError(err.response?.data?.error || err.message);
@@ -82,6 +98,7 @@ function JuyoMatching() {
       const blade = blades[currentBladeIdx];
       setNagasa(blade.nagasa || '');
       setSori(blade.sori || '');
+      setTypeOverride(blade.itemOverride || '');
 
       // Find matched index if exists
       if (blade.matchedIndex) {
@@ -143,6 +160,7 @@ function JuyoMatching() {
         originalName: currentBlade.name,
         matchedIndex: selectedEntry?.index || null,
         matchedItem: selectedEntry?.item || null,
+        itemOverride: typeOverride || null,
         matchedAttribution: selectedEntry?.attribution || null,
         matchedMei: selectedEntry?.mei || null,
         nagasa: nagasa ? parseFloat(nagasa) : null,
@@ -155,6 +173,7 @@ function JuyoMatching() {
         ...currentBlade,
         matchedIndex: selectedEntry?.index || null,
         matchedItem: selectedEntry?.item || null,
+        itemOverride: typeOverride || null,
         matchedAttribution: selectedEntry?.attribution || null,
         nagasa: nagasa ? parseFloat(nagasa) : null,
         sori: sori ? parseFloat(sori) : null,
@@ -282,20 +301,44 @@ function JuyoMatching() {
         <div className="session-selector">
           <h3>Select a Session</h3>
           <div className="session-grid">
-            {sessions.map(s => (
-              <button
-                key={s.session}
-                className="session-card"
-                onClick={() => setSelectedSession(s.session)}
-              >
-                <div className="session-number">Session {s.session}</div>
-                <div className="session-stats">
-                  <span className="stat-matched">{s.matched} matched</span>
-                  <span className="stat-renamed">{s.renamed} renamed</span>
-                  <span className="stat-pending">{s.pending || '?'} pending</span>
-                </div>
-              </button>
-            ))}
+            {sessions.map(s => {
+              const renamed = s.renamed || 0;
+              const notFound = s.notFound || 0;
+              const indexTotal = s.indexTotal || 0;
+              const pending = indexTotal - renamed - notFound;
+              const indexPercent = indexTotal > 0 ? Math.round((renamed / indexTotal) * 100) : 0;
+              return (
+                <button
+                  key={s.session}
+                  className="session-card"
+                  onClick={() => setSelectedSession(s.session)}
+                >
+                  <div className="session-card-header">
+                    <span className="session-number">Session {s.session}</span>
+                    {indexPercent === 100 && <span className="complete-badge">Complete</span>}
+                  </div>
+                  <div className="session-card-body">
+                    <div className="session-stats">
+                      <span className="stat-item stat-renamed">{renamed} renamed</span>
+                      {notFound > 0 && <span className="stat-item stat-not-found">{notFound} not found</span>}
+                      <span className="stat-item stat-pending">{pending} pending</span>
+                    </div>
+                  </div>
+                  <div className="session-progress">
+                    <div className="progress-bar">
+                      <div
+                        className="progress-bar-fill"
+                        style={{ width: `${indexPercent}%` }}
+                      />
+                    </div>
+                    <div className="progress-label-row">
+                      <span>{renamed}/{indexTotal}</span>
+                      <span>{indexPercent}%</span>
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
           </div>
         </div>
       ) : (
@@ -306,9 +349,15 @@ function JuyoMatching() {
               &larr; Back to Sessions
             </button>
             <div className="toolbar-title">Session {selectedSession}</div>
-            <div className="toolbar-stats">
-              <span>Matched: {matchedCount}/{blades.length}</span>
-              <span>Renamed: {renamedCount}</span>
+            <div className="toolbar-progress">
+              <span className="progress-label">Renamed: {renamedCount}/{blades.length}</span>
+              <div className="progress-bar">
+                <div
+                  className="progress-bar-fill"
+                  style={{ width: `${blades.length > 0 ? Math.round((renamedCount / blades.length) * 100) : 0}%` }}
+                />
+              </div>
+              <span className="progress-label">{blades.length > 0 ? Math.round((renamedCount / blades.length) * 100) : 0}%</span>
             </div>
             <div className="toolbar-nav">
               <button onClick={goToPrev} disabled={currentBladeIdx === 0}>&larr;</button>
@@ -431,7 +480,26 @@ function JuyoMatching() {
                       </div>
                       <div className="detail-row">
                         <span className="label">Type:</span>
-                        <span className="value">{selectedEntry.item}</span>
+                        <span className="value">
+                          <select
+                            className="type-override-select"
+                            value={typeOverride || selectedEntry.item}
+                            onChange={(e) => setTypeOverride(e.target.value !== selectedEntry.item ? e.target.value : '')}
+                          >
+                            {/* Show original index type first if not in standard list */}
+                            {!BLADE_TYPES.includes(selectedEntry.item) && (
+                              <option value={selectedEntry.item}>{selectedEntry.item} (original)</option>
+                            )}
+                            {BLADE_TYPES.map(type => (
+                              <option key={type} value={type}>
+                                {type}{type === selectedEntry.item ? ' (original)' : ''}
+                              </option>
+                            ))}
+                          </select>
+                          {typeOverride && typeOverride !== selectedEntry.item && (
+                            <span className="override-indicator">overridden</span>
+                          )}
+                        </span>
                       </div>
                       <div className="detail-row">
                         <span className="label">Attribution:</span>
