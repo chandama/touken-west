@@ -184,7 +184,7 @@ app.use(compression({
 // Rate limiting (higher limit in development)
 const limiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
-  max: process.env.NODE_ENV === 'development' ? 1000 : 100,
+  max: process.env.NODE_ENV === 'development' ? 1000 : 200,
   message: 'Too many requests from this IP, please try again later.',
 });
 app.use('/api/', limiter);
