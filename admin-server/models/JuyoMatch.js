@@ -21,6 +21,7 @@ const juyoMatchSchema = new mongoose.Schema({
     default: null
   },
   matchedItem: String,      // e.g., "Katana", "Tachi"
+  itemOverride: String,     // User override for blade type (used in filename if set)
   matchedAttribution: String, // e.g., "Rai Kunitoshi"
   matchedMei: String,
   // Measurements entered by user
