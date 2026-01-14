@@ -614,16 +614,25 @@ function SwordEdit() {
               return (
               <div key={idx} className={`media-item ${isCover ? 'is-cover-image' : ''}`}>
                 {isPdf ? (
-                  <div className="media-pdf" onClick={() => window.open(media.url, '_blank')} style={{ cursor: 'pointer' }}>
+                  <a
+                    href={media.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="admin-pdf-link"
+                    onClick={(e) => {
+                      console.log('PDF link clicked!', media.url);
+                      // Don't prevent default - let the anchor work naturally
+                    }}
+                  >
                     <div className="pdf-icon">📄</div>
                     <div className="pdf-name">{displayName}</div>
-                  </div>
+                  </a>
                 ) : (
                   <img
                     src={media.thumbnailUrl || media.url}
                     alt={media.caption || 'Sword image'}
                     className="media-thumbnail"
-                    onClick={() => window.open(media.url, '_blank')}
+                    onClick={() => window.open(media.url, '_blank', 'noopener,noreferrer')}
                   />
                 )}
 

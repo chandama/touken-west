@@ -606,13 +606,22 @@ select {
   opacity: 0.9;
 }
 
-.media-pdf {
-  height: 200px;
+.admin-pdf-link {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
+  width: 100%;
+  height: 200px;
   background-color: #f3f4f6;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-decoration: none;
+  color: inherit;
+}
+
+.admin-pdf-link:hover {
+  background-color: #e5e7eb;
 }
 
 .pdf-icon {
@@ -2551,7 +2560,7 @@ select {
   border-color: var(--color-border);
 }
 
-.dark-mode .media-pdf {
+.dark-mode .admin-pdf-link {
   background-color: var(--color-background);
 }
 
