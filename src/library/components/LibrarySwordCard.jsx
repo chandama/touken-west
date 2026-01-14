@@ -1,5 +1,5 @@
 import React from 'react';
-import { getPriorityThumbnail, getThumbnailUrl, isPdfFile, isImageFile } from '../../utils/mediaUtils.js';
+import { getPriorityThumbnail, getThumbnailUrl, isPdfFile, isImageFile, hasTranslationPdf } from '../../utils/mediaUtils.js';
 
 /**
  * Get the count of media attachments for a sword
@@ -22,6 +22,7 @@ const LibrarySwordCard = ({ sword, onClick }) => {
   const thumbnail = getPriorityThumbnail(sword);
   const thumbnailUrl = getThumbnailUrl(thumbnail);
   const mediaCount = getMediaCount(sword);
+  const hasTranslation = hasTranslationPdf(sword);
 
   // Check if the thumbnail is actually an image (not a PDF)
   const isImage = thumbnail && isImageFile(thumbnail);
@@ -82,6 +83,9 @@ const LibrarySwordCard = ({ sword, onClick }) => {
           </div>
         )}
       </div>
+      {hasTranslation && (
+        <span className="card-translation-badge">T</span>
+      )}
     </div>
   );
 };
