@@ -166,3 +166,53 @@ export function isPdfFile(mediaItem) {
   if (!mediaItem || !mediaItem.url) return false;
   return mediaItem.url.toLowerCase().endsWith('.pdf');
 }
+
+/**
+ * Check if sword has a translation PDF available
+ * Looks for PDFs with "translation" or "translated" in caption, tags, or filename
+ * @param {Object} sword - Sword object
+ * @returns {boolean}
+ */
+export function hasTranslationPdf(sword) {
+  try {
+    const media = parseMediaAttachments(sword.MediaAttachments);
+    if (media.length === 0) return false;
+
+    // Filter for PDFs
+    const pdfs = media.filter(item => {
+      // Check mimeType first (most reliable)
+      if (item.mimeType === 'application/pdf') return true;
+      // Fallback to file extension check
+      return isPdfFile(item);
+    });
+
+    // Check if any PDF has translation-related keywords
+    return pdfs.some(pdf => {
+      // Check caption
+      const caption = (pdf.caption || '').toLowerCase();
+      if (caption.includes('translation') || caption.includes('translated')) {
+        return true;
+      }
+
+      // Check tags
+      if (pdf.tags && Array.isArray(pdf.tags)) {
+        const hasTranslationTag = pdf.tags.some(tag =>
+          tag.toLowerCase().includes('translation') ||
+          tag.toLowerCase().includes('translated')
+        );
+        if (hasTranslationTag) return true;
+      }
+
+      // Check original filename
+      const filename = (pdf.originalFilename || '').toLowerCase();
+      if (filename.includes('translation') || filename.includes('translated')) {
+        return true;
+      }
+
+      return false;
+    });
+  } catch (error) {
+    console.error('Error checking for translation PDF:', error);
+    return false;
+  }
+}
