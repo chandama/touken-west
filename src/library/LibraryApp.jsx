@@ -14,6 +14,7 @@ import useDocumentMeta from '../hooks/useDocumentMeta.js';
 import { hasValidMedia } from '../utils/mediaUtils.js';
 import { parseSearchInput, matchesSearchTerms } from '../utils/searchParser.js';
 import { matchesPeriodFilter } from '../utils/periodUtils.js';
+import { parseUrlFilters, updateUrlWithFilters } from '../utils/urlFilters.js';
 import { AuthProvider, useAuth } from '../context/AuthContext.jsx';
 import Footer from '../components/Footer.jsx';
 
@@ -26,18 +27,21 @@ function LibraryAppContent() {
   // Show login modal state
   const [showLogin, setShowLogin] = useState(false);
 
+  // Parse initial state from URL parameters
+  const initialParams = new URLSearchParams(window.location.search);
+  const initialUrlState = parseUrlFilters(initialParams);
+
+  // If there's a sword parameter, add it as a quoted search term
+  const swordParam = initialParams.get('sword');
+  const initialSearchTags = swordParam
+    ? [...initialUrlState.searchTags, `"${swordParam}"`]
+    : initialUrlState.searchTags;
+
   // Filter state (same as App.jsx but with hasMedia forced to 'true')
-  const [searchTags, setSearchTags] = useState([]);
+  const [searchTags, setSearchTags] = useState(initialSearchTags);
   const [filters, setFilters] = useState({
-    school: '',
-    smith: '',
-    type: '',
-    authentication: '',
-    province: '',
-    hasMedia: 'true', // Always true for library
-    nagasaMin: '',
-    nagasaMax: '',
-    periods: []
+    ...initialUrlState.filters,
+    hasMedia: 'true', // Always true for library, override URL value
   });
   const [filterGroups, setFilterGroups] = useState([]);
 
@@ -75,6 +79,34 @@ function LibraryAppContent() {
       document.body.classList.remove('dark-mode');
     }
   }, [isDarkMode]);
+
+  // Update URL when filters or search tags change
+  useEffect(() => {
+    updateUrlWithFilters(filters, searchTags);
+  }, [filters, searchTags]);
+
+  // Handle browser back/forward navigation
+  useEffect(() => {
+    const handlePopState = () => {
+      const params = new URLSearchParams(window.location.search);
+      const urlState = parseUrlFilters(params);
+
+      // If there's a sword parameter, add it as a quoted search term
+      const swordParam = params.get('sword');
+      const newSearchTags = swordParam
+        ? [...urlState.searchTags, `"${swordParam}"`]
+        : urlState.searchTags;
+
+      setFilters({
+        ...urlState.filters,
+        hasMedia: 'true', // Always force hasMedia to true for library
+      });
+      setSearchTags(newSearchTags);
+    };
+
+    window.addEventListener('popstate', handlePopState);
+    return () => window.removeEventListener('popstate', handlePopState);
+  }, []);
 
   const toggleDarkMode = () => {
     setIsDarkMode(prev => !prev);
@@ -188,19 +220,7 @@ function LibraryAppContent() {
     });
   }, [swordsWithMedia, searchTags, filters, filterGroups]);
 
-  // Handle URL query params for direct linking
-  useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    const swordId = params.get('sword');
-    if (swordId && filteredSwords.length > 0) {
-      const index = filteredSwords.findIndex(s => String(s.Index) === swordId);
-      if (index !== -1) {
-        setSelectedSwordIndex(index);
-      }
-    }
-  }, [filteredSwords]);
-
-  // Update URL when sword selected
+  // Update URL when sword selected (keeps sword parameter in sync with lightbox)
   useEffect(() => {
     if (selectedSwordIndex !== null && filteredSwords[selectedSwordIndex]) {
       const sword = filteredSwords[selectedSwordIndex];
