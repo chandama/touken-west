@@ -1164,10 +1164,15 @@ app.get('/api/swords', async (req, res) => {
     // Paginate
     const skip = (pageNum - 1) * limitNum;
 
-    const swords = await Sword.find(query)
-      .skip(skip)
-      .limit(limitNum)
-      .lean();
+    // Use aggregation for proper numeric sorting of Index field (stored as string)
+    const swords = await Sword.aggregate([
+      { $match: query },
+      { $addFields: { _indexNum: { $toInt: "$Index" } } },
+      { $sort: { _indexNum: 1 } },
+      { $skip: skip },
+      { $limit: limitNum },
+      { $project: { _indexNum: 0 } }
+    ]);
 
     const responseData = {
       swords,
@@ -1206,10 +1211,13 @@ app.get('/api/swords', async (req, res) => {
 app.get('/api/swords/initial', async (req, res) => {
   try {
     // Return first 100 swords with minimal processing for fast initial render
-    const swords = await Sword.find({})
-      .sort({ Index: 1 })
-      .limit(100)
-      .lean();
+    // Use aggregation for proper numeric sorting of Index field (stored as string)
+    const swords = await Sword.aggregate([
+      { $addFields: { _indexNum: { $toInt: "$Index" } } },
+      { $sort: { _indexNum: 1 } },
+      { $limit: 100 },
+      { $project: { _indexNum: 0 } }
+    ]);
 
     const total = await Sword.estimatedDocumentCount();
 

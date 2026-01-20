@@ -11,7 +11,7 @@ import LibraryGallery from './components/LibraryGallery.jsx';
 import LibraryLightbox from './components/LibraryLightbox.jsx';
 import useSwordData from '../hooks/useSwordData.js';
 import useDocumentMeta from '../hooks/useDocumentMeta.js';
-import { hasValidMedia } from '../utils/mediaUtils.js';
+import { hasValidMedia, parseMediaAttachments, hasTranslationPdf } from '../utils/mediaUtils.js';
 import { parseSearchInput, matchesSearchTerms } from '../utils/searchParser.js';
 import { matchesPeriodFilter } from '../utils/periodUtils.js';
 import { parseUrlFilters, updateUrlWithFilters } from '../utils/urlFilters.js';
@@ -220,6 +220,22 @@ function LibraryAppContent() {
     });
   }, [swordsWithMedia, searchTags, filters, filterGroups]);
 
+  // Compute library stats: total images and translations for filtered results
+  const libraryStats = useMemo(() => {
+    let totalImages = 0;
+    let translationCount = 0;
+
+    filteredSwords.forEach(sword => {
+      const media = parseMediaAttachments(sword.MediaAttachments);
+      totalImages += media.length;
+      if (hasTranslationPdf(sword)) {
+        translationCount++;
+      }
+    });
+
+    return { totalImages, translationCount };
+  }, [filteredSwords]);
+
   // Update URL when sword selected (keeps sword parameter in sync with lightbox)
   useEffect(() => {
     if (selectedSwordIndex !== null && filteredSwords[selectedSwordIndex]) {
@@ -399,7 +415,7 @@ function LibraryAppContent() {
           </div>
 
           <div className="library-results-info">
-            Showing {filteredSwords.length.toLocaleString()} of {swordsWithMedia.length.toLocaleString()} swords with images
+            Showing {libraryStats.totalImages.toLocaleString()} images and {libraryStats.translationCount.toLocaleString()} translations of {filteredSwords.length.toLocaleString()} swords
           </div>
 
           <LibraryGallery
