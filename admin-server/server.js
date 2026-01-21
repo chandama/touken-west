@@ -420,10 +420,10 @@ function buildSearchQuery(searchTerms) {
         const quotedConditions = searchFields.map(field => ({
           [field]: { $regex: new RegExp(`\\b${safePhrase}\\b`, 'i') }
         }));
-        // Also check if the phrase is a number matching Index
+        // Also check if the phrase is a number matching Index (stored as String)
         const indexNum = parseInt(phrase, 10);
         if (!isNaN(indexNum)) {
-          quotedConditions.push({ Index: indexNum });
+          quotedConditions.push({ Index: String(indexNum) });
         }
         termConditions.push({ $or: quotedConditions });
       });
@@ -435,10 +435,10 @@ function buildSearchQuery(searchTerms) {
         const unquotedConditions = searchFields.map(field => ({
           [field]: { $regex: new RegExp(safeWord, 'i') }
         }));
-        // Also check if the word is a number matching Index
+        // Also check if the word is a number matching Index (stored as String)
         const indexNum = parseInt(word, 10);
         if (!isNaN(indexNum) && word === String(indexNum)) {
-          unquotedConditions.push({ Index: indexNum });
+          unquotedConditions.push({ Index: String(indexNum) });
         }
         termConditions.push({ $or: unquotedConditions });
       });
