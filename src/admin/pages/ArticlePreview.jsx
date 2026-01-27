@@ -500,6 +500,40 @@ function ArticlePreview() {
           max-width: 80ch;
         }
 
+        /* Table styles */
+        .article-html-content table,
+        .article-html-content table.article-table {
+          border-collapse: collapse;
+          margin: 1.5rem 0;
+          width: 100%;
+        }
+
+        .article-html-content table th,
+        .article-html-content table td {
+          border: 1px solid #d1d5db;
+          padding: 0.75rem 1rem;
+          vertical-align: top;
+          text-align: left;
+        }
+
+        .article-html-content table th {
+          background: #f3f4f6;
+          font-weight: 600;
+          color: #1f2937;
+        }
+
+        .article-html-content table td {
+          background: white;
+        }
+
+        .article-html-content table tr:nth-child(even) td {
+          background: #f9fafb;
+        }
+
+        .article-html-content table p {
+          margin: 0;
+        }
+
         .article-html-content a {
           color: #3b82f6;
           text-decoration: underline;
@@ -671,6 +705,25 @@ function ArticlePreview() {
           color: #9ca3af;
         }
 
+        /* Dark mode table styles */
+        body.dark-mode .article-html-content table th,
+        body.dark-mode .article-html-content table td {
+          border-color: #4b5563;
+        }
+
+        body.dark-mode .article-html-content table th {
+          background: #374151;
+          color: #f9fafb;
+        }
+
+        body.dark-mode .article-html-content table td {
+          background: #1f2937;
+        }
+
+        body.dark-mode .article-html-content table tr:nth-child(even) td {
+          background: #111827;
+        }
+
         body.dark-mode .no-content {
           background: #1f2937;
         }
@@ -706,6 +759,12 @@ function ArticlePreview() {
           .pdf-iframe {
             height: 60vh;
             min-height: 400px;
+          }
+
+          .article-html-content table {
+            display: block;
+            max-width: 100%;
+            overflow-x: auto;
           }
         }
       `}</style>

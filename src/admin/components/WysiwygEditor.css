@@ -97,6 +97,71 @@
   border-color: #3b82f6;
 }
 
+/* Table Menu */
+.table-menu-container {
+  position: relative;
+  display: inline-block;
+}
+
+.table-menu-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 99;
+}
+
+.table-menu-dropdown {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  margin-top: 4px;
+  background: white;
+  border: 1px solid #d1d5db;
+  border-radius: 6px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 100;
+  min-width: 180px;
+  padding: 0.25rem 0;
+}
+
+.table-menu-dropdown button {
+  display: block;
+  width: 100%;
+  padding: 0.5rem 1rem;
+  text-align: left;
+  border: none;
+  background: transparent;
+  color: #374151;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.table-menu-dropdown button:hover:not(:disabled) {
+  background: #f3f4f6;
+}
+
+.table-menu-dropdown button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.table-menu-dropdown button.danger {
+  color: #dc2626;
+}
+
+.table-menu-dropdown button.danger:hover {
+  background: #fef2f2;
+}
+
+.table-menu-separator {
+  height: 1px;
+  background: #e5e7eb;
+  margin: 0.25rem 0;
+}
+
 .editor-statusbar {
   display: flex;
   justify-content: flex-end;
@@ -281,6 +346,57 @@
   max-width: 80ch;
 }
 
+/* Table styles in editor */
+.editor-content .tiptap table.article-table {
+  border-collapse: collapse;
+  margin: 1rem 0;
+  width: 100%;
+  table-layout: fixed;
+}
+
+.editor-content .tiptap table.article-table th,
+.editor-content .tiptap table.article-table td {
+  border: 1px solid #d1d5db;
+  padding: 0.5rem 0.75rem;
+  vertical-align: top;
+  min-width: 50px;
+  position: relative;
+}
+
+.editor-content .tiptap table.article-table th {
+  background: #f3f4f6;
+  font-weight: 600;
+  text-align: left;
+}
+
+.editor-content .tiptap table.article-table td {
+  background: white;
+}
+
+.editor-content .tiptap table.article-table .selectedCell {
+  background: #dbeafe;
+}
+
+.editor-content .tiptap table.article-table th.selectedCell {
+  background: #bfdbfe;
+}
+
+/* Table resize handle */
+.editor-content .tiptap .column-resize-handle {
+  position: absolute;
+  right: -2px;
+  top: 0;
+  bottom: 0;
+  width: 4px;
+  background: #3b82f6;
+  cursor: col-resize;
+  z-index: 10;
+}
+
+.editor-content .tiptap table.article-table p {
+  margin: 0;
+}
+
 .editor-content .tiptap hr {
   border: none;
   border-top: 2px solid #e5e7eb;
@@ -413,6 +529,54 @@ body.dark-mode .editor-content .tiptap figure.article-figure + p {
 
 body.dark-mode .editor-content .tiptap figcaption {
   color: #9ca3af;
+}
+
+/* Dark mode table styles */
+body.dark-mode .editor-content .tiptap table.article-table th,
+body.dark-mode .editor-content .tiptap table.article-table td {
+  border-color: #4b5563;
+}
+
+body.dark-mode .editor-content .tiptap table.article-table th {
+  background: #374151;
+}
+
+body.dark-mode .editor-content .tiptap table.article-table td {
+  background: #1f2937;
+}
+
+body.dark-mode .editor-content .tiptap table.article-table .selectedCell {
+  background: #1e3a5f;
+}
+
+body.dark-mode .editor-content .tiptap table.article-table th.selectedCell {
+  background: #1e4d8f;
+}
+
+/* Dark mode table menu */
+body.dark-mode .table-menu-dropdown {
+  background: #1f2937;
+  border-color: #4b5563;
+}
+
+body.dark-mode .table-menu-dropdown button {
+  color: #e5e7eb;
+}
+
+body.dark-mode .table-menu-dropdown button:hover:not(:disabled) {
+  background: #374151;
+}
+
+body.dark-mode .table-menu-dropdown button.danger {
+  color: #f87171;
+}
+
+body.dark-mode .table-menu-dropdown button.danger:hover {
+  background: #450a0a;
+}
+
+body.dark-mode .table-menu-separator {
+  background: #4b5563;
 }
 
 /* Image Insert Modal */
