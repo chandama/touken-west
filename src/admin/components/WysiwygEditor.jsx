@@ -8,6 +8,10 @@ import TextAlign from '@tiptap/extension-text-align';
 import { TextStyle } from '@tiptap/extension-text-style';
 import { FontFamily } from '@tiptap/extension-font-family';
 import Underline from '@tiptap/extension-underline';
+import { Table } from '@tiptap/extension-table';
+import { TableRow } from '@tiptap/extension-table-row';
+import { TableHeader } from '@tiptap/extension-table-header';
+import { TableCell } from '@tiptap/extension-table-cell';
 import { Extension } from '@tiptap/core';
 import './WysiwygEditor.css';
 
@@ -257,6 +261,84 @@ function ImageInsertModal({ isOpen, onClose, onInsert, onUpdate, imageUrl: initi
   );
 }
 
+// Table Menu Component
+function TableMenu({ editor }) {
+  const [isOpen, setIsOpen] = useState(false);
+
+  if (!editor) return null;
+
+  const insertTable = () => {
+    editor.chain().focus().insertTable({ rows: 3, cols: 3, withHeaderRow: true }).run();
+    setIsOpen(false);
+  };
+
+  const isInTable = editor.isActive('table');
+
+  return (
+    <div className="table-menu-container">
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={isInTable ? 'active' : ''}
+        title="Table"
+      >
+        Table
+      </button>
+      {isOpen && (
+        <>
+          <div className="table-menu-backdrop" onClick={() => setIsOpen(false)} />
+          <div className="table-menu-dropdown">
+            {!isInTable ? (
+              <button type="button" onClick={insertTable}>
+                Insert 3x3 Table
+              </button>
+            ) : (
+              <>
+                <button type="button" onClick={() => { editor.chain().focus().addColumnBefore().run(); setIsOpen(false); }}>
+                  Add Column Before
+                </button>
+                <button type="button" onClick={() => { editor.chain().focus().addColumnAfter().run(); setIsOpen(false); }}>
+                  Add Column After
+                </button>
+                <button type="button" onClick={() => { editor.chain().focus().deleteColumn().run(); setIsOpen(false); }}>
+                  Delete Column
+                </button>
+                <div className="table-menu-separator" />
+                <button type="button" onClick={() => { editor.chain().focus().addRowBefore().run(); setIsOpen(false); }}>
+                  Add Row Before
+                </button>
+                <button type="button" onClick={() => { editor.chain().focus().addRowAfter().run(); setIsOpen(false); }}>
+                  Add Row After
+                </button>
+                <button type="button" onClick={() => { editor.chain().focus().deleteRow().run(); setIsOpen(false); }}>
+                  Delete Row
+                </button>
+                <div className="table-menu-separator" />
+                <button type="button" onClick={() => { editor.chain().focus().toggleHeaderRow().run(); setIsOpen(false); }}>
+                  Toggle Header Row
+                </button>
+                <button type="button" onClick={() => { editor.chain().focus().toggleHeaderColumn().run(); setIsOpen(false); }}>
+                  Toggle Header Column
+                </button>
+                <button type="button" onClick={() => { editor.chain().focus().mergeCells().run(); setIsOpen(false); }} disabled={!editor.can().mergeCells()}>
+                  Merge Cells
+                </button>
+                <button type="button" onClick={() => { editor.chain().focus().splitCell().run(); setIsOpen(false); }} disabled={!editor.can().splitCell()}>
+                  Split Cell
+                </button>
+                <div className="table-menu-separator" />
+                <button type="button" onClick={() => { editor.chain().focus().deleteTable().run(); setIsOpen(false); }} className="danger">
+                  Delete Table
+                </button>
+              </>
+            )}
+          </div>
+        </>
+      )}
+    </div>
+  );
+}
+
 const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onImageUpload }, ref) {
   const [showImageModal, setShowImageModal] = useState(false);
   const [pendingImageUrl, setPendingImageUrl] = useState(null);
@@ -356,7 +438,16 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
         types: ['textStyle']
       }),
       Underline,
-      FontSize
+      FontSize,
+      Table.configure({
+        resizable: true,
+        HTMLAttributes: {
+          class: 'article-table',
+        },
+      }),
+      TableRow,
+      TableHeader,
+      TableCell,
     ],
     content: content || '',
     onUpdate: ({ editor }) => {
@@ -799,6 +890,7 @@ const WysiwygEditor = forwardRef(function WysiwygEditor({ content, onChange, onI
           >
             Link
           </button>
+          <TableMenu editor={editor} />
         </div>
 
         <div className="toolbar-separator" />
